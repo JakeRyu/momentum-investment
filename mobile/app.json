@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Momentum Investment",
+    "slug": "momentum-investment",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jake.momentuminvestment"
+    },
+    "android": {
+      "package": "com.jake.momentuminvestment"
+    },
+    "plugins": [
+      "expo-asset",
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}
