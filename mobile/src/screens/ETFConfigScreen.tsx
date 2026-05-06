@@ -22,6 +22,9 @@ import {
 import type { Region } from '../api/vaaClient';
 import {
   ASSET_CLASSES,
+  DAA_G12_CANARY,
+  DAA_G12_CASH,
+  DAA_G12_RISKY,
   VAA_DEFENSIVE,
   VAA_OFFENSIVE,
   findEtfOption,
@@ -29,9 +32,50 @@ import {
   type AssetClassCode,
 } from '../etfCatalog';
 import type { CustomEtfEntry, CustomTickers, Overrides } from '../storage';
+import { type StrategyId } from '../strategies';
 import { pickTicker } from '../universe';
 
+/**
+ * Strategy → ordered list of bucket sections shown in the config screen.
+ * Each section has a label (the user-facing bucket name) and the asset
+ * classes that compose it. An empty list means the strategy isn't
+ * implemented yet; the UI shows a placeholder in that case.
+ *
+ * Note: same `AssetClassCode` can appear across multiple sections (e.g.
+ * `EM_FTSE` in DAA's canary AND risky, `IG_CORP` in DAA's risky AND cash).
+ * That's intentional — the user sees the full strategy structure, and
+ * because override is keyed on asset class, changing it in one section
+ * automatically applies in the other.
+ */
+type Section = { label: string; codes: AssetClassCode[] };
+
+const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
+  vaa: [
+    { label: 'Offensive (G4)', codes: VAA_OFFENSIVE },
+    { label: 'Defensive (B3)', codes: VAA_DEFENSIVE },
+  ],
+  daa: [
+    { label: 'Canary (B=2)', codes: DAA_G12_CANARY },
+    { label: 'Risky (T=6 of 12)', codes: DAA_G12_RISKY },
+    { label: 'Cash', codes: DAA_G12_CASH },
+  ],
+  paa: [],
+  baa: [],
+  haa: [],
+  laa: [],
+};
+
+const STRATEGY_LABEL: Record<StrategyId, string> = {
+  vaa: 'VAA-G4/B3',
+  daa: 'DAA-G12',
+  paa: 'PAA',
+  baa: 'BAA',
+  haa: 'HAA',
+  laa: 'LAA',
+};
+
 export type ETFConfigScreenProps = {
+  strategyId: StrategyId;
   region: Region;
   overrides: Overrides;
   customs: CustomTickers;
@@ -43,6 +87,7 @@ export type ETFConfigScreenProps = {
 };
 
 export default function ETFConfigScreen({
+  strategyId,
   region,
   overrides,
   customs,
@@ -54,7 +99,14 @@ export default function ETFConfigScreen({
 }: ETFConfigScreenProps) {
   const [pickerFor, setPickerFor] = useState<AssetClassCode | null>(null);
   const editable = region === 'UK';
-  const hasOverrides = Object.keys(overrides).length > 0;
+  const sections = STRATEGY_SECTIONS[strategyId];
+  // Only consider overrides that this strategy actually consumes — if the
+  // user customised an asset class that's not in the current strategy's
+  // composition, "Reset" shouldn't claim there's anything to reset here.
+  const codesInStrategy = new Set(sections.flatMap((s) => s.codes));
+  const hasOverrides = Object.keys(overrides).some((k) =>
+    codesInStrategy.has(k as AssetClassCode),
+  );
 
   return (
     <View style={styles.root}>
@@ -64,54 +116,66 @@ export default function ETFConfigScreen({
           <Text style={styles.back}>← 뒤로</Text>
         </Pressable>
 
-        <Text style={styles.title}>ETF Universe</Text>
+        <Text style={styles.title}>{STRATEGY_LABEL[strategyId]} · ETF Universe</Text>
         <Text style={styles.subtitle}>
           {region === 'UK'
             ? '🇬🇧 UK · LSE-listed UCITS ETFs'
             : '🇺🇸 US · Original Keller universe (read-only)'}
         </Text>
 
-        <Text style={styles.sectionLabel}>Offensive (G4)</Text>
-        <View style={styles.list}>
-          {VAA_OFFENSIVE.map((code) => (
-            <AssetClassRow
-              key={code}
-              code={code}
-              region={region}
-              overrides={overrides}
-              customs={customs}
-              editable={editable}
-              onPress={() => setPickerFor(code)}
-            />
-          ))}
-        </View>
+        {sections.length === 0 ? (
+          <View style={styles.placeholderBox}>
+            <Text style={styles.placeholderTitle}>Universe not yet defined</Text>
+            <Text style={styles.placeholderBody}>
+              {STRATEGY_LABEL[strategyId]} isn't implemented yet, so there's nothing to
+              configure here. Pick VAA or DAA on the home screen to customise their
+              universes.
+            </Text>
+          </View>
+        ) : (
+          <>
+            {sections.map((section) => (
+              <View key={section.label}>
+                <Text style={styles.sectionLabel}>{section.label}</Text>
+                <View style={styles.list}>
+                  {section.codes.map((code) => (
+                    <AssetClassRow
+                      // include section in key so the same asset class
+                      // shared across sections (e.g. EM_FTSE in canary +
+                      // risky) renders both rows, with consistent state.
+                      key={`${section.label}:${code}`}
+                      code={code}
+                      region={region}
+                      overrides={overrides}
+                      customs={customs}
+                      editable={editable}
+                      onPress={() => setPickerFor(code)}
+                    />
+                  ))}
+                </View>
+              </View>
+            ))}
 
-        <Text style={styles.sectionLabel}>Defensive (B3)</Text>
-        <View style={styles.list}>
-          {VAA_DEFENSIVE.map((code) => (
-            <AssetClassRow
-              key={code}
-              code={code}
-              region={region}
-              overrides={overrides}
-              customs={customs}
-              editable={editable}
-              onPress={() => setPickerFor(code)}
-            />
-          ))}
-        </View>
+            {editable && hasOverrides && (
+              <Pressable style={styles.reset} onPress={onReset}>
+                <Text style={styles.resetText}>Reset to defaults</Text>
+              </Pressable>
+            )}
 
-        {editable && hasOverrides && (
-          <Pressable style={styles.reset} onPress={onReset}>
-            <Text style={styles.resetText}>Reset to defaults</Text>
-          </Pressable>
-        )}
+            {!editable && (
+              <Text style={styles.note}>
+                US universe is fixed to the original Keller tickers. Switch to UK on the
+                home screen to customise the LSE UCITS substitutes.
+              </Text>
+            )}
 
-        {!editable && (
-          <Text style={styles.note}>
-            US universe is fixed to the original Keller tickers (SPY, EFA, EEM, AGG, LQD, IEF,
-            SHY). Switch to UK on the home screen to customise the LSE UCITS substitutes.
-          </Text>
+            {editable && (
+              <Text style={styles.note}>
+                Overrides are scoped per asset class, not per strategy — changing e.g.
+                IG Corp here applies to every strategy that uses it.
+              </Text>
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -541,6 +605,23 @@ const styles = StyleSheet.create({
   list: {
     gap: 8,
     marginBottom: 16,
+  },
+  placeholderBox: {
+    borderRadius: 12,
+    padding: 18,
+    backgroundColor: '#161a1f',
+    gap: 6,
+    marginTop: 8,
+  },
+  placeholderTitle: {
+    color: '#cfd5dc',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  placeholderBody: {
+    color: '#8a93a0',
+    fontSize: 13,
+    lineHeight: 18,
   },
   row: {
     flexDirection: 'row',

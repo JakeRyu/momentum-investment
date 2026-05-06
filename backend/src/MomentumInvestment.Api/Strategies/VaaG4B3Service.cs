@@ -15,9 +15,9 @@ namespace MomentumInvestment.Api.Strategies;
 /// defensive (B3) asset by momentum. Otherwise, pick the top offensive
 /// asset by momentum.
 /// </summary>
-public sealed class VaaG4B3Service
+public sealed class VaaG4B3Service : IAllocationStrategy<VaaUniverse>
 {
-    public const string StrategyId = "vaa-g4b3";
+    public string StrategyId => "vaa-g4b3";
 
     private readonly ILogger<VaaG4B3Service> _logger;
 
@@ -32,11 +32,11 @@ public sealed class VaaG4B3Service
         IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> dailyByTicker)
     {
         var offensiveScores = universe.Offensive
-            .Select(t => new AssetMomentum(t, ScoreFor(t, asOf, dailyByTicker), Bucket: "Offensive"))
+            .Select(t => new AssetMomentum(t, MomentumScorer.Score13612W(t, asOf, dailyByTicker, _logger), Bucket: "Offensive"))
             .ToList();
 
         var defensiveScores = universe.Defensive
-            .Select(t => new AssetMomentum(t, ScoreFor(t, asOf, dailyByTicker), Bucket: "Defensive"))
+            .Select(t => new AssetMomentum(t, MomentumScorer.Score13612W(t, asOf, dailyByTicker, _logger), Bucket: "Defensive"))
             .ToList();
 
         var allScores = offensiveScores.Concat(defensiveScores).ToList();
@@ -69,32 +69,5 @@ public sealed class VaaG4B3Service
                     $"All offensive (G4) assets have positive 13612W momentum. " +
                     $"Offensive mode: top G4 by momentum is {top.Ticker} ({top.Score:F4}).");
         }
-    }
-
-    private decimal ScoreFor(
-        string ticker,
-        DateOnly asOf,
-        IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> daily)
-    {
-        if (!daily.TryGetValue(ticker, out var history))
-        {
-            throw new InvalidOperationException($"Missing daily history for ticker '{ticker}'.");
-        }
-
-        var p = LookbackPriceLookup.FindLookbackPrices(asOf, history);
-        var score = MomentumScoreCalculator.Calculate13612W(
-            p.P0.AdjClose, p.P1.AdjClose, p.P3.AdjClose, p.P6.AdjClose, p.P12.AdjClose);
-
-        _logger.LogInformation(
-            "13612W {Ticker,-6} p0={P0,9:F4} ({D0:yyyy-MM-dd}) p1={P1,9:F4} ({D1:yyyy-MM-dd}) p3={P3,9:F4} ({D3:yyyy-MM-dd}) p6={P6,9:F4} ({D6:yyyy-MM-dd}) p12={P12,9:F4} ({D12:yyyy-MM-dd}) -> score={Score,8:F4}",
-            ticker,
-            p.P0.AdjClose, p.P0.Date,
-            p.P1.AdjClose, p.P1.Date,
-            p.P3.AdjClose, p.P3.Date,
-            p.P6.AdjClose, p.P6.Date,
-            p.P12.AdjClose, p.P12.Date,
-            score);
-
-        return score;
     }
 }

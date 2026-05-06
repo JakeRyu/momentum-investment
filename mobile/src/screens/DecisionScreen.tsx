@@ -27,7 +27,12 @@ export type DecisionRequest =
 export type DecisionScreenProps = {
   strategy: Strategy;
   asOf: string;
-  /** Used for the header subtitle on region-aware strategies (VAA). DAA ignores this in Phase 1. */
+  /**
+   * Region tag shown in the header subtitle. Both VAA and DAA are
+   * region-aware now (their universes resolve via per-asset-class
+   * overrides for UK), so the flag always reflects which ETF set was
+   * sent to the backend.
+   */
   region: Region;
   request: DecisionRequest;
   onBack: () => void;
@@ -108,12 +113,10 @@ export default function DecisionScreen({
     ? STRATEGY_LABELS[decision.strategyId] ?? strategy.shortName
     : strategy.shortName;
 
-  // VAA's universe is region-aware; DAA's Phase-1 universe is US-only and
-  // not user-configurable, so the region tag would be misleading there.
-  const showRegion = request.kind === 'vaa';
-  const subtitle = showRegion
-    ? `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} universe`
-    : `As of ${asOf}`;
+  // Both VAA and DAA resolve their universe via the region picker +
+  // per-asset-class overrides on the mobile side, so the region flag is
+  // meaningful for either.
+  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} universe`;
 
   return (
     <View style={styles.root}>

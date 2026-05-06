@@ -1,11 +1,18 @@
 /**
  * Resolves a (region, overrides) selection into the concrete ticker lists
- * that get sent to the backend. Frontend-only concern — the backend now
+ * that get sent to the backend. Frontend-only concern — the backend
  * receives explicit ticker arrays and is region-agnostic.
+ *
+ * One resolver per strategy, sharing the same `pickTicker` building block
+ * so US default / UK curated default / per-asset-class override semantics
+ * stay consistent across strategies.
  */
 import type { Region } from './api/vaaClient';
 import {
   ASSET_CLASSES,
+  DAA_G12_CANARY,
+  DAA_G12_CASH,
+  DAA_G12_RISKY,
   VAA_DEFENSIVE,
   VAA_OFFENSIVE,
   type AssetClassCode,
@@ -22,6 +29,12 @@ export type ResolvedUniverse = {
   defensive: ResolvedAsset[];
 };
 
+export type ResolvedDaaG12Universe = {
+  canary: ResolvedAsset[];
+  risky: ResolvedAsset[];
+  cash: ResolvedAsset[];
+};
+
 export function pickTicker(
   code: AssetClassCode,
   region: Region,
@@ -35,6 +48,9 @@ export function pickTicker(
   if (overridden) return overridden;
   return ASSET_CLASSES[code].ukAlternatives[0].ticker;
 }
+
+// ---------------------------------------------------------------------------
+// VAA-G4/B3
 
 export function resolveUniverse(region: Region, overrides: Overrides): ResolvedUniverse {
   return {
@@ -50,5 +66,31 @@ export function tickerArrays(u: ResolvedUniverse): {
   return {
     offensive: u.offensive.map((x) => x.ticker),
     defensive: u.defensive.map((x) => x.ticker),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// DAA-G12
+
+export function resolveDaaG12Universe(
+  region: Region,
+  overrides: Overrides,
+): ResolvedDaaG12Universe {
+  return {
+    canary: DAA_G12_CANARY.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    risky: DAA_G12_RISKY.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    cash: DAA_G12_CASH.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+  };
+}
+
+export function daaG12TickerArrays(u: ResolvedDaaG12Universe): {
+  canary: string[];
+  risky: string[];
+  cash: string[];
+} {
+  return {
+    canary: u.canary.map((x) => x.ticker),
+    risky: u.risky.map((x) => x.ticker),
+    cash: u.cash.map((x) => x.ticker),
   };
 }

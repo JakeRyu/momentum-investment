@@ -2,32 +2,15 @@
  * Thin client for the local backend's DAA-G12 endpoint.
  *
  * DAA-G12 (Keller & Keuning, 2018) is a three-bucket strategy: canary,
- * risky, cash. The default universe below is the original 2018 Keller
- * paper universe — US-listed ETFs.
+ * risky, cash. The caller supplies the resolved ticker lists explicitly —
+ * the backend stays region-agnostic, and region/UK-override resolution
+ * lives in `src/universe.ts` (`resolveDaaG12Universe`) the same way VAA's
+ * does.
  *
- * Phase 1 ships DAA with this hardcoded US universe only. UK substitutes
- * and per-asset-class user overrides (the way VAA handles them) will come
- * after the basic flow is validated end-to-end.
+ * Note: a ticker may appear in multiple buckets (e.g. VWO in canary+risky,
+ * LQD in risky+cash). The backend dedupes when fetching prices.
  */
 import { baseUrl, type AllocationDecision } from './apiBase';
-
-/**
- * Keller 2018 DAA-G12 US universe.
- *   - Canary: VWO (emerging markets), BND (US aggregate bonds).
- *   - Risky: 12 globally diversified equity / commodity / bond ETFs.
- *   - Cash: short-Treasury, 7-10y Treasury, IG corp.
- *
- * Note: VWO appears in both Canary and Risky; LQD appears in both Risky
- * and Cash. The backend dedupes when fetching prices.
- */
-export const DAA_G12_US_UNIVERSE = {
-  canary: ['VWO', 'BND'] as const,
-  risky: [
-    'SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'VWO',
-    'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD',
-  ] as const,
-  cash: ['SHY', 'IEF', 'LQD'] as const,
-} as const;
 
 /**
  * Runs a DAA-G12 decision against an explicit ticker universe (canary,

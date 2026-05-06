@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import type { Region } from './src/api/apiBase';
-import { DAA_G12_US_UNIVERSE } from './src/api/daaClient';
 import { type AssetClassCode } from './src/etfCatalog';
 import DecisionScreen, { type DecisionRequest } from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
@@ -26,7 +25,12 @@ import {
   type Strategy,
   type StrategyId,
 } from './src/strategies';
-import { resolveUniverse, tickerArrays } from './src/universe';
+import {
+  daaG12TickerArrays,
+  resolveDaaG12Universe,
+  resolveUniverse,
+  tickerArrays,
+} from './src/universe';
 import { formatYmd } from './src/utils';
 
 type Screen =
@@ -140,16 +144,13 @@ export default function App() {
       return;
     }
 
-    // Strategy-specific universe resolution. VAA honours region + per-asset
-    // overrides; DAA in Phase 1 is hardcoded to the Keller 2018 US universe.
+    // Strategy-specific universe resolution. Both VAA and DAA honour
+    // region + per-asset-class overrides through their own resolver.
     let request: DecisionRequest;
     if (strategy.id === 'daa') {
-      request = {
-        kind: 'daa-g12',
-        canary: DAA_G12_US_UNIVERSE.canary,
-        risky: DAA_G12_US_UNIVERSE.risky,
-        cash: DAA_G12_US_UNIVERSE.cash,
-      };
+      const universe = resolveDaaG12Universe(region, overrides);
+      const { canary, risky, cash } = daaG12TickerArrays(universe);
+      request = { kind: 'daa-g12', canary, risky, cash };
     } else {
       const universe = resolveUniverse(region, overrides);
       const { offensive, defensive } = tickerArrays(universe);
@@ -181,6 +182,7 @@ export default function App() {
   if (screen.kind === 'config') {
     return (
       <ETFConfigScreen
+        strategyId={selectedStrategyId}
         region={region}
         overrides={overrides}
         customs={customs}

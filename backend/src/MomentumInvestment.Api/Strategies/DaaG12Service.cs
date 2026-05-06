@@ -25,9 +25,9 @@ namespace MomentumInvestment.Api.Strategies;
 /// the count of risky positions shrinks. Cash, when held, is concentrated
 /// in the single highest-momentum asset of the cash universe.
 /// </summary>
-public sealed class DaaG12Service
+public sealed class DaaG12Service : IAllocationStrategy<DaaG12Universe>
 {
-    public const string StrategyId = "daa-g12";
+    public string StrategyId => "daa-g12";
 
     /// <summary>Top-risky selection parameter (canonical DAA-G12 default).</summary>
     public const int T = 6;
@@ -53,7 +53,7 @@ public sealed class DaaG12Service
         var scoresByTicker = new Dictionary<string, decimal>();
         foreach (var ticker in universe.AllTickers())
         {
-            scoresByTicker[ticker] = ScoreFor(ticker, asOf, dailyByTicker);
+            scoresByTicker[ticker] = MomentumScorer.Score13612W(ticker, asOf, dailyByTicker, _logger);
         }
 
         // Bucket-tagged score list for the response. Order: Canary → Risky → Cash
@@ -145,32 +145,5 @@ public sealed class DaaG12Service
             Allocations: allocations,
             Scores: allScores,
             Reasoning: reasoning);
-    }
-
-    private decimal ScoreFor(
-        string ticker,
-        DateOnly asOf,
-        IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> daily)
-    {
-        if (!daily.TryGetValue(ticker, out var history))
-        {
-            throw new InvalidOperationException($"Missing daily history for ticker '{ticker}'.");
-        }
-
-        var p = LookbackPriceLookup.FindLookbackPrices(asOf, history);
-        var score = MomentumScoreCalculator.Calculate13612W(
-            p.P0.AdjClose, p.P1.AdjClose, p.P3.AdjClose, p.P6.AdjClose, p.P12.AdjClose);
-
-        _logger.LogInformation(
-            "13612W {Ticker,-6} p0={P0,9:F4} ({D0:yyyy-MM-dd}) p1={P1,9:F4} ({D1:yyyy-MM-dd}) p3={P3,9:F4} ({D3:yyyy-MM-dd}) p6={P6,9:F4} ({D6:yyyy-MM-dd}) p12={P12,9:F4} ({D12:yyyy-MM-dd}) -> score={Score,8:F4}",
-            ticker,
-            p.P0.AdjClose, p.P0.Date,
-            p.P1.AdjClose, p.P1.Date,
-            p.P3.AdjClose, p.P3.Date,
-            p.P6.AdjClose, p.P6.Date,
-            p.P12.AdjClose, p.P12.Date,
-            score);
-
-        return score;
     }
 }
