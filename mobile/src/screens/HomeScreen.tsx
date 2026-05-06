@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import type { Region } from '../api/vaaClient';
 import { STRATEGIES, type Strategy, type StrategyId } from '../strategies';
 import { formatYmd } from '../utils';
 
@@ -19,15 +20,26 @@ export type HomeScreenProps = {
   onStrategyChange: (id: StrategyId) => void;
   asOfDate: Date;
   onAsOfChange: (d: Date) => void;
+  region: Region;
+  onRegionChange: (r: Region) => void;
   onConfirm: () => void;
+  onOpenConfig: () => void;
 };
+
+const REGION_OPTIONS: { value: Region; label: string; sub: string }[] = [
+  { value: 'US', label: '🇺🇸 US', sub: 'NYSE/NASDAQ' },
+  { value: 'UK', label: '🇬🇧 UK', sub: 'LSE UCITS' },
+];
 
 export default function HomeScreen({
   selectedStrategyId,
   onStrategyChange,
   asOfDate,
   onAsOfChange,
+  region,
+  onRegionChange,
   onConfirm,
+  onOpenConfig,
 }: HomeScreenProps) {
   const [showAndroidPicker, setShowAndroidPicker] = useState(false);
 
@@ -35,8 +47,20 @@ export default function HomeScreen({
     <View style={styles.root}>
       <StatusBar style="light" />
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Momentum Investment</Text>
-        <Text style={styles.subtitle}>Wouter Keller momentum strategies</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextWrap}>
+            <Text style={styles.title}>Momentum Investment</Text>
+            <Text style={styles.subtitle}>Wouter Keller momentum strategies</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.gearButton}
+            onPress={onOpenConfig}
+            activeOpacity={0.7}
+            hitSlop={8}
+          >
+            <Text style={styles.gearText}>⚙︎</Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={styles.sectionLabel}>기준일 (As of)</Text>
         {Platform.OS === 'ios' ? (
@@ -73,6 +97,28 @@ export default function HomeScreen({
             )}
           </>
         )}
+
+        <Text style={styles.sectionLabel}>거래소 (Region)</Text>
+        <View style={styles.segmented}>
+          {REGION_OPTIONS.map((opt) => {
+            const selected = opt.value === region;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.segment, selected && styles.segmentSelected]}
+                onPress={() => onRegionChange(opt.value)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+                  {opt.label}
+                </Text>
+                <Text style={[styles.segmentSub, selected && styles.segmentSubSelected]}>
+                  {opt.sub}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         <Text style={styles.sectionLabel}>전략 (Strategy)</Text>
         <View style={styles.strategyList}>
@@ -154,6 +200,28 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#2a2f37',
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 28,
+  },
+  headerTextWrap: {
+    flex: 1,
+  },
+  gearButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#161a1f',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  gearText: {
+    color: '#cfd5dc',
+    fontSize: 20,
+  },
   title: {
     color: '#f4f6f8',
     fontSize: 26,
@@ -163,7 +231,6 @@ const styles = StyleSheet.create({
     color: '#8a93a0',
     fontSize: 14,
     marginTop: 4,
-    marginBottom: 28,
   },
   sectionLabel: {
     color: '#8a93a0',
@@ -196,6 +263,44 @@ const styles = StyleSheet.create({
     color: '#f4f6f8',
     fontSize: 16,
     fontVariant: ['tabular-nums'],
+  },
+  segmented: {
+    flexDirection: 'row',
+    backgroundColor: '#161a1f',
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+    marginBottom: 28,
+  },
+  segment: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  segmentSelected: {
+    backgroundColor: '#1a2620',
+    borderWidth: 1,
+    borderColor: '#7ed4a3',
+  },
+  segmentLabel: {
+    color: '#8a93a0',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  segmentLabelSelected: {
+    color: '#f4f6f8',
+  },
+  segmentSub: {
+    color: '#5e6671',
+    fontSize: 11,
+    letterSpacing: 0.4,
+  },
+  segmentSubSelected: {
+    color: '#7ed4a3',
   },
   strategyList: {
     gap: 8,

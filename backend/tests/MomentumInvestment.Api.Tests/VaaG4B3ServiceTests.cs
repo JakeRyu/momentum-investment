@@ -1,4 +1,4 @@
-using MomentumInvestment.Api.Vaa;
+using MomentumInvestment.Api.Strategies;
 using Xunit;
 
 namespace MomentumInvestment.Api.Tests;
@@ -47,11 +47,13 @@ public sealed class VaaG4B3ServiceTests
             spy: 1.05m, efa: 1.04m, eem: 1.03m, agg: 1.02m,
             lqd: 1.04m, ief: 1.03m, shy: 1.02m);
 
-        var decision = new VaaG4B3Service().Decide(AsOf, prices);
+        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Us, prices);
 
-        Assert.Equal(VaaMode.Offensive, decision.Mode);
-        Assert.Equal("SPY", decision.SelectedTicker);
-        Assert.Equal(0.95m, decision.SelectedScore);
+        Assert.Equal("vaa-g4b3", decision.StrategyId);
+        Assert.Equal("Offensive", decision.ModeLabel);
+        Assert.Single(decision.Allocations);
+        Assert.Equal("SPY", decision.Allocations[0].Ticker);
+        Assert.Equal(1.0m, decision.Allocations[0].Weight);
     }
 
     [Fact]
@@ -62,11 +64,12 @@ public sealed class VaaG4B3ServiceTests
             spy: 0.95m, efa: 1.04m, eem: 1.03m, agg: 1.02m,
             lqd: 1.04m, ief: 1.03m, shy: 1.02m);
 
-        var decision = new VaaG4B3Service().Decide(AsOf, prices);
+        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Us, prices);
 
-        Assert.Equal(VaaMode.Defensive, decision.Mode);
-        Assert.Equal("LQD", decision.SelectedTicker);
-        Assert.Equal(0.76m, decision.SelectedScore);
+        Assert.Equal("Defensive", decision.ModeLabel);
+        Assert.Single(decision.Allocations);
+        Assert.Equal("LQD", decision.Allocations[0].Ticker);
+        Assert.Equal(1.0m, decision.Allocations[0].Weight);
     }
 
     [Fact]
@@ -77,23 +80,50 @@ public sealed class VaaG4B3ServiceTests
             spy: 1.05m, efa: 1.04m, eem: 1.03m, agg: 1.00m,
             lqd: 1.04m, ief: 1.03m, shy: 1.02m);
 
-        var decision = new VaaG4B3Service().Decide(AsOf, prices);
+        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Us, prices);
 
-        Assert.Equal(VaaMode.Defensive, decision.Mode);
+        Assert.Equal("Defensive", decision.ModeLabel);
     }
 
     [Fact]
-    public void Decide_ScoresIncludedForBothUniverses()
+    public void Decide_ScoresIncludedForBothBuckets()
     {
         var prices = Prices(
             spy: 1.05m, efa: 1.04m, eem: 1.03m, agg: 1.02m,
             lqd: 1.04m, ief: 1.03m, shy: 1.02m);
 
-        var decision = new VaaG4B3Service().Decide(AsOf, prices);
+        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Us, prices);
 
-        Assert.Equal(4, decision.OffensiveScores.Count);
-        Assert.Equal(3, decision.DefensiveScores.Count);
-        Assert.Contains(decision.OffensiveScores, s => s.Ticker == "SPY" && s.Score == 0.95m);
-        Assert.Contains(decision.DefensiveScores, s => s.Ticker == "LQD" && s.Score == 0.76m);
+        var offensiveScores = decision.Scores.Where(s => s.Bucket == "Offensive").ToList();
+        var defensiveScores = decision.Scores.Where(s => s.Bucket == "Defensive").ToList();
+
+        Assert.Equal(4, offensiveScores.Count);
+        Assert.Equal(3, defensiveScores.Count);
+        Assert.Contains(offensiveScores, s => s.Ticker == "SPY" && s.Score == 0.95m);
+        Assert.Contains(defensiveScores, s => s.Ticker == "LQD" && s.Score == 0.76m);
+    }
+
+    [Fact]
+    public void Decide_UkUniverse_UsesUkTickers()
+    {
+        // Same momentum shape as the offensive test, but priced against the
+        // UK UCITS substitutes. Verifies that the universe parameter is
+        // honoured all the way through to the returned tickers.
+        var prices = new Dictionary<string, IReadOnlyList<DailyClose>>
+        {
+            ["CSPX.L"] = History(1.05m),
+            ["IWDA.L"] = History(1.04m),
+            ["EIMI.L"] = History(1.03m),
+            ["AGGU.L"] = History(1.02m),
+            ["LQDA.L"] = History(1.04m),
+            ["IDTM.L"] = History(1.03m),
+            ["IBTS.L"] = History(1.02m),
+        };
+
+        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Uk, prices);
+
+        Assert.Equal("Offensive", decision.ModeLabel);
+        Assert.Equal("CSPX.L", decision.Allocations[0].Ticker);
+        Assert.All(decision.Scores, s => Assert.EndsWith(".L", s.Ticker));
     }
 }

@@ -1,42 +1,41 @@
 /**
  * Thin client for the local backend's VAA-G4/B3 endpoint.
  *
- * Configure the host via the EXPO_PUBLIC_API_BASE_URL env var. On a real
- * device, point this at your machine's LAN IP (e.g. http://192.168.1.10:5000)
- * since `localhost` resolves to the device itself, not the dev machine.
+ * Returns the unified `AllocationDecision` shape — for VAA this is always
+ * a single-asset allocation (100% in the picked offensive or defensive
+ * ticker) plus per-asset scores tagged with bucket "Offensive" / "Defensive".
  */
-const DEFAULT_BASE_URL = 'http://localhost:5000';
+import { baseUrl, type AllocationDecision } from './apiBase';
 
-const baseUrl =
-  (process.env.EXPO_PUBLIC_API_BASE_URL as string | undefined) ?? DEFAULT_BASE_URL;
+// Re-export so existing imports `from '../api/vaaClient'` keep working.
+export type { AllocationDecision, Allocation, AssetMomentum, Region } from './apiBase';
+export { getApiBaseUrl } from './apiBase';
 
-export type VaaMode = 'Offensive' | 'Defensive';
+/**
+ * Runs a VAA-G4/B3 decision against an explicit ticker universe.
+ * The backend is region-agnostic — the caller is responsible for picking
+ * the offensive/defensive ticker sets (see `src/universe.ts`).
+ */
+export async function fetchVaaDecision(
+  asOf: string,
+  offensive: string[],
+  defensive: string[],
+  signal?: AbortSignal,
+): Promise<AllocationDecision> {
+  if (offensive.length === 0 || defensive.length === 0) {
+    throw new Error('Both offensive and defensive ticker lists must be non-empty.');
+  }
 
-export type AssetMomentum = {
-  ticker: string;
-  score: number;
-};
+  const params = new URLSearchParams();
+  params.set('asOf', asOf);
+  for (const t of offensive) params.append('offensive', t);
+  for (const t of defensive) params.append('defensive', t);
 
-export type VaaDecision = {
-  asOfMonth: string;
-  mode: VaaMode;
-  selectedTicker: string;
-  selectedScore: number;
-  offensiveScores: AssetMomentum[];
-  defensiveScores: AssetMomentum[];
-  reasoning: string;
-};
-
-export async function fetchVaaDecision(asOf: string, signal?: AbortSignal): Promise<VaaDecision> {
-  const url = `${baseUrl}/api/vaa-g4b3/decision?asOf=${encodeURIComponent(asOf)}`;
+  const url = `${baseUrl}/api/vaa-g4b3/decision?${params.toString()}`;
   const res = await fetch(url, { signal });
   if (!res.ok) {
     const body = await res.text().catch(() => '');
     throw new Error(`Request failed (${res.status}): ${body || res.statusText}`);
   }
-  return (await res.json()) as VaaDecision;
-}
-
-export function getApiBaseUrl(): string {
-  return baseUrl;
+  return (await res.json()) as AllocationDecision;
 }

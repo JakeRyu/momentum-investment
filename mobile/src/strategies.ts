@@ -36,7 +36,7 @@ export const STRATEGIES: readonly Strategy[] = [
     shortName: 'DAA',
     fullName: 'Defensive Asset Allocation',
     blurb: "Adds a 'canary' universe to VAA for crash signalling (Keller & Keuning, 2018)",
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'baa',

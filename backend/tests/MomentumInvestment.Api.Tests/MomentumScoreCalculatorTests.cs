@@ -1,4 +1,4 @@
-using MomentumInvestment.Api.Vaa;
+using MomentumInvestment.Api.Strategies;
 using Xunit;
 
 namespace MomentumInvestment.Api.Tests;
