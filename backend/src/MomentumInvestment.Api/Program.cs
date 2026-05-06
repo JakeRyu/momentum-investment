@@ -18,6 +18,7 @@ builder.Services.Configure<YahooFinanceOptions>(builder.Configuration.GetSection
 builder.Services.AddHttpClient<YahooFinanceClient>();
 builder.Services.AddSingleton<VaaG4B3Service>();
 builder.Services.AddSingleton<DaaG12Service>();
+builder.Services.AddSingleton<PaaService>();
 
 // Permissive CORS for the Expo dev client. Tighten before any real deploy.
 builder.Services.AddCors(options =>
@@ -133,6 +134,44 @@ app.MapGet("/api/daa-g12/decision", async (
     return Results.Ok(decision);
 });
 
+// PAA-G12 decision (Keller & van Putten, 2016) — PAA2 variant (a=2).
+//
+// Two ticker buckets supplied by the caller — risky and cash. Same
+// region-agnostic contract as VAA/DAA: mobile resolves which tickers to
+// send and the backend just executes the strategy. The momentum signal
+// here is SMA(12) on monthly closes (not 13612W).
+//
+// Example:
+//   /api/paa/decision?asOf=2026-05-05
+//     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM
+//     &risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT
+//     &cash=IEF&cash=SHY&cash=LQD
+app.MapGet("/api/paa/decision", async (
+    DateOnly asOf,
+    string[] risky,
+    string[] cash,
+    YahooFinanceClient yahoo,
+    PaaService paa,
+    IMemoryCache cacheStore,
+    CancellationToken ct) =>
+{
+    if (risky is null || risky.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
+    }
+    if (cash is null || cash.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
+    }
+
+    var universe = new PaaUniverse(risky, cash);
+    var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
+    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+
+    var decision = paa.Decide(asOf, universe, prices);
+    return Results.Ok(decision);
+});
+
 // Validates a single ticker against Yahoo Finance and returns the meta
 // block (currency, exchange, longName, first-trade date). Used by the
 // mobile app when the user adds a custom ETF that isn't in the curated
@@ -175,6 +214,7 @@ app.MapGet("/", () => Results.Ok(new
     {
         "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD&offensive=A&offensive=B&...&defensive=X&defensive=Y&...",
         "/api/daa-g12/decision?asOf=YYYY-MM-DD&canary=A&canary=B&risky=...&cash=...",
+        "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...",
         "/api/etf/probe?ticker=EMIM.L",
     },
 }));

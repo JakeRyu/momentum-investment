@@ -1,16 +1,16 @@
 # Momentum Investment
 
 Personal mobile app surfacing **Wouter Keller's momentum-based asset-allocation
-decisions**. Phase 1 implements **VAA-G4/B3** and **DAA-G12** end-to-end; the
-other Keller strategies (PAA, BAA, HAA, LAA) are listed in the mobile picker
-but route to a "Coming soon" placeholder.
+decisions**. Phase 1 implements **VAA-G4/B3**, **DAA-G12**, and **PAA-G12 (a=2)**
+end-to-end; the other Keller strategies (BAA, HAA, LAA) are listed in the mobile
+picker but route to a "Coming soon" placeholder.
 
 ## Layout
 
 ```
-backend/   ASP.NET Core 10 minimal API — momentum + VAA/DAA decision engine
+backend/   ASP.NET Core 10 minimal API — momentum + VAA/DAA/PAA decision engine
 mobile/    Expo (React Native) — Home / ETFConfig / Decision / NotImplemented
-scripts/   Python reference implementation of 13612W (verification)
+scripts/   Python reference implementations of 13612W and SMA12 (verification)
 ```
 
 ## Strategy: VAA-G4/B3
@@ -54,6 +54,32 @@ Reference: Keller & Keuning, *Breadth Momentum and Vigilant Asset Allocation*, 2
 
 Reference: Keller & Keuning, *Breadth Momentum and the Canary Universe*, 2018.
 
+## Strategy: PAA-G12/T6 (a=2)
+
+- **Risky (T=6 of N=12):** SPY, IWM, QQQ, VGK, EWJ, EEM, VNQ, GSG, GLD, HYG, LQD, TLT.
+- **Cash:** IEF, SHY, LQD (Keller's canonical cash is single-asset IEF; we
+  accept a multi-asset list and pick top-by-momentum, so passing `cash=IEF`
+  alone reproduces the original behaviour).
+- **Momentum signal:** SMA(12), not 13612W —
+  `momentum = p₀ / mean(p₀..p₁₁) − 1`. P₀ is *included* in the SMA per
+  Keller's PAA paper definition.
+- **Rule (Keller & van Putten, 2016, with a=2):** count `n` of risky assets
+  with momentum > 0. Bond fraction `BF = max(0, min(1, (N − n) / N1))` where
+  `N1 = N − a·N/4`. For N=12, a=2 → N1 = 6, so:
+  - `n ≤ 6` → BF = 1 → 100% in top cash (Defensive)
+  - `n = 7..11` → BF = (12−n)/6 → top T=6 risky at `(1−BF)/T` each + BF in top cash (Hybrid)
+  - `n = 12` → BF = 0 → top 6 risky at 1/6 each (Offensive)
+- Each risky position holds `(1 − BF) / T` (fixed denominator T, not the
+  smaller `t = min(n, T)`). For PAA2 this only matters with PAA0/PAA1 since
+  any non-zero risky exposure already implies n > 6 ≥ T; the expression is
+  written to scale to any future `a`.
+- **EM ticker note:** PAA's EM exposure is EEM (`EM` asset class, shared with
+  VAA). DAA's canary EM is VWO (`EM_FTSE`, DAA-only). A UK override on `EM`
+  applies to VAA + PAA but not DAA's canary.
+
+Reference: Keller & van Putten, *Protective Asset Allocation: A Simple
+Momentum-Based Alternative for Term Deposits*, 2016.
+
 ## Build and run
 
 ### Backend
@@ -62,7 +88,7 @@ Reference: Keller & Keuning, *Breadth Momentum and the Canary Universe*, 2018.
 cd backend
 dotnet restore
 dotnet build
-dotnet test                        # 19 unit tests across calculator, lookup, VAA, and DAA
+dotnet test                        # 34 unit tests across calculator, lookup, VAA, DAA, and PAA
 dotnet run --project src/MomentumInvestment.Api
 ```
 
@@ -83,6 +109,11 @@ curl 'http://localhost:5050/api/daa-g12/decision?asOf=YYYY-MM-DD\
 &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=VWO\
 &risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD\
 &cash=SHY&cash=IEF&cash=LQD' | jq .
+
+# PAA-G12 (a=2 hardcoded server-side)
+# Note: zsh treats backslash-newline literally inside single quotes, so
+# in a real shell either keep the URL on one line or build it via $URL+=...
+curl 'http://localhost:5050/api/paa/decision?asOf=YYYY-MM-DD&risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM&risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT&cash=IEF&cash=SHY&cash=LQD' | jq .
 
 # Custom-ticker probe (used by the mobile ETF override flow)
 curl 'http://localhost:5050/api/etf/probe?ticker=EMIM.L' | jq .
@@ -108,6 +139,14 @@ python3 scripts/verify_13612w.py
 
 Independent Python reference for the 13612W formula and date-aware lookback.
 The C# unit tests mirror its values, so any divergence means one of them is wrong.
+
+```bash
+python3 scripts/verify_paa.py
+```
+
+Same role for the SMA12 formula used by PAA. Note that decimal arithmetic
+truncates at ~28 digits, so the script compares with a tolerance via
+`almost_equal(...)` — the C# tests do the same via `Assert.Equal(..., precision: 18)`.
 
 ## Stack
 
@@ -137,10 +176,22 @@ is generic over `TUniverse` because each strategy has a different bucket
 shape (VAA's Offensive/Defensive, DAA's Canary/Risky/Cash, etc.) but the
 return contract is uniform so the mobile renderer stays one path.
 
-Shared 13612W scoring lives in `Strategies/MomentumScorer.cs`
-(`Score13612W(ticker, asOf, daily, ILogger?)`). Strategies pass their own
-`ILogger<T>` in to keep log lines categorised under the calling service.
-Don't reintroduce a per-service `ScoreFor` helper.
+Shared per-ticker scoring lives in `Strategies/MomentumScorer.cs` —
+`Score13612W` for VAA/DAA and `ScoreSMA12` for PAA. Both wrap
+`Strategies/MomentumScoreCalculator.cs` (pure formula, no I/O) plus the
+relevant lookup. Pure formula primitives:
+`Calculate13612W(p0, p1, p3, p6, p12)` and
+`CalculateSMAMomentum(monthlyClosesIncludingCurrent)`.
+
+Lookback helpers in `Strategies/LookbackPriceLookup.cs`:
+`FindLookbackPrices` (P₀, P₁, P₃, P₆, P₁₂ for 13612W) and
+`FindMonthlyLookbackPrices(asOf, history, monthsBack)` (consecutive
+monthly closes for SMA-based strategies). Both use trading-day-on-or-before
+semantics — don't introduce month-end logic.
+
+Strategies pass their own `ILogger<T>` in to keep log lines categorised
+under the calling service. Don't reintroduce a per-service `ScoreFor`
+helper.
 
 DI keeps the concrete service registrations (`AddSingleton<VaaG4B3Service>()`
 etc.) because Program.cs injects the concretes directly — there's no
@@ -165,8 +216,8 @@ hardware support, that is the trigger to evaluate React Navigation — not befor
 
 ### Mobile strategy registry
 
-Mobile lists six strategies in `mobile/src/strategies.ts`. VAA and DAA have
-`implemented: true`; PAA/BAA/HAA/LAA do not. Tapping Confirm:
+Mobile lists six strategies in `mobile/src/strategies.ts`. VAA, DAA, and PAA
+have `implemented: true`; BAA/HAA/LAA do not. Tapping Confirm:
 
 - Implemented strategy → `DecisionScreen` (calls backend with the resolved
   ticker universe — region default + any per-asset overrides).
@@ -191,9 +242,11 @@ mobile client depends on the string form. Don't remove this converter.
 
 ## Verified end-to-end
 
-- Algorithm verified independently in Python (`scripts/verify_13612w.py`).
-- C# unit tests mirror the Python reference values across both VAA-G4/B3
-  and DAA-G12 (`backend/tests/MomentumInvestment.Api.Tests/`).
+- Both momentum signals (13612W, SMA12) verified independently in Python
+  (`scripts/verify_13612w.py`, `scripts/verify_paa.py`).
+- C# unit tests (34 total) mirror the Python reference values across
+  VAA-G4/B3, DAA-G12, and PAA-G12
+  (`backend/tests/MomentumInvestment.Api.Tests/`).
 - Live Yahoo Finance integration confirmed via iOS Simulator and iPhone (Expo Go)
   for both US and UK universes.
 - Date-aware lookback verified against hand-calculated NYSE Good Friday + weekend
@@ -220,10 +273,14 @@ mobile client depends on the string form. Don't remove this converter.
 
 ## Roadmap (probable next directions)
 
-- **PAA implementation** — Protective Asset Allocation (breadth filter on
-  top of 13612W). Reuses `IAllocationStrategy<TUniverse>` +
-  `MomentumScorer` + `etfCatalog` building blocks.
-- **BAA / HAA / LAA** — same pattern as PAA; canary-signal variants.
+- **PAA0 / PAA1 variants** — currently only PAA2 (a=2). Adding the other
+  two is mechanical: either expose `a` as a query param of `/api/paa/decision`
+  (and a mobile picker), or register `paa-a0`/`paa-a1` as separate
+  `StrategyId`s. PaaService already keeps the formula generic over `a`
+  via the `n1` derivation; only the constant needs to flow in.
+- **BAA / HAA / LAA** — same `IAllocationStrategy<TUniverse>` +
+  `MomentumScorer` + `etfCatalog` pattern. BAA/HAA bring canary-signal
+  variants closer to DAA; LAA is a low-turnover defensive variant.
 - **Last-selection persistence** across app launches (extend `storage.ts`).
 - **History view** of past decisions — would require persistence beyond
   AsyncStorage prefs (SQLite trigger).

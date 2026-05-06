@@ -13,6 +13,8 @@ import {
   DAA_G12_CANARY,
   DAA_G12_CASH,
   DAA_G12_RISKY,
+  PAA_CASH,
+  PAA_RISKY,
   VAA_DEFENSIVE,
   VAA_OFFENSIVE,
   type AssetClassCode,
@@ -31,6 +33,11 @@ export type ResolvedUniverse = {
 
 export type ResolvedDaaG12Universe = {
   canary: ResolvedAsset[];
+  risky: ResolvedAsset[];
+  cash: ResolvedAsset[];
+};
+
+export type ResolvedPaaUniverse = {
   risky: ResolvedAsset[];
   cash: ResolvedAsset[];
 };
@@ -90,6 +97,29 @@ export function daaG12TickerArrays(u: ResolvedDaaG12Universe): {
 } {
   return {
     canary: u.canary.map((x) => x.ticker),
+    risky: u.risky.map((x) => x.ticker),
+    cash: u.cash.map((x) => x.ticker),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// PAA-G12
+
+export function resolvePaaUniverse(
+  region: Region,
+  overrides: Overrides,
+): ResolvedPaaUniverse {
+  return {
+    risky: PAA_RISKY.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    cash: PAA_CASH.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+  };
+}
+
+export function paaTickerArrays(u: ResolvedPaaUniverse): {
+  risky: string[];
+  cash: string[];
+} {
+  return {
     risky: u.risky.map((x) => x.ticker),
     cash: u.cash.map((x) => x.ticker),
   };

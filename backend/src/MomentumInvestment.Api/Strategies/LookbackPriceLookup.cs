@@ -37,6 +37,39 @@ public static class LookbackPriceLookup
     }
 
     /// <summary>
+    /// Picks consecutive monthly lookback prices for the given as-of date.
+    /// Returns a list of length <c>monthsBack + 1</c>: index 0 is P₀
+    /// (on-or-before <paramref name="asOf"/>), index 1 is P₁
+    /// (on-or-before asOf − 1 month), ..., index <c>monthsBack</c> is the
+    /// price on-or-before asOf − <c>monthsBack</c> months.
+    ///
+    /// Same trading-day-on-or-before semantics as <see cref="FindLookbackPrices"/>:
+    /// when a target lands on a weekend or holiday, the most recent trading
+    /// day before the target is used. Used by SMA-based momentum (e.g. PAA's
+    /// SMA12 momentum: p₀ / mean(p₀..p₁₁) − 1, monthsBack = 11).
+    /// </summary>
+    public static IReadOnlyList<DailyClose> FindMonthlyLookbackPrices(
+        DateOnly asOf,
+        IReadOnlyList<DailyClose> chronologicalDaily,
+        int monthsBack)
+    {
+        if (monthsBack < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(monthsBack),
+                monthsBack,
+                "monthsBack must be non-negative.");
+        }
+
+        var prices = new DailyClose[monthsBack + 1];
+        for (int m = 0; m <= monthsBack; m++)
+        {
+            prices[m] = FindOnOrBefore(asOf.AddMonths(-m), chronologicalDaily);
+        }
+        return prices;
+    }
+
+    /// <summary>
     /// Returns the latest entry whose Date is &lt;= the target date.
     /// If the target falls on a non-trading day (weekend or holiday)
     /// the most recent trading day before the target is returned.

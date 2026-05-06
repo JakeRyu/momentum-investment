@@ -90,6 +90,36 @@ export const DAA_G12_RISKY: AssetClassCode[] = [
 ];
 export const DAA_G12_CASH: AssetClassCode[] = ['TREASURY_SHORT', 'TREASURY_7_10', 'IG_CORP'];
 
+/**
+ * PAA-G12 strategy composition (Keller & van Putten, 2016) — the PAA2
+ * variant (a = 2, T = 6).
+ *
+ * Reuses asset classes already in the catalog (no new entries needed).
+ * Note that PAA's EM exposure is `EM` (MSCI EEM, shared with VAA), not
+ * `EM_FTSE` (VWO, DAA-only) — Keller's PAA paper uses EEM, so the UK
+ * override on `EM` (e.g. EMIM.L) applies symmetrically to VAA and PAA
+ * but not to DAA's canary/risky.
+ */
+export const PAA_RISKY: AssetClassCode[] = [
+  'US_LARGE_CAP',  // SPY
+  'US_SMALL_CAP',  // IWM
+  'US_NASDAQ',     // QQQ
+  'EU_DEV',        // VGK
+  'JAPAN',         // EWJ
+  'EM',            // EEM
+  'US_REIT',       // VNQ
+  'COMMODITIES',   // GSG
+  'GOLD',          // GLD
+  'HIGH_YIELD',    // HYG
+  'IG_CORP',       // LQD
+  'TREASURY_LONG', // TLT
+];
+export const PAA_CASH: AssetClassCode[] = [
+  'TREASURY_7_10',  // IEF (Keller's canonical single cash asset)
+  'TREASURY_SHORT', // SHY
+  'IG_CORP',        // LQD
+];
+
 export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
   US_LARGE_CAP: {
     code: 'US_LARGE_CAP',

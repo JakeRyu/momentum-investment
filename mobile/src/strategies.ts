@@ -29,7 +29,7 @@ export const STRATEGIES: readonly Strategy[] = [
     shortName: 'PAA',
     fullName: 'Protective Asset Allocation',
     blurb: 'Breadth-momentum protection with crash-protection scaling (Keller & Keuning, 2016)',
-    implemented: false,
+    implemented: true,
   },
   {
     id: 'daa',

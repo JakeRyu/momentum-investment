@@ -27,7 +27,9 @@ import {
 } from './src/strategies';
 import {
   daaG12TickerArrays,
+  paaTickerArrays,
   resolveDaaG12Universe,
+  resolvePaaUniverse,
   resolveUniverse,
   tickerArrays,
 } from './src/universe';
@@ -144,13 +146,18 @@ export default function App() {
       return;
     }
 
-    // Strategy-specific universe resolution. Both VAA and DAA honour
-    // region + per-asset-class overrides through their own resolver.
+    // Strategy-specific universe resolution. VAA / DAA / PAA each have
+    // their own resolver but share the same region + per-asset-class
+    // override semantics under the hood.
     let request: DecisionRequest;
     if (strategy.id === 'daa') {
       const universe = resolveDaaG12Universe(region, overrides);
       const { canary, risky, cash } = daaG12TickerArrays(universe);
       request = { kind: 'daa-g12', canary, risky, cash };
+    } else if (strategy.id === 'paa') {
+      const universe = resolvePaaUniverse(region, overrides);
+      const { risky, cash } = paaTickerArrays(universe);
+      request = { kind: 'paa', risky, cash };
     } else {
       const universe = resolveUniverse(region, overrides);
       const { offensive, defensive } = tickerArrays(universe);

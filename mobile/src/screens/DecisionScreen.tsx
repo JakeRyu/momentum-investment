@@ -12,17 +12,19 @@ import {
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { fetchDaaG12Decision } from '../api/daaClient';
+import { fetchPaaDecision } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
 import type { Strategy } from '../strategies';
 
 /**
  * Discriminated union of the strategy-specific query parameters. Any new
- * Keller strategy (PAA / BAA / HAA / ...) adds a variant here and the
- * matching `fetchXxxDecision` call site below.
+ * Keller strategy (BAA / HAA / ...) adds a variant here and the matching
+ * `fetchXxxDecision` call site below.
  */
 export type DecisionRequest =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
-  | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] };
+  | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
+  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] };
 
 export type DecisionScreenProps = {
   strategy: Strategy;
@@ -51,6 +53,7 @@ const REGION_FLAG: Record<Region, string> = {
 const STRATEGY_LABELS: Record<string, string> = {
   'vaa-g4b3': 'VAA-G4/B3',
   'daa-g12': 'DAA-G12',
+  'paa-g12': 'PAA-G12',
 };
 
 const MODE_BADGE_COLOR: Record<string, string> = {
@@ -83,19 +86,33 @@ export default function DecisionScreen({
 
   // Stable string key over the request payload so useEffect re-fires only
   // when the actual ticker lists change (not on every parent re-render).
-  const requestKey =
-    request.kind === 'vaa'
-      ? `vaa:${request.offensive.join(',')}|${request.defensive.join(',')}`
-      : `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
+  const requestKey = (() => {
+    switch (request.kind) {
+      case 'vaa':
+        return `vaa:${request.offensive.join(',')}|${request.defensive.join(',')}`;
+      case 'daa-g12':
+        return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
+      case 'paa':
+        return `paa:${request.risky.join(',')}|${request.cash.join(',')}`;
+    }
+  })();
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      const d =
-        request.kind === 'vaa'
-          ? await fetchVaaDecision(asOf, request.offensive, request.defensive)
-          : await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
+      let d: AllocationDecision;
+      switch (request.kind) {
+        case 'vaa':
+          d = await fetchVaaDecision(asOf, request.offensive, request.defensive);
+          break;
+        case 'daa-g12':
+          d = await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
+          break;
+        case 'paa':
+          d = await fetchPaaDecision(asOf, request.risky, request.cash);
+          break;
+      }
       setDecision(d);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
