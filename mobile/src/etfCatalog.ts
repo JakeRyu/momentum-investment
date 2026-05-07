@@ -253,22 +253,22 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
   EM_FTSE: {
     code: 'EM_FTSE',
     label: 'Emerging Markets (FTSE)',
-    description: 'FTSE Emerging Markets — DAA canary/risky (VWO)',
+    description: 'EM equities for DAA canary/risky — VWO/FTSE in US, MSCI EM IMI in UK',
     usDefault: 'VWO',
     ukAlternatives: [
-      {
-        ticker: 'VFEM.L',
-        name: 'Vanguard FTSE Emerging Markets UCITS',
-        ccy: 'GBP',
-        dist: 'Dist',
-        note: 'Same FTSE EM index as VWO',
-      },
       {
         ticker: 'EMIM.L',
         name: 'iShares Core MSCI EM IMI UCITS',
         ccy: 'USD',
         dist: 'Acc',
-        note: 'MSCI not FTSE — close proxy',
+        note: 'MSCI EM IMI — includes Korea (FTSE classifies Korea as Developed); affects DAA canary',
+      },
+      {
+        ticker: 'VFEM.L',
+        name: 'Vanguard FTSE Emerging Markets UCITS',
+        ccy: 'GBP',
+        dist: 'Dist',
+        note: 'Same FTSE EM index as VWO; closest match to Keller original',
       },
     ],
   },
@@ -303,13 +303,13 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
     usDefault: 'IWM',
     ukAlternatives: [
       {
-        ticker: 'XRSU.L',
-        name: 'Xtrackers Russell 2000 UCITS',
+        ticker: 'R2SC.L',
+        name: 'Invesco Russell 2000 UCITS',
         ccy: 'USD',
         dist: 'Acc',
         note: 'Same Russell 2000 index as IWM',
       },
-      { ticker: 'R2SC.L', name: 'Invesco Russell 2000 UCITS', ccy: 'USD', dist: 'Acc' },
+      { ticker: 'XRSU.L', name: 'Xtrackers Russell 2000 UCITS', ccy: 'USD', dist: 'Acc' },
     ],
   },
   US_NASDAQ: {
@@ -345,9 +345,22 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
     description: 'MSCI Japan / FTSE Japan equities (EWJ)',
     usDefault: 'EWJ',
     ukAlternatives: [
+      {
+        ticker: 'SJPA.L',
+        name: 'iShares Core MSCI Japan IMI UCITS',
+        ccy: 'GBP',
+        dist: 'Acc',
+        note: 'GBp-listed Acc share class; IMI includes small-caps',
+      },
+      {
+        ticker: 'CSJP.L',
+        name: 'iShares Core MSCI Japan IMI UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'Same fund as SJPA.L, USD listing',
+      },
       { ticker: 'IJPN.L', name: 'iShares MSCI Japan UCITS', ccy: 'USD', dist: 'Dist' },
       { ticker: 'VJPN.L', name: 'Vanguard FTSE Japan UCITS', ccy: 'GBP', dist: 'Dist' },
-      { ticker: 'CSJP.L', name: 'iShares Core MSCI Japan IMI UCITS', ccy: 'USD', dist: 'Acc' },
     ],
   },
   US_REIT: {
@@ -371,6 +384,13 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
     description: 'Broad-basket commodities (GSG = S&P GSCI)',
     usDefault: 'GSG',
     ukAlternatives: [
+      {
+        ticker: 'CMFP.L',
+        name: 'L&G Longer Dated All Commodities UCITS',
+        ccy: 'GBP',
+        dist: 'Acc',
+        note: 'Bloomberg Commodity index, longer-dated futures roll — reduces contango drag vs front-month',
+      },
       {
         ticker: 'CMOD.L',
         name: 'L&G All Commodities UCITS',
