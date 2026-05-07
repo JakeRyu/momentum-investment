@@ -46,7 +46,10 @@ export type AssetClassCode =
   | 'COMMODITIES'
   | 'GOLD'
   | 'TREASURY_LONG'
-  | 'HIGH_YIELD';
+  | 'HIGH_YIELD'
+  // LAA-permanent specific (Russell 1000 Value — distinct from VAA's
+  // S&P 500 US_LARGE_CAP)
+  | 'US_LARGE_VALUE';
 
 export type EtfOption = {
   ticker: string;
@@ -119,6 +122,27 @@ export const PAA_CASH: AssetClassCode[] = [
   'TREASURY_SHORT', // SHY
   'IG_CORP',        // LQD
 ];
+
+/**
+ * LAA-G strategy composition (Keller, 2019) — Lethargic Asset Allocation.
+ *
+ * Structurally different from breadth-momentum: 75% of the portfolio is a
+ * fixed permanent sleeve, 25% rotates between a risky and cash asset based
+ * on Growth-Trend (GT) timing (SPY 200d SMA + UNRATE 12mo SMA).
+ *
+ * Region note: the rotating asset and permanent sleeve are remapped to UK
+ * UCITS substitutes via the shared per-asset-class override mechanism.
+ * The signal equity (SPY) and macro series (UNRATE) stay US-anchored —
+ * GT timing is a US business-cycle indicator, so the signal is the same
+ * regardless of which assets the UK user actually holds.
+ */
+export const LAA_PERMANENT: AssetClassCode[] = [
+  'US_LARGE_VALUE', // IWD (Russell 1000 Value)
+  'GOLD',           // GLD
+  'TREASURY_7_10',  // IEF
+];
+export const LAA_RISKY: AssetClassCode = 'US_NASDAQ';     // QQQ
+export const LAA_CASH: AssetClassCode = 'TREASURY_SHORT'; // SHY
 
 export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
   US_LARGE_CAP: {
@@ -392,6 +416,30 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
     ukAlternatives: [
       { ticker: 'IHYU.L', name: 'iShares $ High Yield Corp Bond UCITS', ccy: 'USD', dist: 'Dist' },
       { ticker: 'SHYU.L', name: 'SPDR Bloomberg USD HY Bond UCITS', ccy: 'USD', dist: 'Acc' },
+    ],
+  },
+  // ---------------------------------------------------------------------
+  // LAA-permanent specific
+  US_LARGE_VALUE: {
+    code: 'US_LARGE_VALUE',
+    label: 'US Large Cap Value',
+    description: 'Russell 1000 Value (large-cap value tilt) — LAA permanent (IWD)',
+    usDefault: 'IWD',
+    ukAlternatives: [
+      {
+        ticker: 'IUSV.L',
+        name: 'iShares S&P 500 Value UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'S&P 500 Value, not Russell 1000 Value — closest UCITS proxy',
+      },
+      {
+        ticker: 'IWVL.L',
+        name: 'iShares Edge MSCI World Value Factor UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'Global value, not US-only',
+      },
     ],
   },
 };

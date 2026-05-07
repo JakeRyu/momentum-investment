@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,6 +7,18 @@
     <RootNamespace>MomentumInvestment.Api</RootNamespace>
     <AssemblyName>MomentumInvestment.Api</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UserSecretsId>de8092fa-1e7a-4dc0-9aab-1f5fc9e73488</UserSecretsId>
   </PropertyGroup>
+
+  <!--
+    Expose `internal` parser helpers (FredClient.ParseCsv,
+    YahooFinanceClient.ParseDailyCloses, etc.) to the test project so
+    they can be exercised without spinning up an HttpClient. Standard
+    .NET pattern for testing internals — the production app and the test
+    project share an assembly boundary, nothing leaks further.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="MomentumInvestment.Api.Tests" />
+  </ItemGroup>
 
 </Project>

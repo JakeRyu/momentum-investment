@@ -27,8 +27,10 @@ import {
 } from './src/strategies';
 import {
   daaG12TickerArrays,
+  laaTickerArrays,
   paaTickerArrays,
   resolveDaaG12Universe,
+  resolveLaaUniverse,
   resolvePaaUniverse,
   resolveUniverse,
   tickerArrays,
@@ -146,9 +148,10 @@ export default function App() {
       return;
     }
 
-    // Strategy-specific universe resolution. VAA / DAA / PAA each have
-    // their own resolver but share the same region + per-asset-class
-    // override semantics under the hood.
+    // Strategy-specific universe resolution. VAA / DAA / PAA / LAA each
+    // have their own resolver but share the same region + per-asset-class
+    // override semantics under the hood. LAA additionally carries the
+    // signal-equity and FRED series ids straight through to the API call.
     let request: DecisionRequest;
     if (strategy.id === 'daa') {
       const universe = resolveDaaG12Universe(region, overrides);
@@ -158,6 +161,18 @@ export default function App() {
       const universe = resolvePaaUniverse(region, overrides);
       const { risky, cash } = paaTickerArrays(universe);
       request = { kind: 'paa', risky, cash };
+    } else if (strategy.id === 'laa') {
+      const universe = resolveLaaUniverse(region, overrides);
+      const { permanent, risky, cash, signalEquity, unemploymentSeriesId } =
+        laaTickerArrays(universe);
+      request = {
+        kind: 'laa',
+        permanent,
+        risky,
+        cash,
+        signalEquity,
+        unemploymentSeriesId,
+      };
     } else {
       const universe = resolveUniverse(region, overrides);
       const { offensive, defensive } = tickerArrays(universe);

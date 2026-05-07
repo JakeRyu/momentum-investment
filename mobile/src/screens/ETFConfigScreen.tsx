@@ -25,6 +25,9 @@ import {
   DAA_G12_CANARY,
   DAA_G12_CASH,
   DAA_G12_RISKY,
+  LAA_CASH,
+  LAA_PERMANENT,
+  LAA_RISKY,
   PAA_CASH,
   PAA_RISKY,
   VAA_DEFENSIVE,
@@ -67,7 +70,16 @@ const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
   ],
   baa: [],
   haa: [],
-  laa: [],
+  // LAA's risky/cash sleeves are single-asset by spec, but the section
+  // contract (codes: AssetClassCode[]) renders them as one-row sleeves
+  // identically to the permanent sleeve, which is what we want — three
+  // visual sections, the rotating sleeves shown as two single-row groups
+  // so the user can see both QQQ and SHY mappings at a glance.
+  laa: [
+    { label: 'Permanent (75%)', codes: LAA_PERMANENT },
+    { label: 'Risky (rotating, Risk-On)', codes: [LAA_RISKY] },
+    { label: 'Cash (rotating, Risk-Off)', codes: [LAA_CASH] },
+  ],
 };
 
 const STRATEGY_LABEL: Record<StrategyId, string> = {

@@ -13,6 +13,9 @@ import {
   DAA_G12_CANARY,
   DAA_G12_CASH,
   DAA_G12_RISKY,
+  LAA_CASH,
+  LAA_PERMANENT,
+  LAA_RISKY,
   PAA_CASH,
   PAA_RISKY,
   VAA_DEFENSIVE,
@@ -40,6 +43,22 @@ export type ResolvedDaaG12Universe = {
 export type ResolvedPaaUniverse = {
   risky: ResolvedAsset[];
   cash: ResolvedAsset[];
+};
+
+/**
+ * LAA's resolved universe is intentionally asymmetric to the breadth-
+ * momentum strategies: only three permanent assets, one rotating risky,
+ * one rotating cash, plus two region-agnostic signal identifiers
+ * (signal equity and FRED unemployment series). The signal config is
+ * carried through alongside the asset selection so the API call has
+ * everything it needs in one struct.
+ */
+export type ResolvedLaaUniverse = {
+  permanent: ResolvedAsset[];
+  risky: ResolvedAsset;
+  cash: ResolvedAsset;
+  signalEquity: string;          // SPY — region-agnostic GT trend signal
+  unemploymentSeriesId: string;  // UNRATE — FRED series id
 };
 
 export function pickTicker(
@@ -122,5 +141,44 @@ export function paaTickerArrays(u: ResolvedPaaUniverse): {
   return {
     risky: u.risky.map((x) => x.ticker),
     cash: u.cash.map((x) => x.ticker),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// LAA
+
+/**
+ * Resolves LAA's asset universe for the given region/overrides. The
+ * signal equity and FRED unemployment series are *not* affected by region
+ * — Keller's GT timing rule is anchored to US macro data, and the user
+ * decision was that UK users get the same signal applied to UK UCITS
+ * substitutes for the actual portfolio assets.
+ */
+export function resolveLaaUniverse(
+  region: Region,
+  overrides: Overrides,
+): ResolvedLaaUniverse {
+  return {
+    permanent: LAA_PERMANENT.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    risky: { code: LAA_RISKY, ticker: pickTicker(LAA_RISKY, region, overrides) },
+    cash:  { code: LAA_CASH,  ticker: pickTicker(LAA_CASH,  region, overrides) },
+    signalEquity: 'SPY',
+    unemploymentSeriesId: 'UNRATE',
+  };
+}
+
+export function laaTickerArrays(u: ResolvedLaaUniverse): {
+  permanent: string[];
+  risky: string;
+  cash: string;
+  signalEquity: string;
+  unemploymentSeriesId: string;
+} {
+  return {
+    permanent: u.permanent.map((x) => x.ticker),
+    risky: u.risky.ticker,
+    cash:  u.cash.ticker,
+    signalEquity: u.signalEquity,
+    unemploymentSeriesId: u.unemploymentSeriesId,
   };
 }

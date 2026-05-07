@@ -1,5 +1,9 @@
+using System.Net;
+using System.Net.Security;
+using System.Security.Authentication;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
+using MomentumInvestment.Api.Fred;
 using MomentumInvestment.Api.Strategies;
 using MomentumInvestment.Api.YahooFinance;
 
@@ -15,10 +19,44 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddMemoryCache();
 builder.Services.Configure<YahooFinanceOptions>(builder.Configuration.GetSection("YahooFinance"));
+builder.Services.Configure<FredOptions>(builder.Configuration.GetSection("Fred"));
 builder.Services.AddHttpClient<YahooFinanceClient>();
+
+// FRED HttpClient — talks to api.stlouisfed.org (the JSON API).
+//
+// Background: we initially used fred.stlouisfed.org/graph/fredgraph.csv
+// (no API key needed), but on Jake's macOS .NET's TLS handshake to that
+// hostname stalled — ClientHello sent, ServerHello never arrived. curl
+// on the same machine worked fine via Secure Transport, and Rider's
+// Netty client also failed, suggesting that hostname's TLS endpoint
+// dislikes the OpenSSL-style ClientHello produced by JVM/.NET stacks.
+//
+// Switched to api.stlouisfed.org which is on different infrastructure
+// (different TLS termination), and requires a free API key set via
+// `dotnet user-secrets set "Fred:ApiKey" "..."`. The handler tweaks
+// below are precautionary for the same TLS class of issue: HTTP/1.1
+// forced (no ALPN ambiguity), TLS 1.2 only (skip 1.3 negotiation),
+// revocation-check disabled (curl-equivalent), and a tight 15s timeout
+// so a stuck handshake surfaces as a clean 5xx rather than blocking
+// the endpoint for ~75s.
+builder.Services.AddHttpClient<FredClient>(client =>
+{
+    client.DefaultRequestVersion = HttpVersion.Version11;
+    client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrLower;
+    client.Timeout = TimeSpan.FromSeconds(15);
+}).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    ConnectTimeout = TimeSpan.FromSeconds(10),
+    SslOptions = new SslClientAuthenticationOptions
+    {
+        EnabledSslProtocols = SslProtocols.Tls12,
+        CertificateRevocationCheckMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+    },
+});
 builder.Services.AddSingleton<VaaG4B3Service>();
 builder.Services.AddSingleton<DaaG12Service>();
 builder.Services.AddSingleton<PaaService>();
+builder.Services.AddSingleton<LaaService>();
 
 // Permissive CORS for the Expo dev client. Tighten before any real deploy.
 builder.Services.AddCors(options =>
@@ -172,6 +210,77 @@ app.MapGet("/api/paa/decision", async (
     return Results.Ok(decision);
 });
 
+// LAA decision (Keller, 2019) — Lethargic Asset Allocation.
+//
+// Unlike VAA/DAA/PAA, LAA needs macro data: the US unemployment rate
+// (FRED UNRATE) and a daily equity-trend signal (default SPY 200d SMA).
+// The endpoint takes the asset universe as query params and fetches
+// the FRED series automatically (cached daily — UNRATE only updates
+// monthly, so caching for 24h is plenty).
+//
+// Three asset slots: 3 permanent + 1 risky (default QQQ) + 1 cash
+// (default SHY). Plus a signal equity (default SPY) and FRED series
+// id (default UNRATE) which the mobile caller can override per region.
+//
+// Example:
+//   /api/laa/decision?asOf=2026-05-05
+//     &permanent=IWD&permanent=GLD&permanent=IEF
+//     &risky=QQQ&cash=SHY
+//     &signalEquity=SPY&unemploymentSeriesId=UNRATE
+app.MapGet("/api/laa/decision", async (
+    DateOnly asOf,
+    string[] permanent,
+    string? risky,
+    string? cash,
+    string? signalEquity,
+    string? unemploymentSeriesId,
+    YahooFinanceClient yahoo,
+    FredClient fred,
+    LaaService laa,
+    IMemoryCache cacheStore,
+    CancellationToken ct) =>
+{
+    if (permanent is null || permanent.Length != 3)
+    {
+        return Results.BadRequest("Query parameter 'permanent' must contain exactly 3 tickers.");
+    }
+    if (string.IsNullOrWhiteSpace(risky))
+    {
+        return Results.BadRequest("Query parameter 'risky' is required.");
+    }
+    if (string.IsNullOrWhiteSpace(cash))
+    {
+        return Results.BadRequest("Query parameter 'cash' is required.");
+    }
+
+    var universe = new LaaUniverse(
+        Permanent:            permanent,
+        Risky:                risky.Trim(),
+        Cash:                 cash.Trim(),
+        SignalEquity:         string.IsNullOrWhiteSpace(signalEquity) ? "SPY" : signalEquity.Trim(),
+        UnemploymentSeriesId: string.IsNullOrWhiteSpace(unemploymentSeriesId) ? "UNRATE" : unemploymentSeriesId.Trim());
+
+    var prices = await FetchHistoriesAsync(universe.AllDailyTickers(), yahoo, cacheStore, ct);
+    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+
+    // FRED monthly series — cache per series id with a 24h TTL. UNRATE
+    // releases on the first Friday of each month, so caching this long
+    // can't miss more than one update per month.
+    var fredKey = $"fred:{universe.UnemploymentSeriesId}";
+    var unemployment = await cacheStore.GetOrCreateAsync(fredKey, async entry =>
+    {
+        entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24);
+        return await fred.GetMonthlySeriesAsync(universe.UnemploymentSeriesId, ct);
+    });
+    if (unemployment is null)
+    {
+        return Results.Problem($"Failed to fetch FRED series '{universe.UnemploymentSeriesId}'.");
+    }
+
+    var decision = laa.Decide(asOf, universe, prices, unemployment);
+    return Results.Ok(decision);
+});
+
 // Validates a single ticker against Yahoo Finance and returns the meta
 // block (currency, exchange, longName, first-trade date). Used by the
 // mobile app when the user adds a custom ETF that isn't in the curated
@@ -215,6 +324,7 @@ app.MapGet("/", () => Results.Ok(new
         "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD&offensive=A&offensive=B&...&defensive=X&defensive=Y&...",
         "/api/daa-g12/decision?asOf=YYYY-MM-DD&canary=A&canary=B&risky=...&cash=...",
         "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...",
+        "/api/laa/decision?asOf=YYYY-MM-DD&permanent=A&permanent=B&permanent=C&risky=X&cash=Y&signalEquity=SPY&unemploymentSeriesId=UNRATE",
         "/api/etf/probe?ticker=EMIM.L",
     },
 }));

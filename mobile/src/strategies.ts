@@ -56,8 +56,8 @@ export const STRATEGIES: readonly Strategy[] = [
     id: 'laa',
     shortName: 'LAA',
     fullName: 'Lethargic Asset Allocation',
-    blurb: 'Low-turnover defensive variant with broad momentum filter',
-    implemented: false,
+    blurb: 'Permanent sleeve + GT timing on US unemployment & SPY trend (Keller, 2019)',
+    implemented: true,
   },
 ];
 

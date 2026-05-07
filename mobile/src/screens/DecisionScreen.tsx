@@ -12,6 +12,7 @@ import {
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { fetchDaaG12Decision } from '../api/daaClient';
+import { fetchLaaDecision } from '../api/laaClient';
 import { fetchPaaDecision } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
 import type { Strategy } from '../strategies';
@@ -24,7 +25,15 @@ import type { Strategy } from '../strategies';
 export type DecisionRequest =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] };
+  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
+  | {
+      kind: 'laa';
+      permanent: readonly string[];
+      risky: string;
+      cash: string;
+      signalEquity: string;
+      unemploymentSeriesId: string;
+    };
 
 export type DecisionScreenProps = {
   strategy: Strategy;
@@ -54,6 +63,7 @@ const STRATEGY_LABELS: Record<string, string> = {
   'vaa-g4b3': 'VAA-G4/B3',
   'daa-g12': 'DAA-G12',
   'paa-g12': 'PAA-G12',
+  'laa': 'LAA',
 };
 
 const MODE_BADGE_COLOR: Record<string, string> = {
@@ -94,6 +104,11 @@ export default function DecisionScreen({
         return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
       case 'paa':
         return `paa:${request.risky.join(',')}|${request.cash.join(',')}`;
+      case 'laa':
+        return (
+          `laa:${request.permanent.join(',')}|${request.risky}|${request.cash}` +
+          `|${request.signalEquity}|${request.unemploymentSeriesId}`
+        );
     }
   })();
 
@@ -111,6 +126,16 @@ export default function DecisionScreen({
           break;
         case 'paa':
           d = await fetchPaaDecision(asOf, request.risky, request.cash);
+          break;
+        case 'laa':
+          d = await fetchLaaDecision(
+            asOf,
+            request.permanent,
+            request.risky,
+            request.cash,
+            request.signalEquity,
+            request.unemploymentSeriesId,
+          );
           break;
       }
       setDecision(d);
@@ -252,23 +277,69 @@ function ScoreSection({
   rows: AssetMomentum[];
   allocatedTickers: Set<string>;
 }) {
+  // The "Signal" bucket (currently only LAA) carries macro trend
+  // deviations rather than per-asset momentum, and the bearish-trigger
+  // direction is signal-specific (SPY: bearish when below SMA → score
+  // negative; UNRATE: bearish when above SMA → score positive). The
+  // generic "negative = red" colouring used for momentum scores would be
+  // misleading here, so we render Signal rows neutrally and add a
+  // direction hint underneath the value.
+  const isSignalSection = title.toLowerCase() === 'signal';
+
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title.toUpperCase()}</Text>
+      <Text style={styles.sectionTitle}>
+        {isSignalSection ? 'MACRO SIGNALS' : title.toUpperCase()}
+      </Text>
       {rows.map((r) => (
         <View key={`${r.bucket}:${r.ticker}`} style={styles.row}>
+          <View style={styles.rowLeft}>
+            <Text
+              style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+            >
+              {r.ticker}
+            </Text>
+            {isSignalSection && (
+              <Text style={styles.signalCaption}>{signalCaption(r.ticker, r.score)}</Text>
+            )}
+          </View>
           <Text
-            style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+            style={[
+              styles.rowScore,
+              !isSignalSection && r.score < 0 && styles.rowScoreNegative,
+            ]}
           >
-            {r.ticker}
-          </Text>
-          <Text style={[styles.rowScore, r.score < 0 && styles.rowScoreNegative]}>
-            {formatScore(r.score)}
+            {isSignalSection ? formatSignal(r.score) : formatScore(r.score)}
           </Text>
         </View>
       ))}
     </View>
   );
+}
+
+/**
+ * Per-signal direction hint shown below the ticker. Hardcoded to the two
+ * macro signals LAA emits (SPY price-trend, UNRATE rate-trend); a future
+ * macro-aware strategy would extend this map.
+ */
+function signalCaption(ticker: string, score: number): string {
+  const above = score > 0;
+  const at = Math.abs(score) < 1e-9;
+  if (ticker === 'SPY') {
+    if (at) return 'at 200d SMA';
+    return above ? 'above 200d SMA · bullish' : 'below 200d SMA · bearish';
+  }
+  if (ticker === 'UNRATE') {
+    if (at) return 'at 12mo SMA';
+    return above ? 'above 12mo SMA · bearish' : 'below 12mo SMA · bullish';
+  }
+  return '';
+}
+
+function formatSignal(score: number): string {
+  // Trend deviation as a percentage of SMA, e.g. "+2.45%" / "-4.98%".
+  const pct = score * 100;
+  return (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
 }
 
 const styles = StyleSheet.create({
@@ -407,7 +478,12 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 6,
+  },
+  rowLeft: {
+    flex: 1,
+    gap: 2,
   },
   rowTicker: {
     color: '#cfd5dc',
@@ -417,6 +493,11 @@ const styles = StyleSheet.create({
   rowTickerHighlight: {
     color: '#7ed4a3',
     fontWeight: '700',
+  },
+  signalCaption: {
+    color: '#8a93a0',
+    fontSize: 12,
+    fontStyle: 'italic',
   },
   rowScore: {
     color: '#cfd5dc',
