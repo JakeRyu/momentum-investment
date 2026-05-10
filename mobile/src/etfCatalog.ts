@@ -49,7 +49,18 @@ export type AssetClassCode =
   | 'HIGH_YIELD'
   // LAA-permanent specific (Russell 1000 Value — distinct from VAA's
   // S&P 500 US_LARGE_CAP)
-  | 'US_LARGE_VALUE';
+  | 'US_LARGE_VALUE'
+  // HAA-specific additions. Each is split off from a similar-sounding
+  // existing class because Keller's HAA uses a different underlying
+  // index (FTSE vs MSCI, Bloomberg Commodity vs S&P GSCI) or a different
+  // duration bucket (1-3 month T-bills vs 1-3 year). Sharing the
+  // existing classes would mean a UK override on VAA's EFA/PAA's GSG
+  // accidentally applying to HAA's VEA/DBC, which isn't what the user
+  // would expect.
+  | 'INTL_DEV_FTSE'    // VEA  (FTSE Developed ex-NA)
+  | 'COMMODITIES_BCOM' // DBC  (Bloomberg Commodity index)
+  | 'TIPS'             // TIP  (inflation-protected treasuries — HAA canary)
+  | 'T_BILL';          // BIL  (1-3 month T-bills — HAA defensive cash)
 
 export type EtfOption = {
   ticker: string;
@@ -143,6 +154,73 @@ export const LAA_PERMANENT: AssetClassCode[] = [
 ];
 export const LAA_RISKY: AssetClassCode = 'US_NASDAQ';     // QQQ
 export const LAA_CASH: AssetClassCode = 'TREASURY_SHORT'; // SHY
+
+/**
+ * HAA strategy composition (Keller & Keuning, 2023).
+ *
+ * 8 risky assets across 4 categories (US/foreign equities, real assets,
+ * treasuries), one canary (TIP — TIPS-class), one cash (BIL — short
+ * T-bills). Top T=4 risky by 13612W are held when canary is bullish;
+ * else 100% in cash.
+ *
+ * Note: HAA's foreign-equity sleeve (VEA, VWO) uses FTSE indices, so
+ * `INTL_DEV_FTSE` (VEA) and `EM_FTSE` (VWO) are reused — same FTSE EM
+ * exposure as DAA's canary, but the developed-ex-NA slot is HAA-specific.
+ * The commodity sleeve uses DBC (Bloomberg Commodity), a different index
+ * from PAA/DAA's GSG (S&P GSCI), hence its own asset class.
+ */
+export const HAA_RISKY: AssetClassCode[] = [
+  'US_LARGE_CAP',      // SPY
+  'US_SMALL_CAP',      // IWM
+  'INTL_DEV_FTSE',     // VEA
+  'EM_FTSE',           // VWO
+  'US_REIT',           // VNQ
+  'COMMODITIES_BCOM',  // DBC
+  'TREASURY_7_10',     // IEF
+  'TREASURY_LONG',     // TLT
+];
+export const HAA_CANARY: AssetClassCode = 'TIPS';   // TIP
+export const HAA_CASH:   AssetClassCode = 'T_BILL'; // BIL
+
+/**
+ * BAA-G12 strategy composition (Keller, 2022).
+ *
+ * Reuses asset classes already in the catalog — no new entries needed.
+ * Note that BAA's EM exposure is `EM` (MSCI EEM, shared with VAA/PAA),
+ * NOT `EM_FTSE` (VWO, used by DAA's canary). A UK override on `EM`
+ * applies symmetrically to VAA/PAA/BAA but not to DAA's canary.
+ *
+ * Canary set (TIP/IEF/BIL) is the unanimous-AND gate — a single
+ * non-positive 13612W flips the strategy fully defensive. Cash uses
+ * SMA12 (PAA-style) for ranking, distinct from canary/risky which use
+ * 13612W; this dual-signal design is in Keller's paper.
+ */
+export const BAA_CANARY: AssetClassCode[] = [
+  'TIPS',           // TIP
+  'TREASURY_7_10',  // IEF
+  'T_BILL',         // BIL
+];
+export const BAA_RISKY: AssetClassCode[] = [
+  'US_LARGE_CAP',   // SPY
+  'US_SMALL_CAP',   // IWM
+  'US_NASDAQ',      // QQQ
+  'EU_DEV',         // VGK
+  'JAPAN',          // EWJ
+  'EM',             // EEM
+  'US_REIT',        // VNQ
+  'COMMODITIES',    // GSG
+  'GOLD',           // GLD
+  'TREASURY_LONG',  // TLT
+  'HIGH_YIELD',     // HYG
+  'IG_CORP',        // LQD
+];
+export const BAA_CASH: AssetClassCode[] = [
+  'T_BILL',         // BIL
+  'TREASURY_7_10',  // IEF
+  'TREASURY_LONG',  // TLT
+  'US_AGG_TOTAL',   // BND
+  'IG_CORP',        // LQD
+];
 
 export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
   US_LARGE_CAP: {
@@ -459,6 +537,109 @@ export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
         ccy: 'USD',
         dist: 'Acc',
         note: 'Global value, not US-only',
+      },
+    ],
+  },
+  // ---------------------------------------------------------------------
+  // HAA-specific additions
+  INTL_DEV_FTSE: {
+    code: 'INTL_DEV_FTSE',
+    label: 'Intl Developed (FTSE)',
+    description: 'FTSE Developed Markets ex-North America — HAA (VEA)',
+    usDefault: 'VEA',
+    ukAlternatives: [
+      {
+        ticker: 'VEUR.L',
+        name: 'Vanguard FTSE Developed Europe UCITS',
+        ccy: 'GBP',
+        dist: 'Dist',
+        note: 'Europe only — no direct VEA UCITS equivalent (verify with broker)',
+      },
+      {
+        ticker: 'VEVE.L',
+        name: 'Vanguard FTSE Developed World UCITS',
+        ccy: 'GBP',
+        dist: 'Dist',
+        note: 'Includes US — not pure developed-ex-NA',
+      },
+      {
+        ticker: 'IWDA.L',
+        name: 'iShares Core MSCI World UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'MSCI World incl. US — closest broad-developed proxy',
+      },
+    ],
+  },
+  COMMODITIES_BCOM: {
+    code: 'COMMODITIES_BCOM',
+    label: 'Commodities (BCOM)',
+    description: 'Bloomberg Commodity index — HAA (DBC)',
+    usDefault: 'DBC',
+    ukAlternatives: [
+      {
+        ticker: 'CMOD.L',
+        name: 'L&G All Commodities UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'Bloomberg Commodity index — closest DBC analogue',
+      },
+      {
+        ticker: 'CMFP.L',
+        name: 'L&G Longer Dated All Commodities UCITS',
+        ccy: 'GBP',
+        dist: 'Acc',
+        note: 'BCOM with longer-dated futures roll (lower contango drag)',
+      },
+      {
+        ticker: 'CMCP.L',
+        name: 'WisdomTree Enhanced Commodity UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+      },
+    ],
+  },
+  TIPS: {
+    code: 'TIPS',
+    label: 'TIPS (Inflation-Protected)',
+    description: 'US TIPS — HAA canary (TIP). Signals rising-yield regime',
+    usDefault: 'TIP',
+    ukAlternatives: [
+      {
+        ticker: 'ITPS.L',
+        name: 'iShares $ TIPS UCITS',
+        ccy: 'USD',
+        dist: 'Dist',
+        note: 'USD-denominated — matches TIP best',
+      },
+      {
+        ticker: 'TI5G.L',
+        name: 'iShares $ TIPS 0-5 UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'Short-dated TIPS — different duration profile',
+      },
+    ],
+  },
+  T_BILL: {
+    code: 'T_BILL',
+    label: 'T-Bills (1-3 mo)',
+    description: 'Ultra-short US T-bills — HAA defensive cash (BIL)',
+    usDefault: 'BIL',
+    ukAlternatives: [
+      {
+        ticker: 'IB01.L',
+        name: 'iShares $ Treasury 0-1y UCITS',
+        ccy: 'USD',
+        dist: 'Acc',
+        note: 'Closest UCITS to BIL (ultra-short)',
+      },
+      {
+        ticker: 'CSH2.L',
+        name: 'Lyxor Smart Overnight Return UCITS',
+        ccy: 'EUR',
+        dist: 'Acc',
+        note: 'EUR cash equivalent — verify currency match',
       },
     ],
   },

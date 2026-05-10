@@ -1,17 +1,17 @@
 # Momentum Investment
 
 Personal mobile app surfacing **Wouter Keller's momentum-based asset-allocation
-decisions**. Phase 1 implements **VAA-G4/B3**, **DAA-G12**, **PAA-G12** (all
-three protection factors a ∈ {0, 1, 2}), and **LAA** end-to-end; the remaining
-Keller strategies (BAA, HAA) are listed in the mobile picker but route to a
-"Coming soon" placeholder.
+decisions**. Phase 1 is now feature-complete — **VAA-G4/B3**, **DAA-G12**,
+**PAA-G12** (all three protection factors a ∈ {0, 1, 2}), **HAA-Balanced**,
+**BAA-G12**, and **LAA** all wired end-to-end across backend, mobile, and
+verifier scripts.
 
 ## Layout
 
 ```
-backend/   ASP.NET Core 10 minimal API — momentum + VAA/DAA/PAA/LAA decision engine
+backend/   ASP.NET Core 10 minimal API — momentum + VAA/DAA/PAA/HAA/BAA/LAA decision engine
 mobile/    Expo (React Native) — Home / ETFConfig / Decision / NotImplemented
-scripts/   Python reference implementations of 13612W, SMA12, and LAA GT timing
+scripts/   Python reference implementations of 13612W, SMA12, LAA GT timing, HAA + BAA rules
 ```
 
 ## Strategy: VAA-G4/B3
@@ -91,6 +91,79 @@ Reference: Keller & Keuning, *Breadth Momentum and the Canary Universe*, 2018.
 Reference: Keller & van Putten, *Protective Asset Allocation: A Simple
 Momentum-Based Alternative for Term Deposits*, 2016.
 
+## Strategy: BAA-G12
+
+- **Canary (3):** TIP, IEF, BIL. The "Bold" canary gate is a unanimous
+  AND on 13612W — a single non-positive canary forces full defensive,
+  much stricter than DAA's count-based breadth.
+- **Risky (T=6 of 12):** SPY, IWM, QQQ, VGK, EWJ, EEM, VNQ, GSG, GLD,
+  TLT, HYG, LQD. Same as PAA risky (uses `EM`/EEM, not `EM_FTSE`/VWO —
+  so a UK override on `EM` applies to VAA + PAA + BAA but not to DAA's
+  canary). Differs from DAA's risky only at the EM slot (EEM vs VWO).
+- **Cash (5):** BIL, IEF, TLT, BND, LQD. Selected by **SMA12** (PAA-style
+  — the cash signal differs from the 13612W used elsewhere). Top scorer
+  is held 100% when defensive.
+- **Rule (Keller, 2022):**
+  - All 3 canaries 13612W > 0 → top T=6 risky by 13612W at 1/T = 16.67% each.
+  - Any canary 13612W ≤ 0 → 100% in top-SMA12 cash.
+
+  Strict `> 0` boundary (one canary at exactly 0 fails the gate, same
+  convention as the other Keller canaries).
+- **Mixed signals:** Canary + risky use 13612W; cash uses SMA12. Tickers
+  appearing in both buckets (IEF in canary+cash, BIL in canary+cash, LQD
+  in risky+cash) get scored *twice* — once per signal — and emitted as
+  two `AssetMomentum` rows with different `Bucket` labels. Not a bug;
+  the mobile UI groups by bucket. See
+  `Decide_ScoresIncludeAllRolesWithCorrectBuckets` test.
+- **API surface:** `/api/baa/decision?asOf=...&canary=...&risky=...&cash=...`.
+  Region-agnostic — mobile resolves tickers via the same per-asset-class
+  override mechanism. Backend StrategyId in the response is `baa-g12`.
+- **No new asset classes:** All buckets reuse classes added by
+  earlier strategies (`TIPS`/`TREASURY_7_10`/`T_BILL` for canary, the
+  DAA/PAA risky set for risky, `T_BILL`/`TREASURY_7_10`/`TREASURY_LONG`/
+  `US_AGG_TOTAL`/`IG_CORP` for cash).
+- **Variant note:** Only BAA-G12 (T=6) implemented. Keller's paper also
+  defines BAA-G4 (top-1-of-4 offensive, more aggressive). If added,
+  follow the PAA pattern — single picker entry, segmented control on
+  DecisionScreen.
+
+Reference: Keller, *Bold Asset Allocation: A Tactical Asset Allocation
+Strategy with Aggressive Crash Protection*, SSRN 4166845, 2022.
+
+## Strategy: HAA-Balanced
+
+- **Risky (T=4 of 8):** SPY, IWM (US), VEA, VWO (foreign), VNQ, DBC (real
+  assets), IEF, TLT (treasuries). Treated as a flat top-T selection by
+  13612W, not per-pair.
+- **Canary (1):** TIP (TIPS-class). Its 13612W gates the regime switch.
+- **Cash (1):** BIL (1-3 month T-bills). 100% defensive holding.
+- **Momentum signal:** 13612W (same as VAA/DAA — reuses
+  `MomentumScorer.Score13612W`).
+- **Rule (Keller & Keuning, 2023):**
+  - `13612W(TIP) ≤ 0` → 100% in cash (BIL). Rising-yield regime → defensive.
+  - `13612W(TIP) > 0` → top T=4 risky by 13612W at 1/T = 25% each.
+
+  Boundary at zero is treated defensively (≤ 0 inclusive), matching DAA's
+  canary semantics. The risky picks are made regardless of their own
+  13612W signs — once the canary is bullish, ranking determines inclusion,
+  not absolute return. Tested in `Decide_AllRiskyNegative_StillSelectsTopFourWhenCanaryBullish`.
+- **API surface:** `/api/haa/decision?asOf=...&risky=...&canary=TIP&cash=BIL`.
+  Region-agnostic — mobile resolves tickers via the same per-asset-class
+  override mechanism. Backend StrategyId in the response is `haa`.
+- **New asset classes (4):** `INTL_DEV_FTSE` (VEA — distinct from VAA's
+  EFA = `INTL_DEV`), `COMMODITIES_BCOM` (DBC — distinct from PAA's GSG =
+  `COMMODITIES`), `TIPS` (TIP), `T_BILL` (BIL — distinct from
+  `TREASURY_SHORT` which is 1-3y SHY). Splitting from the existing
+  similar-sounding classes keeps a UK override on VAA's EFA / PAA's GSG
+  from accidentally applying to HAA's VEA / DBC.
+- **Variant note:** Only HAA-Balanced (T=4) implemented for now. Keller's
+  paper also discusses HAA-Aggressive (lower T) and HAA-Simple variants;
+  if those are added, follow the PAA pattern — single picker entry,
+  variant-selection segmented control on DecisionScreen.
+
+Reference: Keller & Keuning, *Relative and Absolute Momentum in Times
+of Rising/Low Yields: Hybrid Asset Allocation (HAA)*, SSRN 4346906, 2023.
+
 ## Strategy: LAA (Lethargic Asset Allocation)
 
 - **Permanent (75%):** IWD, GLD, IEF — held at 25% each unconditionally
@@ -145,7 +218,7 @@ Asset Allocation (LAA)*, SSRN 3498092, 2019.
 cd backend
 dotnet restore
 dotnet build
-dotnet test                        # ~70 unit tests across calculator, lookup, SMA, FRED parser, VAA, DAA, PAA, and LAA
+dotnet test                        # ~85 unit tests across calculator, lookup, SMA, FRED parser, VAA, DAA, PAA, and LAA
 dotnet run --project src/MomentumInvestment.Api
 ```
 
@@ -171,6 +244,12 @@ curl 'http://localhost:5050/api/daa-g12/decision?asOf=YYYY-MM-DD\
 # Note: zsh treats backslash-newline literally inside single quotes, so
 # in a real shell either keep the URL on one line or build it via $URL+=...
 curl 'http://localhost:5050/api/paa/decision?asOf=YYYY-MM-DD&a=2&risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM&risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT&cash=IEF&cash=SHY&cash=LQD' | jq .
+
+# BAA-G12 — 3 canaries (unanimous AND) + 12 risky + 5 cash.
+curl 'http://localhost:5050/api/baa/decision?asOf=YYYY-MM-DD&canary=TIP&canary=IEF&canary=BIL&risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM&risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD&cash=BIL&cash=IEF&cash=TLT&cash=BND&cash=LQD' | jq .
+
+# HAA-Balanced — 8 risky + single canary (TIP) + single cash (BIL).
+curl 'http://localhost:5050/api/haa/decision?asOf=YYYY-MM-DD&risky=SPY&risky=IWM&risky=VEA&risky=VWO&risky=VNQ&risky=DBC&risky=IEF&risky=TLT&canary=TIP&cash=BIL' | jq .
 
 # LAA — permanent[3] + 1 risky + 1 cash + signal config (signal/series default
 # to SPY/UNRATE if omitted; FRED CSV is fetched server-side, no API key).
@@ -220,6 +299,21 @@ Independent reference for LAA's GT timing rule (`SPY < SMA200(SPY)` AND
 in `LaaServiceTests`, so any divergence between Python and C# means one of
 the two is wrong.
 
+```bash
+python3 scripts/verify_haa.py
+```
+
+Independent reference for HAA's canary-gated rule (canary 13612W ≤ 0 →
+100% cash; else top T=4 risky by 13612W). Mirrors `HaaServiceTests`. The
+13612W formula itself is verified separately in `verify_13612w.py`.
+
+```bash
+python3 scripts/verify_baa.py
+```
+
+Independent reference for BAA's unanimous-AND canary gate plus the dual
+13612W (canary/risky) + SMA12 (cash) signal split. Mirrors `BaaServiceTests`.
+
 ## Stack
 
 - **Backend:** ASP.NET Core 10 (LTS); `.NET 10` SDK required.
@@ -264,7 +358,7 @@ aware strategy (BAA's yield filter, etc.) can either follow the same
 pattern or extend the interface to take a generic context.
 
 Shared per-ticker scoring lives in `Strategies/MomentumScorer.cs` —
-`Score13612W` for VAA/DAA and `ScoreSMA12` for PAA. Both wrap
+`Score13612W` for VAA/DAA/HAA and `ScoreSMA12` for PAA. Both wrap
 `Strategies/MomentumScoreCalculator.cs` (pure formula, no I/O) plus the
 relevant lookup. Pure formula primitives:
 `Calculate13612W(p0, p1, p3, p6, p12)` and
@@ -310,15 +404,16 @@ hardware support, that is the trigger to evaluate React Navigation — not befor
 ### Mobile strategy registry
 
 Mobile lists six picker entries in `mobile/src/strategies.ts` — VAA, PAA,
-DAA, BAA, HAA, LAA. VAA/PAA/DAA/LAA have `implemented: true`; BAA/HAA do
-not. PAA's protection-factor variants (a ∈ {0, 1, 2}) are *not* separate
-picker entries — they share one card and the active variant is chosen via
-a segmented control on the DecisionScreen (default a = 2, Vigilant). The
-backend response carries the variant suffix (`paa-g12-a0|a1|a2`) so a
-future history view can still distinguish them, but the Decision title
-just shows "PAA-G12" and the segmented control conveys the variant. Same
-separation will likely apply if BAA/HAA later introduce user-tunable
-parameters of their own. Tapping Confirm:
+DAA, BAA, HAA, LAA. All six have `implemented: true` (Phase 1 is
+feature-complete). PAA's protection-factor variants (a ∈ {0, 1, 2}) are
+*not* separate picker entries — they share one card and the active
+variant is chosen via a segmented control on the DecisionScreen
+(default a = 2, Vigilant). The backend response carries the variant
+suffix (`paa-g12-a0|a1|a2`) so a future history view can still
+distinguish them, but the Decision title just shows "PAA-G12" and the
+segmented control conveys the variant. Same separation pattern is
+ready to apply if BAA gains G4/G12 selection or HAA adds its
+Aggressive/Simple variants — the precedent is in place. Tapping Confirm:
 
 - Implemented strategy → `DecisionScreen` (calls backend with the resolved
   ticker universe — region default + any per-asset overrides).
@@ -345,14 +440,19 @@ mobile client depends on the string form. Don't remove this converter.
 
 - All four signal families (13612W, SMA12, daily 200d SMA, monthly 12mo SMA)
   verified independently in Python (`scripts/verify_13612w.py`,
-  `scripts/verify_paa.py`, `scripts/verify_laa.py`).
-- C# unit tests (~70 total) mirror the Python reference values across
-  VAA-G4/B3, DAA-G12, PAA-G12, and LAA, plus dedicated tests for the SMA
-  calculator and FRED CSV parser
+  `scripts/verify_paa.py`, `scripts/verify_laa.py`). HAA's canary gate +
+  top-T composition rule verified in `scripts/verify_haa.py`. BAA's
+  unanimous-AND canary + mixed-signal scoring verified in
+  `scripts/verify_baa.py`.
+- C# unit tests (~85 total) mirror the Python reference values across
+  VAA-G4/B3, DAA-G12, PAA-G12, HAA, BAA-G12, and LAA, plus dedicated
+  tests for the SMA calculator and FRED CSV parser
   (`backend/tests/MomentumInvestment.Api.Tests/`).
 - Live Yahoo Finance integration confirmed via iOS Simulator and iPhone (Expo Go)
-  for both US and UK universes (VAA/DAA/PAA). LAA's live FRED + Yahoo
-  integration is wired but should be smoke-tested with a real `asOf`.
+  for both US and UK universes (VAA/DAA/PAA). LAA, HAA, and BAA live
+  integrations are wired but should be smoke-tested with a real `asOf`
+  (HAA/BAA additionally need DBC/TIP/BIL/BND Yahoo coverage validated,
+  especially for UK UCITS substitutes).
 - Date-aware lookback verified against hand-calculated NYSE Good Friday + weekend
   cases (e.g. asOf = 2026-05-04 → p1 = 2026-04-02, p12 = 2025-05-02).
 
@@ -394,12 +494,11 @@ mobile client depends on the string form. Don't remove this converter.
 
 ## Roadmap (probable next directions)
 
-- **BAA / HAA** — same `IAllocationStrategy<TUniverse>` + `MomentumScorer`
-  + `etfCatalog` pattern. BAA/HAA bring canary-signal variants closer to
-  DAA. If BAA's yield filter brings macro data along too, follow LAA's
-  pattern: skip the interface, take an extra `Decide` parameter, wire the
-  fetch in Program.cs.
-- **Last-selection persistence** across app launches (extend `storage.ts`).
+- **HAA / BAA variant selectors** — HAA-Aggressive (lower T) /
+  HAA-Simple, and BAA-G4 (top-1-of-4 offensive) are documented in
+  Keller's papers but not exposed yet. When added, follow PAA's
+  segmented-control pattern: keep one picker entry per family, expose
+  the variant selector on DecisionScreen.
 - **History view** of past decisions — would require persistence beyond
   AsyncStorage prefs (SQLite trigger).
 - **Azure deployment** — user has monthly free credits; tighten CORS first.

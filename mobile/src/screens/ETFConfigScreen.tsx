@@ -22,9 +22,15 @@ import {
 import type { Region } from '../api/vaaClient';
 import {
   ASSET_CLASSES,
+  BAA_CANARY,
+  BAA_CASH,
+  BAA_RISKY,
   DAA_G12_CANARY,
   DAA_G12_CASH,
   DAA_G12_RISKY,
+  HAA_CANARY,
+  HAA_CASH,
+  HAA_RISKY,
   LAA_CASH,
   LAA_PERMANENT,
   LAA_RISKY,
@@ -71,8 +77,21 @@ const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
     { label: 'Risky (T=6 of 12)', codes: PAA_RISKY },
     { label: 'Cash', codes: PAA_CASH },
   ],
-  baa: [],
-  haa: [],
+  // BAA-G12: same shape as DAA — three multi-asset buckets. Canary
+  // (TIP/IEF/BIL) is the unanimous-AND gate; risky is the standard G12;
+  // cash is selected by SMA12 (single top-scorer wins when defensive).
+  baa: [
+    { label: 'Canary (unanimous AND)', codes: BAA_CANARY },
+    { label: 'Risky (T=6 of 12)', codes: BAA_RISKY },
+    { label: 'Cash', codes: BAA_CASH },
+  ],
+  // HAA: 8 risky + single canary + single cash. Canary and cash render
+  // as one-row sleeves (same trick LAA uses for its rotating sleeves).
+  haa: [
+    { label: 'Risky (T=4 of 8)', codes: HAA_RISKY },
+    { label: 'Canary (TIPS regime gate)', codes: [HAA_CANARY] },
+    { label: 'Cash (defensive)', codes: [HAA_CASH] },
+  ],
   // LAA's risky/cash sleeves are single-asset by spec, but the section
   // contract (codes: AssetClassCode[]) renders them as one-row sleeves
   // identically to the permanent sleeve, which is what we want — three
@@ -89,8 +108,8 @@ const STRATEGY_LABEL: Record<StrategyId, string> = {
   vaa: 'VAA-G4/B3',
   daa: 'DAA-G12',
   paa: 'PAA-G12',
-  baa: 'BAA',
-  haa: 'HAA',
+  baa: 'BAA-G12',
+  haa: 'HAA-Balanced',
   laa: 'LAA',
 };
 

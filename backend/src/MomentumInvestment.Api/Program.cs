@@ -57,6 +57,8 @@ builder.Services.AddSingleton<VaaG4B3Service>();
 builder.Services.AddSingleton<DaaG12Service>();
 builder.Services.AddSingleton<PaaService>();
 builder.Services.AddSingleton<LaaService>();
+builder.Services.AddSingleton<HaaService>();
+builder.Services.AddSingleton<BaaService>();
 
 // Permissive CORS for the Expo dev client. Tighten before any real deploy.
 builder.Services.AddCors(options =>
@@ -226,6 +228,100 @@ app.MapGet("/api/paa/decision", async (
     return Results.Ok(decision);
 });
 
+// HAA decision (Keller & Keuning, 2023) — Hybrid Asset Allocation.
+//
+// Three roles supplied by the caller — risky[] (8 by default), canary
+// (single ticker, default TIP), cash (single ticker, default BIL). The
+// canary's 13612W gates the offensive/defensive switch:
+//   - canary 13612W ≤ 0 → 100% in cash
+//   - canary 13612W > 0 → top T=4 risky by 13612W at 1/T each
+//
+// Same region-agnostic contract as VAA/DAA/PAA: mobile resolves which
+// tickers to send and the backend just executes the strategy.
+//
+// Example:
+//   /api/haa/decision?asOf=2026-05-08
+//     &risky=SPY&risky=IWM&risky=VEA&risky=VWO
+//     &risky=VNQ&risky=DBC&risky=IEF&risky=TLT
+//     &canary=TIP&cash=BIL
+app.MapGet("/api/haa/decision", async (
+    DateOnly asOf,
+    string[] risky,
+    string? canary,
+    string? cash,
+    YahooFinanceClient yahoo,
+    HaaService haa,
+    IMemoryCache cacheStore,
+    CancellationToken ct) =>
+{
+    if (risky is null || risky.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
+    }
+    if (string.IsNullOrWhiteSpace(canary))
+    {
+        return Results.BadRequest("Query parameter 'canary' is required.");
+    }
+    if (string.IsNullOrWhiteSpace(cash))
+    {
+        return Results.BadRequest("Query parameter 'cash' is required.");
+    }
+
+    var universe = new HaaUniverse(risky, canary.Trim(), cash.Trim());
+    var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
+    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+
+    var decision = haa.Decide(asOf, universe, prices);
+    return Results.Ok(decision);
+});
+
+// BAA-G12 decision (Keller, 2022) — Bold Asset Allocation.
+//
+// Three roles supplied by the caller — canary[] (3 by default: TIP, IEF,
+// BIL), risky[] (12 by default), cash[] (5 by default). Same
+// region-agnostic contract as VAA/DAA/PAA/HAA.
+//
+// Bold canary gate: ALL canaries must have positive 13612W to enter
+// offensive (unanimous AND, not breadth count). Otherwise defensive
+// holds 100% in the single top-SMA12 cash asset.
+//
+// Example:
+//   /api/baa/decision?asOf=2026-05-08
+//     &canary=TIP&canary=IEF&canary=BIL
+//     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM
+//     &risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD
+//     &cash=BIL&cash=IEF&cash=TLT&cash=BND&cash=LQD
+app.MapGet("/api/baa/decision", async (
+    DateOnly asOf,
+    string[] canary,
+    string[] risky,
+    string[] cash,
+    YahooFinanceClient yahoo,
+    BaaService baa,
+    IMemoryCache cacheStore,
+    CancellationToken ct) =>
+{
+    if (canary is null || canary.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'canary' must contain at least one ticker.");
+    }
+    if (risky is null || risky.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
+    }
+    if (cash is null || cash.Length == 0)
+    {
+        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
+    }
+
+    var universe = new BaaUniverse(canary, risky, cash);
+    var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
+    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+
+    var decision = baa.Decide(asOf, universe, prices);
+    return Results.Ok(decision);
+});
+
 // LAA decision (Keller, 2019) — Lethargic Asset Allocation.
 //
 // Unlike VAA/DAA/PAA, LAA needs macro data: the US unemployment rate
@@ -340,6 +436,8 @@ app.MapGet("/", () => Results.Ok(new
         "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD&offensive=A&offensive=B&...&defensive=X&defensive=Y&...",
         "/api/daa-g12/decision?asOf=YYYY-MM-DD&canary=A&canary=B&risky=...&cash=...",
         "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...&a=0|1|2",
+        "/api/haa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&canary=TIP&cash=BIL",
+        "/api/baa/decision?asOf=YYYY-MM-DD&canary=A&canary=B&canary=C&risky=...&cash=...",
         "/api/laa/decision?asOf=YYYY-MM-DD&permanent=A&permanent=B&permanent=C&risky=X&cash=Y&signalEquity=SPY&unemploymentSeriesId=UNRATE",
         "/api/etf/probe?ticker=EMIM.L",
     },

@@ -12,10 +12,14 @@ import {
   clearOverrides as persistClearOverrides,
   loadCustomTickers,
   loadOverrides,
+  loadPaaProtectionFactor,
   loadRegion,
+  loadSelectedStrategyId,
   saveCustomTickers as persistCustomTickers,
   saveOverrides as persistOverrides,
+  savePaaProtectionFactor as persistPaaA,
   saveRegion as persistRegion,
+  saveSelectedStrategyId as persistSelectedStrategyId,
   type CustomEtfEntry,
   type CustomTickers,
   type Overrides,
@@ -27,10 +31,14 @@ import {
   type StrategyId,
 } from './src/strategies';
 import {
+  baaTickerArrays,
   daaG12TickerArrays,
+  haaTickerArrays,
   laaTickerArrays,
   paaTickerArrays,
+  resolveBaaUniverse,
   resolveDaaG12Universe,
+  resolveHaaUniverse,
   resolveLaaUniverse,
   resolvePaaUniverse,
   resolveUniverse,
@@ -68,22 +76,45 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
 
   // Rehydrate persisted preferences on mount. While loading we render a
-  // dark blank screen so a UK user doesn't see a brief US flash.
+  // dark blank screen so a UK user doesn't see a brief US flash and so a
+  // strategy chosen last session doesn't appear to "jump" from VAA to its
+  // saved value after the home screen mounts.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const r = await loadRegion();
-      const [o, c] = await Promise.all([loadOverrides(r), loadCustomTickers(r)]);
+      const [o, c, savedStrategy, savedPaaA] = await Promise.all([
+        loadOverrides(r),
+        loadCustomTickers(r),
+        loadSelectedStrategyId(DEFAULT_STRATEGY_ID),
+        loadPaaProtectionFactor(),
+      ]);
       if (cancelled) return;
       setRegion(r);
       setOverrides(o);
       setCustoms(c);
+      setSelectedStrategyId(savedStrategy);
+      setPaaProtectionFactor(savedPaaA);
       setHydrated(true);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Wrapped setters that persist alongside updating local state. Kept as
+  // tiny handlers (rather than `useEffect` watching the state) so a
+  // navigation/Confirm doesn't trigger redundant writes when nothing
+  // changed.
+  const handleStrategyChange = (id: StrategyId) => {
+    setSelectedStrategyId(id);
+    void persistSelectedStrategyId(id);
+  };
+
+  const handlePaaAChange = (a: PaaProtectionFactor) => {
+    setPaaProtectionFactor(a);
+    void persistPaaA(a);
+  };
 
   const handleRegionChange = (r: Region) => {
     setRegion(r);
@@ -174,6 +205,14 @@ export default function App() {
       const universe = resolvePaaUniverse(region, overrides);
       const { risky, cash } = paaTickerArrays(universe);
       request = { kind: 'paa', risky, cash };
+    } else if (strategy.id === 'haa') {
+      const universe = resolveHaaUniverse(region, overrides);
+      const { risky, canary, cash } = haaTickerArrays(universe);
+      request = { kind: 'haa', risky, canary, cash };
+    } else if (strategy.id === 'baa') {
+      const universe = resolveBaaUniverse(region, overrides);
+      const { canary, risky, cash } = baaTickerArrays(universe);
+      request = { kind: 'baa-g12', canary, risky, cash };
     } else if (strategy.id === 'laa') {
       const universe = resolveLaaUniverse(region, overrides);
       const { permanent, risky, cash, signalEquity, unemploymentSeriesId } =
@@ -203,7 +242,7 @@ export default function App() {
     return (
       <HomeScreen
         selectedStrategyId={selectedStrategyId}
-        onStrategyChange={setSelectedStrategyId}
+        onStrategyChange={handleStrategyChange}
         asOfDate={asOfDate}
         onAsOfChange={setAsOfDate}
         region={region}
@@ -238,7 +277,7 @@ export default function App() {
         region={screen.region}
         request={screen.request}
         paaA={paaProtectionFactor}
-        onPaaAChange={setPaaProtectionFactor}
+        onPaaAChange={handlePaaAChange}
         onBack={() => setScreen({ kind: 'home' })}
       />
     );

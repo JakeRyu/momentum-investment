@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
+import { fetchBaaDecision } from '../api/baaClient';
 import { fetchDaaG12Decision } from '../api/daaClient';
+import { fetchHaaDecision } from '../api/haaClient';
 import { fetchLaaDecision } from '../api/laaClient';
 import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
@@ -35,6 +37,8 @@ export type DecisionRequest =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
   | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
+  | { kind: 'haa'; risky: readonly string[]; canary: string; cash: string }
+  | { kind: 'baa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
   | {
       kind: 'laa';
       permanent: readonly string[];
@@ -85,6 +89,8 @@ const STRATEGY_LABELS: Record<string, string> = {
   'paa-g12-a0': 'PAA-G12',
   'paa-g12-a1': 'PAA-G12',
   'paa-g12-a2': 'PAA-G12',
+  'haa': 'HAA-Balanced',
+  'baa-g12': 'BAA-G12',
   'laa': 'LAA',
 };
 
@@ -131,6 +137,10 @@ export default function DecisionScreen({
         return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
       case 'paa':
         return `paa:${request.risky.join(',')}|${request.cash.join(',')}|a=${paaA}`;
+      case 'haa':
+        return `haa:${request.risky.join(',')}|${request.canary}|${request.cash}`;
+      case 'baa-g12':
+        return `baa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
       case 'laa':
         return (
           `laa:${request.permanent.join(',')}|${request.risky}|${request.cash}` +
@@ -153,6 +163,12 @@ export default function DecisionScreen({
           break;
         case 'paa':
           d = await fetchPaaDecision(asOf, request.risky, request.cash, paaA);
+          break;
+        case 'haa':
+          d = await fetchHaaDecision(asOf, request.risky, request.canary, request.cash);
+          break;
+        case 'baa-g12':
+          d = await fetchBaaDecision(asOf, request.canary, request.risky, request.cash);
           break;
         case 'laa':
           d = await fetchLaaDecision(

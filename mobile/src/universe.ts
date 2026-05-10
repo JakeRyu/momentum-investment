@@ -10,9 +10,15 @@
 import type { Region } from './api/vaaClient';
 import {
   ASSET_CLASSES,
+  BAA_CANARY,
+  BAA_CASH,
+  BAA_RISKY,
   DAA_G12_CANARY,
   DAA_G12_CASH,
   DAA_G12_RISKY,
+  HAA_CANARY,
+  HAA_CASH,
+  HAA_RISKY,
   LAA_CASH,
   LAA_PERMANENT,
   LAA_RISKY,
@@ -41,6 +47,25 @@ export type ResolvedDaaG12Universe = {
 };
 
 export type ResolvedPaaUniverse = {
+  risky: ResolvedAsset[];
+  cash: ResolvedAsset[];
+};
+
+/**
+ * HAA's resolved universe — 8 risky + single canary + single cash, all
+ * remapped via the same region/override mechanism as VAA/DAA/PAA. The
+ * canary and cash are single assets (not lists) because Keller's HAA
+ * paper specifies them individually rather than as competing candidates.
+ */
+export type ResolvedHaaUniverse = {
+  risky: ResolvedAsset[];
+  canary: ResolvedAsset;
+  cash: ResolvedAsset;
+};
+
+/** BAA-G12 universe — three multi-asset buckets like DAA. */
+export type ResolvedBaaUniverse = {
+  canary: ResolvedAsset[];
   risky: ResolvedAsset[];
   cash: ResolvedAsset[];
 };
@@ -139,6 +164,58 @@ export function paaTickerArrays(u: ResolvedPaaUniverse): {
   cash: string[];
 } {
   return {
+    risky: u.risky.map((x) => x.ticker),
+    cash: u.cash.map((x) => x.ticker),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// HAA
+
+export function resolveHaaUniverse(
+  region: Region,
+  overrides: Overrides,
+): ResolvedHaaUniverse {
+  return {
+    risky: HAA_RISKY.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    canary: { code: HAA_CANARY, ticker: pickTicker(HAA_CANARY, region, overrides) },
+    cash:   { code: HAA_CASH,   ticker: pickTicker(HAA_CASH,   region, overrides) },
+  };
+}
+
+export function haaTickerArrays(u: ResolvedHaaUniverse): {
+  risky: string[];
+  canary: string;
+  cash: string;
+} {
+  return {
+    risky: u.risky.map((x) => x.ticker),
+    canary: u.canary.ticker,
+    cash: u.cash.ticker,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// BAA-G12
+
+export function resolveBaaUniverse(
+  region: Region,
+  overrides: Overrides,
+): ResolvedBaaUniverse {
+  return {
+    canary: BAA_CANARY.map((code) => ({ code, ticker: pickTicker(code, region, overrides) })),
+    risky:  BAA_RISKY.map((code)  => ({ code, ticker: pickTicker(code, region, overrides) })),
+    cash:   BAA_CASH.map((code)   => ({ code, ticker: pickTicker(code, region, overrides) })),
+  };
+}
+
+export function baaTickerArrays(u: ResolvedBaaUniverse): {
+  canary: string[];
+  risky: string[];
+  cash: string[];
+} {
+  return {
+    canary: u.canary.map((x) => x.ticker),
     risky: u.risky.map((x) => x.ticker),
     cash: u.cash.map((x) => x.ticker),
   };
