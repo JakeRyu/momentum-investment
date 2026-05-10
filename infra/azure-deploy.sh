@@ -158,7 +158,7 @@ cat <<EOF
 
 ✓ Deployed: https://$FQDN
   Health:   https://$FQDN/
-  Logs:     az containerapp logs tail -g $RG -n $APP
+  Logs:     az containerapp logs show -g $RG -n $APP --follow --format text
 
 Update mobile/.env then restart Expo:
 

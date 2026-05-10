@@ -256,7 +256,7 @@ If any strategy errors with a network timeout, check Container Apps
 logs:
 
 ```bash
-az containerapp logs tail -g momentum-investment -n momentum-api
+az containerapp logs show -g momentum-investment -n momentum-api --follow --format text
 ```
 
 Common cause: unofficial Yahoo API rate-limited the new outbound IP.
@@ -266,20 +266,16 @@ may need updating (see AGENTS.md "Gotchas" section).
 
 ---
 
-## Commit the deploy + mobile cutover
+## No commit needed for mobile/.env
 
-```bash
-cd /Users/jryu/Projects/momentum-investment
-git add mobile/.env
-git status --short
-```
+`mobile/.env` is gitignored (matched by `mobile/.gitignore`'s `.env*`
+rule and the root `.gitignore`). The FQDN switch is a local-only
+change — don't try to commit it. The deployed backend URL doesn't
+belong in version control; if another developer joins, they'd want
+their own `.env` (or a different deploy entirely).
 
-Confirm only `mobile/.env` is staged (the FQDN change). Suggested
-commit:
-
-```
-chore: point mobile at deployed Azure backend
-```
+If `.env.example` ever needs updating to document the variable name,
+that's the file to commit — not `.env`.
 
 ---
 
