@@ -54,6 +54,15 @@ import { pickTicker } from '../universe';
  */
 type Section = { label: string; codes: AssetClassCode[] };
 
+// PAA0/PAA1/PAA2 share the same risky+cash universe; only the protection
+// factor `a` differs (handled in the API layer). Defining once and reusing
+// keeps the three picker entries consistent — if PAA's universe ever
+// changes, both halves update in lockstep.
+const PAA_SECTIONS: Section[] = [
+  { label: 'Risky (T=6 of 12)', codes: PAA_RISKY },
+  { label: 'Cash', codes: PAA_CASH },
+];
+
 const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
   vaa: [
     { label: 'Offensive (G4)', codes: VAA_OFFENSIVE },
@@ -64,10 +73,9 @@ const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
     { label: 'Risky (T=6 of 12)', codes: DAA_G12_RISKY },
     { label: 'Cash', codes: DAA_G12_CASH },
   ],
-  paa: [
-    { label: 'Risky (T=6 of 12)', codes: PAA_RISKY },
-    { label: 'Cash', codes: PAA_CASH },
-  ],
+  'paa-a0': PAA_SECTIONS,
+  'paa-a1': PAA_SECTIONS,
+  'paa-a2': PAA_SECTIONS,
   baa: [],
   haa: [],
   // LAA's risky/cash sleeves are single-asset by spec, but the section
@@ -85,7 +93,9 @@ const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
 const STRATEGY_LABEL: Record<StrategyId, string> = {
   vaa: 'VAA-G4/B3',
   daa: 'DAA-G12',
-  paa: 'PAA-G12',
+  'paa-a0': 'PAA-G12 (a=0)',
+  'paa-a1': 'PAA-G12 (a=1)',
+  'paa-a2': 'PAA-G12 (a=2)',
   baa: 'BAA',
   haa: 'HAA',
   laa: 'LAA',

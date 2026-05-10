@@ -172,15 +172,23 @@ app.MapGet("/api/daa-g12/decision", async (
     return Results.Ok(decision);
 });
 
-// PAA-G12 decision (Keller & van Putten, 2016) — PAA2 variant (a=2).
+// PAA-G12 decision (Keller & van Putten, 2016).
 //
 // Two ticker buckets supplied by the caller — risky and cash. Same
 // region-agnostic contract as VAA/DAA: mobile resolves which tickers to
 // send and the backend just executes the strategy. The momentum signal
 // here is SMA(12) on monthly closes (not 13612W).
 //
+// Optional `a` query parameter (0|1|2) selects the protection factor
+// per Keller's PAA paper:
+//   a = 0 (Aggressive) → defensive only when zero risky assets are good
+//   a = 1 (Moderate)   → defensive at n ≤ 3 good
+//   a = 2 (Vigilant)   → defensive at n ≤ 6 good (default; Keller's baseline)
+//
+// The response's StrategyId carries the variant ("paa-g12-a0|a1|a2").
+//
 // Example:
-//   /api/paa/decision?asOf=2026-05-05
+//   /api/paa/decision?asOf=2026-05-05&a=2
 //     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM
 //     &risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT
 //     &cash=IEF&cash=SHY&cash=LQD
@@ -188,6 +196,7 @@ app.MapGet("/api/paa/decision", async (
     DateOnly asOf,
     string[] risky,
     string[] cash,
+    int? a,
     YahooFinanceClient yahoo,
     PaaService paa,
     IMemoryCache cacheStore,
@@ -202,11 +211,18 @@ app.MapGet("/api/paa/decision", async (
         return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
     }
 
+    int protectionFactor = a ?? PaaService.DefaultA;
+    if (protectionFactor is < 0 or > 2)
+    {
+        return Results.BadRequest(
+            "Query parameter 'a' must be 0 (Aggressive), 1 (Moderate), or 2 (Vigilant).");
+    }
+
     var universe = new PaaUniverse(risky, cash);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
     if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
 
-    var decision = paa.Decide(asOf, universe, prices);
+    var decision = paa.Decide(asOf, universe, prices, protectionFactor);
     return Results.Ok(decision);
 });
 
@@ -323,7 +339,7 @@ app.MapGet("/", () => Results.Ok(new
     {
         "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD&offensive=A&offensive=B&...&defensive=X&defensive=Y&...",
         "/api/daa-g12/decision?asOf=YYYY-MM-DD&canary=A&canary=B&risky=...&cash=...",
-        "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...",
+        "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...&a=0|1|2",
         "/api/laa/decision?asOf=YYYY-MM-DD&permanent=A&permanent=B&permanent=C&risky=X&cash=Y&signalEquity=SPY&unemploymentSeriesId=UNRATE",
         "/api/etf/probe?ticker=EMIM.L",
     },

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Independent verification of the SMA12 momentum used by PAA-G12 (Wouter
-Keller, "Protective Asset Allocation", 2016) and the monthly lookback
-shared with the C# backend.
+Independent verification of the SMA12 momentum and bond-fraction formula
+used by PAA-G12 (Wouter Keller, "Protective Asset Allocation", 2016) and
+the monthly lookback shared with the C# backend.
 
   momentum = p₀ / SMA(p₀..p₁₁) − 1
   SMA(p₀..p₁₁) = (p₀ + p₁ + … + p₁₁) / 12
@@ -10,6 +10,14 @@ shared with the C# backend.
 where p₀ is the price on the as-of date and p₁..p₁₁ are the eleven
 preceding monthly closes. Note that p₀ is *included* in the SMA — Keller's
 PAA paper defines `SMA12_t = (1/12)·Σ_{i=0}^{11} p_{t−i}`.
+
+  BF = max(0, min(1, (N − n) / N1))
+  N1 = N − a·N/4
+
+where N is the risky-universe size, n is the count of good risky assets,
+and a ∈ {0, 1, 2} is the protection factor (PAA / PAA1 / PAA2 = Aggressive
+/ Moderate / Vigilant). The boundary closed forms checked below pin down
+the C# `PaaService` logic across all three a-variants.
 
 Lookback semantics
 ------------------
@@ -79,6 +87,21 @@ def almost_equal(a: Decimal, b: Decimal, places: int = 20) -> bool:
     return abs(a - b) < Decimal(10) ** -places
 
 
+def bond_fraction(N: int, n: int, a: int) -> Decimal:
+    """PAA bond fraction (Keller & van Putten, 2016).
+
+      BF = max(0, min(1, (N − n) / N1))
+      N1 = N − a·N/4
+
+    where N is the risky-universe size, n is the count of "good" risky
+    assets (positive momentum), and a ∈ {0, 1, 2} is the protection
+    factor. For (N=12, a=0/1/2) this gives N1 = 12/9/6.
+    """
+    n1 = Decimal(N) - Decimal(a) * Decimal(N) / Decimal(4)
+    raw = (Decimal(N) - Decimal(n)) / n1
+    return max(Decimal(0), min(Decimal(1), raw))
+
+
 def main():
     # 1. Calculator: flat prices → 0.
     assert sma_momentum([Decimal(100)] * 12) == 0
@@ -131,6 +154,33 @@ def main():
     s = sma_momentum(closes)
     print(f"synthetic asOf={asOf}, P₀=110 / others=100: momentum = {s}")
     assert almost_equal(s, Decimal(1) / Decimal(11))
+
+    # 6. Bond fraction across protection factors a ∈ {0, 1, 2}.
+    #    Independent reference for the C# PaaService bond-fraction logic;
+    #    the unit-test fixtures pin down the same rational closed forms.
+    print()
+    print("Bond fraction reference (N=12):")
+
+    # 6a. PAA0 (a=0, N1=12). Defensive only at n=0; no protection floor.
+    assert bond_fraction(12, 12, 0) == Decimal(0), "PAA0 n=12 → BF=0"
+    assert bond_fraction(12, 11, 0) == Decimal(1) / Decimal(12), "PAA0 n=11 → 1/12"
+    assert bond_fraction(12, 1,  0) == Decimal(11) / Decimal(12), "PAA0 n=1  → 11/12"
+    assert bond_fraction(12, 0,  0) == Decimal(1), "PAA0 n=0  → 1"
+    print("  a=0: n=12→0, n=11→1/12, n=1→11/12, n=0→1 OK")
+
+    # 6b. PAA1 (a=1, N1=9). Defensive at n ≤ 3.
+    assert bond_fraction(12, 12, 1) == Decimal(0), "PAA1 n=12 → BF=0"
+    assert bond_fraction(12, 4,  1) == Decimal(8) / Decimal(9), "PAA1 n=4 → 8/9"
+    assert bond_fraction(12, 3,  1) == Decimal(1), "PAA1 n=3 → 1 (boundary)"
+    assert bond_fraction(12, 0,  1) == Decimal(1), "PAA1 n=0 → 1 (capped)"
+    print("  a=1: n=12→0, n=4→8/9, n=3→1, n=0→1 OK")
+
+    # 6c. PAA2 (a=2, N1=6). Defensive at n ≤ 6 (Keller's Vigilant default).
+    assert bond_fraction(12, 12, 2) == Decimal(0), "PAA2 n=12 → BF=0"
+    assert bond_fraction(12, 7,  2) == Decimal(5) / Decimal(6), "PAA2 n=7 → 5/6"
+    assert bond_fraction(12, 6,  2) == Decimal(1), "PAA2 n=6 → 1 (boundary)"
+    assert bond_fraction(12, 0,  2) == Decimal(1), "PAA2 n=0 → 1 (capped)"
+    print("  a=2: n=12→0, n=7→5/6, n=6→1, n=0→1 OK")
 
     print()
     print("All assertions passed.")

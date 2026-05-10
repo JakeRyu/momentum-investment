@@ -1,9 +1,10 @@
 # Momentum Investment
 
 Personal mobile app surfacing **Wouter Keller's momentum-based asset-allocation
-decisions**. Phase 1 implements **VAA-G4/B3**, **DAA-G12**, **PAA-G12 (a=2)**,
-and **LAA** end-to-end; the remaining Keller strategies (BAA, HAA) are listed
-in the mobile picker but route to a "Coming soon" placeholder.
+decisions**. Phase 1 implements **VAA-G4/B3**, **DAA-G12**, **PAA-G12** (all
+three protection factors a ∈ {0, 1, 2}), and **LAA** end-to-end; the remaining
+Keller strategies (BAA, HAA) are listed in the mobile picker but route to a
+"Coming soon" placeholder.
 
 ## Layout
 
@@ -54,7 +55,7 @@ Reference: Keller & Keuning, *Breadth Momentum and Vigilant Asset Allocation*, 2
 
 Reference: Keller & Keuning, *Breadth Momentum and the Canary Universe*, 2018.
 
-## Strategy: PAA-G12/T6 (a=2)
+## Strategy: PAA-G12/T6 (a ∈ {0, 1, 2})
 
 - **Risky (T=6 of N=12):** SPY, IWM, QQQ, VGK, EWJ, EEM, VNQ, GSG, GLD, HYG, LQD, TLT.
 - **Cash:** IEF, SHY, LQD (Keller's canonical cash is single-asset IEF; we
@@ -63,16 +64,26 @@ Reference: Keller & Keuning, *Breadth Momentum and the Canary Universe*, 2018.
 - **Momentum signal:** SMA(12), not 13612W —
   `momentum = p₀ / mean(p₀..p₁₁) − 1`. P₀ is *included* in the SMA per
   Keller's PAA paper definition.
-- **Rule (Keller & van Putten, 2016, with a=2):** count `n` of risky assets
-  with momentum > 0. Bond fraction `BF = max(0, min(1, (N − n) / N1))` where
-  `N1 = N − a·N/4`. For N=12, a=2 → N1 = 6, so:
-  - `n ≤ 6` → BF = 1 → 100% in top cash (Defensive)
-  - `n = 7..11` → BF = (12−n)/6 → top T=6 risky at `(1−BF)/T` each + BF in top cash (Hybrid)
-  - `n = 12` → BF = 0 → top 6 risky at 1/6 each (Offensive)
+- **Rule (Keller & van Putten, 2016):** count `n` of risky assets with
+  momentum > 0. Bond fraction `BF = max(0, min(1, (N − n) / N1))` where
+  `N1 = N − a·N/4`. For N=12 the three Keller-defined `a` variants are:
+  - `a = 0` (Aggressive) → N1 = 12. Defensive only at `n = 0`; `n = k > 0`
+    gives `BF = (12−k)/12` and partial risky exposure all the way down.
+  - `a = 1` (Moderate)   → N1 =  9. Defensive at `n ≤ 3`; `n = k > 3` gives
+    `BF = (12−k)/9` (capped at 1).
+  - `a = 2` (Vigilant)   → N1 =  6. Defensive at `n ≤ 6`; `n = k > 6` gives
+    `BF = (12−k)/6`. Keller's recommended baseline.
+  All three: `n = 12` → `BF = 0` → top 6 risky at 1/6 each (Offensive).
 - Each risky position holds `(1 − BF) / T` (fixed denominator T, not the
-  smaller `t = min(n, T)`). For PAA2 this only matters with PAA0/PAA1 since
-  any non-zero risky exposure already implies n > 6 ≥ T; the expression is
-  written to scale to any future `a`.
+  smaller `t = min(n, T)`). For PAA0/PAA1 with `n < T = 6`, only `t` slots
+  are filled and the leftover `(T − t)·(1 − BF)/T` collapses into cash on
+  top of BF — PAA2 never exercises this path because `n > 6 ≥ T` is
+  guaranteed whenever any risky exposure is held.
+- **API surface:** `/api/paa/decision?...&a=0|1|2` (default `a = 2`).
+  Response `strategyId` carries the variant suffix —
+  `paa-g12-a0` / `paa-g12-a1` / `paa-g12-a2` — so a future history view can
+  distinguish them. The class-level `PaaService.StrategyId` stays at
+  `paa-g12` for DI/logging.
 - **EM ticker note:** PAA's EM exposure is EEM (`EM` asset class, shared with
   VAA). DAA's canary EM is VWO (`EM_FTSE`, DAA-only). A UK override on `EM`
   applies to VAA + PAA but not DAA's canary.
@@ -134,7 +145,7 @@ Asset Allocation (LAA)*, SSRN 3498092, 2019.
 cd backend
 dotnet restore
 dotnet build
-dotnet test                        # ~60 unit tests across calculator, lookup, SMA, FRED parser, VAA, DAA, PAA, and LAA
+dotnet test                        # ~70 unit tests across calculator, lookup, SMA, FRED parser, VAA, DAA, PAA, and LAA
 dotnet run --project src/MomentumInvestment.Api
 ```
 
@@ -156,10 +167,10 @@ curl 'http://localhost:5050/api/daa-g12/decision?asOf=YYYY-MM-DD\
 &risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD\
 &cash=SHY&cash=IEF&cash=LQD' | jq .
 
-# PAA-G12 (a=2 hardcoded server-side)
+# PAA-G12 — `a` selects protection factor (default 2 if omitted).
 # Note: zsh treats backslash-newline literally inside single quotes, so
 # in a real shell either keep the URL on one line or build it via $URL+=...
-curl 'http://localhost:5050/api/paa/decision?asOf=YYYY-MM-DD&risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM&risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT&cash=IEF&cash=SHY&cash=LQD' | jq .
+curl 'http://localhost:5050/api/paa/decision?asOf=YYYY-MM-DD&a=2&risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM&risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT&cash=IEF&cash=SHY&cash=LQD' | jq .
 
 # LAA — permanent[3] + 1 risky + 1 cash + signal config (signal/series default
 # to SPY/UNRATE if omitted; FRED CSV is fetched server-side, no API key).
@@ -194,9 +205,11 @@ The C# unit tests mirror its values, so any divergence means one of them is wron
 python3 scripts/verify_paa.py
 ```
 
-Same role for the SMA12 formula used by PAA. Note that decimal arithmetic
-truncates at ~28 digits, so the script compares with a tolerance via
-`almost_equal(...)` — the C# tests do the same via `Assert.Equal(..., precision: 18)`.
+Same role for the SMA12 formula used by PAA, plus the bond-fraction
+closed forms `BF = max(0, min(1, (N − n) / (N − a·N/4)))` for `a ∈ {0, 1, 2}`.
+Note that decimal arithmetic truncates at ~28 digits, so the script compares
+with a tolerance via `almost_equal(...)` — the C# tests do the same via
+`Assert.Equal(..., precision: 18)`.
 
 ```bash
 python3 scripts/verify_laa.py
@@ -296,8 +309,10 @@ hardware support, that is the trigger to evaluate React Navigation — not befor
 
 ### Mobile strategy registry
 
-Mobile lists six strategies in `mobile/src/strategies.ts`. VAA, DAA, PAA,
-and LAA have `implemented: true`; BAA/HAA do not. Tapping Confirm:
+Mobile lists eight picker entries in `mobile/src/strategies.ts` — VAA, DAA,
+PAA0/PAA1/PAA2 (Keller's three protection-factor variants share the same
+risky+cash universe; only `a` differs at the API layer), LAA, BAA, HAA. The
+first six have `implemented: true`; BAA/HAA do not. Tapping Confirm:
 
 - Implemented strategy → `DecisionScreen` (calls backend with the resolved
   ticker universe — region default + any per-asset overrides).
@@ -325,7 +340,7 @@ mobile client depends on the string form. Don't remove this converter.
 - All four signal families (13612W, SMA12, daily 200d SMA, monthly 12mo SMA)
   verified independently in Python (`scripts/verify_13612w.py`,
   `scripts/verify_paa.py`, `scripts/verify_laa.py`).
-- C# unit tests (~60 total) mirror the Python reference values across
+- C# unit tests (~70 total) mirror the Python reference values across
   VAA-G4/B3, DAA-G12, PAA-G12, and LAA, plus dedicated tests for the SMA
   calculator and FRED CSV parser
   (`backend/tests/MomentumInvestment.Api.Tests/`).
@@ -373,11 +388,6 @@ mobile client depends on the string form. Don't remove this converter.
 
 ## Roadmap (probable next directions)
 
-- **PAA0 / PAA1 variants** — currently only PAA2 (a=2). Adding the other
-  two is mechanical: either expose `a` as a query param of `/api/paa/decision`
-  (and a mobile picker), or register `paa-a0`/`paa-a1` as separate
-  `StrategyId`s. PaaService already keeps the formula generic over `a`
-  via the `n1` derivation; only the constant needs to flow in.
 - **BAA / HAA** — same `IAllocationStrategy<TUniverse>` + `MomentumScorer`
   + `etfCatalog` pattern. BAA/HAA bring canary-signal variants closer to
   DAA. If BAA's yield filter brings macro data along too, follow LAA's

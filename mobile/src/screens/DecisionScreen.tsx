@@ -13,7 +13,7 @@ import {
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { fetchDaaG12Decision } from '../api/daaClient';
 import { fetchLaaDecision } from '../api/laaClient';
-import { fetchPaaDecision } from '../api/paaClient';
+import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
 import type { Strategy } from '../strategies';
 
@@ -25,7 +25,7 @@ import type { Strategy } from '../strategies';
 export type DecisionRequest =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
+  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[]; a: PaaProtectionFactor }
   | {
       kind: 'laa';
       permanent: readonly string[];
@@ -62,7 +62,11 @@ const REGION_FLAG: Record<Region, string> = {
 const STRATEGY_LABELS: Record<string, string> = {
   'vaa-g4b3': 'VAA-G4/B3',
   'daa-g12': 'DAA-G12',
-  'paa-g12': 'PAA-G12',
+  // PAA backend response carries the variant suffix so a future history
+  // view can tell PAA0/PAA1/PAA2 decisions apart at a glance.
+  'paa-g12-a0': 'PAA-G12 (a=0)',
+  'paa-g12-a1': 'PAA-G12 (a=1)',
+  'paa-g12-a2': 'PAA-G12 (a=2)',
   'laa': 'LAA',
 };
 
@@ -103,7 +107,7 @@ export default function DecisionScreen({
       case 'daa-g12':
         return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
       case 'paa':
-        return `paa:${request.risky.join(',')}|${request.cash.join(',')}`;
+        return `paa:${request.risky.join(',')}|${request.cash.join(',')}|a=${request.a}`;
       case 'laa':
         return (
           `laa:${request.permanent.join(',')}|${request.risky}|${request.cash}` +
@@ -125,7 +129,7 @@ export default function DecisionScreen({
           d = await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
           break;
         case 'paa':
-          d = await fetchPaaDecision(asOf, request.risky, request.cash);
+          d = await fetchPaaDecision(asOf, request.risky, request.cash, request.a);
           break;
         case 'laa':
           d = await fetchLaaDecision(

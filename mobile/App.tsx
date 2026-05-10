@@ -22,6 +22,7 @@ import {
 import {
   DEFAULT_STRATEGY_ID,
   findStrategy,
+  paaProtectionFactor,
   type Strategy,
   type StrategyId,
 } from './src/strategies';
@@ -152,15 +153,18 @@ export default function App() {
     // have their own resolver but share the same region + per-asset-class
     // override semantics under the hood. LAA additionally carries the
     // signal-equity and FRED series ids straight through to the API call.
+    // PAA's three picker entries (paa-a0/a1/a2) all share `resolvePaaUniverse`
+    // — only the protection factor `a` differs.
     let request: DecisionRequest;
+    const paaA = paaProtectionFactor(strategy.id);
     if (strategy.id === 'daa') {
       const universe = resolveDaaG12Universe(region, overrides);
       const { canary, risky, cash } = daaG12TickerArrays(universe);
       request = { kind: 'daa-g12', canary, risky, cash };
-    } else if (strategy.id === 'paa') {
+    } else if (paaA !== null) {
       const universe = resolvePaaUniverse(region, overrides);
       const { risky, cash } = paaTickerArrays(universe);
-      request = { kind: 'paa', risky, cash };
+      request = { kind: 'paa', risky, cash, a: paaA };
     } else if (strategy.id === 'laa') {
       const universe = resolveLaaUniverse(region, overrides);
       const { permanent, risky, cash, signalEquity, unemploymentSeriesId } =
