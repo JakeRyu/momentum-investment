@@ -152,7 +152,7 @@ export default function ETFConfigScreen({
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable onPress={onBack} hitSlop={12}>
-          <Text style={styles.back}>← 뒤로</Text>
+          <Text style={styles.back}>← Back</Text>
         </Pressable>
 
         <Text style={styles.title}>{STRATEGY_LABEL[strategyId]} · ETF Universe</Text>
@@ -475,7 +475,7 @@ function ChoiceList({
         </Pressable>
       </ScrollView>
       <Pressable style={styles.cancel} onPress={onClose}>
-        <Text style={styles.cancelText}>취소</Text>
+        <Text style={styles.cancelText}>Cancel</Text>
       </Pressable>
     </>
   );
@@ -590,17 +590,17 @@ function AddCustomForm({
           {probing ? (
             <ActivityIndicator color="#0b0d10" />
           ) : (
-            <Text style={styles.primaryText}>검증 & 미리보기</Text>
+            <Text style={styles.primaryText}>Verify & preview</Text>
           )}
         </Pressable>
       ) : (
         <Pressable style={styles.primary} onPress={handleConfirm}>
-          <Text style={styles.primaryText}>추가 확정</Text>
+          <Text style={styles.primaryText}>Add ticker</Text>
         </Pressable>
       )}
 
       <Pressable style={styles.cancel} onPress={onCancel}>
-        <Text style={styles.cancelText}>← 뒤로</Text>
+        <Text style={styles.cancelText}>← Back</Text>
       </Pressable>
     </View>
   );

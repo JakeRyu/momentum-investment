@@ -14,7 +14,7 @@ export default function NotImplementedScreen({ strategy, onBack }: NotImplemente
       <StatusBar style="light" />
       <View style={styles.header}>
         <Pressable onPress={onBack} hitSlop={12}>
-          <Text style={styles.back}>← 뒤로</Text>
+          <Text style={styles.back}>← Back</Text>
         </Pressable>
       </View>
 
@@ -23,7 +23,7 @@ export default function NotImplementedScreen({ strategy, onBack }: NotImplemente
         <Text style={styles.full}>{strategy.fullName}</Text>
         <View style={styles.divider} />
         <Text style={styles.message}>
-          {strategy.shortName} 전략은 아직 구현되지 않았습니다.
+          The {strategy.shortName} strategy isn't implemented yet.
         </Text>
         <Text style={styles.subMessage}>{strategy.blurb}</Text>
       </View>
