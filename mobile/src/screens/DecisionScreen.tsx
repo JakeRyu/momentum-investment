@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -21,11 +22,19 @@ import type { Strategy } from '../strategies';
  * Discriminated union of the strategy-specific query parameters. Any new
  * Keller strategy (BAA / HAA / ...) adds a variant here and the matching
  * `fetchXxxDecision` call site below.
+ *
+ * PAA's protection factor `a` is intentionally NOT part of the request
+ * struct — it lives as App-level state and is passed to this screen as
+ * a sibling prop (`paaA`), so the segmented control here can toggle it
+ * freely without rebuilding the screen state. The request describes
+ * "which universe to evaluate"; `paaA` describes "at which protection
+ * level". Same separation will likely apply if BAA/HAA introduce their
+ * own user-tunable parameters.
  */
 export type DecisionRequest =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[]; a: PaaProtectionFactor }
+  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
   | {
       kind: 'laa';
       permanent: readonly string[];
@@ -46,6 +55,13 @@ export type DecisionScreenProps = {
    */
   region: Region;
   request: DecisionRequest;
+  /**
+   * Current PAA protection factor. Only meaningful for `request.kind ===
+   * 'paa'`, but threaded unconditionally so the type stays simple — the
+   * UI just doesn't render the selector for non-PAA strategies.
+   */
+  paaA: PaaProtectionFactor;
+  onPaaAChange: (a: PaaProtectionFactor) => void;
   onBack: () => void;
 };
 
@@ -62,11 +78,13 @@ const REGION_FLAG: Record<Region, string> = {
 const STRATEGY_LABELS: Record<string, string> = {
   'vaa-g4b3': 'VAA-G4/B3',
   'daa-g12': 'DAA-G12',
-  // PAA backend response carries the variant suffix so a future history
-  // view can tell PAA0/PAA1/PAA2 decisions apart at a glance.
-  'paa-g12-a0': 'PAA-G12 (a=0)',
-  'paa-g12-a1': 'PAA-G12 (a=1)',
-  'paa-g12-a2': 'PAA-G12 (a=2)',
+  // PAA backend response carries a variant suffix (`paa-g12-a0|a1|a2`)
+  // for future history-view consumers, but the title shows a single
+  // "PAA-G12" — the variant is signalled to the user by the segmented
+  // control below the title, not the title itself.
+  'paa-g12-a0': 'PAA-G12',
+  'paa-g12-a1': 'PAA-G12',
+  'paa-g12-a2': 'PAA-G12',
   'laa': 'LAA',
 };
 
@@ -92,6 +110,8 @@ export default function DecisionScreen({
   asOf,
   region,
   request,
+  paaA,
+  onPaaAChange,
   onBack,
 }: DecisionScreenProps) {
   const [decision, setDecision] = useState<AllocationDecision | null>(null);
@@ -100,6 +120,9 @@ export default function DecisionScreen({
 
   // Stable string key over the request payload so useEffect re-fires only
   // when the actual ticker lists change (not on every parent re-render).
+  // For PAA, `paaA` is part of the key so toggling the segmented control
+  // triggers a refetch — same universe so the backend hits its 6h ticker
+  // cache and the response comes back instantly.
   const requestKey = (() => {
     switch (request.kind) {
       case 'vaa':
@@ -107,7 +130,7 @@ export default function DecisionScreen({
       case 'daa-g12':
         return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
       case 'paa':
-        return `paa:${request.risky.join(',')}|${request.cash.join(',')}|a=${request.a}`;
+        return `paa:${request.risky.join(',')}|${request.cash.join(',')}|a=${paaA}`;
       case 'laa':
         return (
           `laa:${request.permanent.join(',')}|${request.risky}|${request.cash}` +
@@ -129,7 +152,7 @@ export default function DecisionScreen({
           d = await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
           break;
         case 'paa':
-          d = await fetchPaaDecision(asOf, request.risky, request.cash, request.a);
+          d = await fetchPaaDecision(asOf, request.risky, request.cash, paaA);
           break;
         case 'laa':
           d = await fetchLaaDecision(
@@ -180,6 +203,10 @@ export default function DecisionScreen({
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
+        {request.kind === 'paa' && (
+          <ProtectionFactorPicker value={paaA} onChange={onPaaAChange} />
+        )}
+
         {loading && !decision && (
           <View style={styles.center}>
             <ActivityIndicator />
@@ -197,6 +224,63 @@ export default function DecisionScreen({
 
         {decision && <DecisionCard decision={decision} />}
       </ScrollView>
+    </View>
+  );
+}
+
+/**
+ * Three-way segmented control over PAA's protection factor `a`. Sits
+ * between the screen subtitle and the result card, only rendered for
+ * `request.kind === 'paa'`. Toggling triggers a refetch via `requestKey`,
+ * which hits the backend ticker cache (6h TTL) so swaps are instantaneous
+ * after the first fetch.
+ */
+function ProtectionFactorPicker({
+  value,
+  onChange,
+}: {
+  value: PaaProtectionFactor;
+  onChange: (a: PaaProtectionFactor) => void;
+}) {
+  const options: { v: PaaProtectionFactor; label: string; sub: string }[] = [
+    { v: 0, label: 'PAA0', sub: 'Aggressive' },
+    { v: 1, label: 'PAA1', sub: 'Moderate' },
+    { v: 2, label: 'PAA2', sub: 'Vigilant' },
+  ];
+
+  return (
+    <View style={styles.protectionWrap}>
+      <Text style={styles.protectionLabel}>PROTECTION LEVEL</Text>
+      <View style={styles.protectionRow}>
+        {options.map((opt) => {
+          const selected = opt.v === value;
+          return (
+            <TouchableOpacity
+              key={opt.v}
+              style={[styles.protectionSegment, selected && styles.protectionSegmentSelected]}
+              onPress={() => onChange(opt.v)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.protectionSegmentLabel,
+                  selected && styles.protectionSegmentLabelSelected,
+                ]}
+              >
+                {opt.label}
+              </Text>
+              <Text
+                style={[
+                  styles.protectionSegmentSub,
+                  selected && styles.protectionSegmentSubSelected,
+                ]}
+              >
+                {opt.sub}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -374,6 +458,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
     marginBottom: 24,
+  },
+  // PAA protection-factor segmented control. Sits between subtitle and
+  // result card, hugging the same horizontal padding as the rest of the
+  // screen so it visually aligns with title/card edges.
+  protectionWrap: {
+    marginBottom: 20,
+  },
+  protectionLabel: {
+    color: '#8a93a0',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.4,
+    marginBottom: 8,
+  },
+  protectionRow: {
+    flexDirection: 'row',
+    backgroundColor: '#161a1f',
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  protectionSegment: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 9,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  protectionSegmentSelected: {
+    backgroundColor: '#22323a',
+    // Subtle border so the active segment reads against the card behind.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#7ed4a3',
+  },
+  protectionSegmentLabel: {
+    color: '#8a93a0',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+  },
+  protectionSegmentLabelSelected: {
+    color: '#7ed4a3',
+  },
+  protectionSegmentSub: {
+    color: '#5b6470',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  protectionSegmentSubSelected: {
+    color: '#cfd5dc',
   },
   center: {
     alignItems: 'center',

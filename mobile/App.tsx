@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import type { Region } from './src/api/apiBase';
+import type { PaaProtectionFactor } from './src/api/paaClient';
 import { type AssetClassCode } from './src/etfCatalog';
 import DecisionScreen, { type DecisionRequest } from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
@@ -22,7 +23,6 @@ import {
 import {
   DEFAULT_STRATEGY_ID,
   findStrategy,
-  paaProtectionFactor,
   type Strategy,
   type StrategyId,
 } from './src/strategies';
@@ -58,6 +58,12 @@ export default function App() {
   const [region, setRegion] = useState<Region>('US');
   const [overrides, setOverrides] = useState<Overrides>({});
   const [customs, setCustoms] = useState<CustomTickers>({});
+  // PAA's protection factor lives at App level (not in the Screen
+  // discriminated union) so the segmented control on DecisionScreen can
+  // toggle it freely without recreating the screen state. Default to
+  // Keller's recommended baseline (Vigilant).
+  const [paaProtectionFactor, setPaaProtectionFactor] =
+    useState<PaaProtectionFactor>(2);
   const [screen, setScreen] = useState<Screen>({ kind: 'home' });
   const [hydrated, setHydrated] = useState(false);
 
@@ -153,18 +159,21 @@ export default function App() {
     // have their own resolver but share the same region + per-asset-class
     // override semantics under the hood. LAA additionally carries the
     // signal-equity and FRED series ids straight through to the API call.
-    // PAA's three picker entries (paa-a0/a1/a2) all share `resolvePaaUniverse`
-    // — only the protection factor `a` differs.
+    //
+    // PAA's `a` parameter is kept *outside* the request struct — it lives
+    // as App state and is passed to DecisionScreen separately, so the
+    // segmented control there can toggle it without rebuilding the screen
+    // state. The request describes "which universe", paaProtectionFactor
+    // describes "which protection level to compute".
     let request: DecisionRequest;
-    const paaA = paaProtectionFactor(strategy.id);
     if (strategy.id === 'daa') {
       const universe = resolveDaaG12Universe(region, overrides);
       const { canary, risky, cash } = daaG12TickerArrays(universe);
       request = { kind: 'daa-g12', canary, risky, cash };
-    } else if (paaA !== null) {
+    } else if (strategy.id === 'paa') {
       const universe = resolvePaaUniverse(region, overrides);
       const { risky, cash } = paaTickerArrays(universe);
-      request = { kind: 'paa', risky, cash, a: paaA };
+      request = { kind: 'paa', risky, cash };
     } else if (strategy.id === 'laa') {
       const universe = resolveLaaUniverse(region, overrides);
       const { permanent, risky, cash, signalEquity, unemploymentSeriesId } =
@@ -228,6 +237,8 @@ export default function App() {
         asOf={screen.asOf}
         region={screen.region}
         request={screen.request}
+        paaA={paaProtectionFactor}
+        onPaaAChange={setPaaProtectionFactor}
         onBack={() => setScreen({ kind: 'home' })}
       />
     );

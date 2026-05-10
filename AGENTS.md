@@ -309,16 +309,10 @@ hardware support, that is the trigger to evaluate React Navigation — not befor
 
 ### Mobile strategy registry
 
-Mobile lists six picker entries in `mobile/src/strategies.ts` — VAA, PAA,
-DAA, BAA, HAA, LAA. VAA/PAA/DAA/LAA have `implemented: true`; BAA/HAA do
-not. PAA's protection-factor variants (a ∈ {0, 1, 2}) are *not* separate
-picker entries — they share one card and the active variant is chosen via
-a segmented control on the DecisionScreen (default a = 2, Vigilant). The
-backend response carries the variant suffix (`paa-g12-a0|a1|a2`) so a
-future history view can still distinguish them, but the Decision title
-just shows "PAA-G12" and the segmented control conveys the variant. Same
-separation will likely apply if BAA/HAA later introduce user-tunable
-parameters of their own. Tapping Confirm:
+Mobile lists eight picker entries in `mobile/src/strategies.ts` — VAA, DAA,
+PAA0/PAA1/PAA2 (Keller's three protection-factor variants share the same
+risky+cash universe; only `a` differs at the API layer), LAA, BAA, HAA. The
+first six have `implemented: true`; BAA/HAA do not. Tapping Confirm:
 
 - Implemented strategy → `DecisionScreen` (calls backend with the resolved
   ticker universe — region default + any per-asset overrides).
@@ -403,3 +397,5 @@ mobile client depends on the string form. Don't remove this converter.
 - **History view** of past decisions — would require persistence beyond
   AsyncStorage prefs (SQLite trigger).
 - **Azure deployment** — user has monthly free credits; tighten CORS first.
+
+## Imported Claude Cowork project instructions
