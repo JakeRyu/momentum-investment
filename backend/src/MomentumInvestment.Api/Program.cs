@@ -60,10 +60,35 @@ builder.Services.AddSingleton<LaaService>();
 builder.Services.AddSingleton<HaaService>();
 builder.Services.AddSingleton<BaaService>();
 
-// Permissive CORS for the Expo dev client. Tighten before any real deploy.
+// CORS — dev gets the wide-open policy Expo Go needs; production reads
+// an allow-list from `Cors:AllowedOrigins` (empty by default).
+//
+// Note for the deployed setup: the iOS native fetch used by Expo Go
+// does NOT send an Origin header, so CORS does not gate mobile-app
+// requests at all — it only matters if a browser starts hitting these
+// endpoints. The allow-list is here for hygiene; leaving it empty in
+// production blocks browsers without affecting the mobile app.
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddDefaultPolicy(policy =>
+    {
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            return;
+        }
+
+        var origins = builder.Configuration
+            .GetSection("Cors:AllowedOrigins")
+            .Get<string[]>() ?? Array.Empty<string>();
+
+        if (origins.Length > 0)
+        {
+            policy.WithOrigins(origins).AllowAnyMethod().AllowAnyHeader();
+        }
+        // else: no origins allowed — browser cross-origin requests will
+        // be rejected by the browser's preflight check.
+    });
 });
 
 var app = builder.Build();

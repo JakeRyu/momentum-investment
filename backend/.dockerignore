@@ -1,0 +1,24 @@
+# Build artefacts — excluded from the docker context for faster builds
+# and to avoid leaking host-specific paths into the image.
+**/bin
+**/obj
+**/.vs
+**/.vscode
+**/.idea
+**/*.user
+
+# Tests — not needed in the production image. The InternalsVisibleTo
+# directive in the csproj is a build-time concern, not a file dep.
+tests/
+
+# Local secrets / settings that shouldn't ship.
+**/*.user.json
+**/secrets.json
+**/.env
+**/.env.*
+!**/.env.example
+
+# Misc
+**/.DS_Store
+**/Thumbs.db
+**/*.md

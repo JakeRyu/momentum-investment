@@ -56,8 +56,36 @@ environment.
 | `Fred__UserAgent` | `Mozilla/5.0 (compatible; MomentumInvestment/0.1)` | Sent on every FRED request |
 | `YahooFinance__BaseUrl` | `https://query1.finance.yahoo.com` | Yahoo's unofficial v8 chart endpoint root |
 | `YahooFinance__UserAgent` | `Mozilla/5.0 (compatible; MomentumInvestment/0.1)` | Yahoo rejects requests without a UA, so this is required even though it has a default |
+| `Cors__AllowedOrigins__0` (1, 2, …) | empty | Indexed env-var form of the Cors:AllowedOrigins JSON array. Production CORS reads this; if no origins are set, browser cross-origin requests are blocked but native Expo Go fetches still work (no Origin header). Development environment overrides this and uses `AllowAnyOrigin`. |
 
 ## Per-platform examples
+
+### Azure Container Apps (canonical deploy target)
+
+The `infra/azure-deploy.sh` script handles both first-time provisioning
+and subsequent redeploys. The script uses `az acr build` for server-side
+image builds, so a local docker daemon is **not** required to deploy.
+
+```bash
+# First deploy (FRED key required)
+FRED_API_KEY=<your-key> ACR=momentumacrjihyung ./infra/azure-deploy.sh
+
+# Subsequent redeploys (FRED key already stored as Container Apps secret)
+./infra/azure-deploy.sh
+```
+
+The script defaults to:
+
+- Region: `uksouth`
+- Resource group: `momentum-investment`
+- ACR SKU: Basic (cheapest with admin auth)
+- Container app: `min-replicas=0`, `max-replicas=1`, 0.5 CPU / 1 GiB
+  RAM. Scale-to-zero means cost ≈ £0 when the app is idle.
+- Image tag: `yyyymmddHHMMSS` so each deploy is uniquely identifiable
+  and Container Apps reliably pulls the new image.
+
+Override any of these via env vars (`RG`, `LOCATION`, `ACR`, `ENV_NAME`,
+`APP`, `IMAGE_TAG`). See the script header for the full list.
 
 ### Azure App Service
 
@@ -69,7 +97,8 @@ ASPNETCORE_ENVIRONMENT      = Production
 ```
 
 App Service automatically sets `ASPNETCORE_URLS` and `WEBSITES_PORT`, so
-no need to set those.
+no need to set those. Not the recommended host for this app — see the
+ACA section above for why.
 
 ### Docker / containers
 
@@ -144,6 +173,3 @@ Failure modes:
 - The mobile app's `EXPO_PUBLIC_API_BASE_URL` lives in the **mobile**
   project's `.env` file, not here. It's the URL the iOS client uses to
   reach this API; setting it in the API deployment does nothing.
-- CORS is currently `AllowAnyOrigin` (see `Program.cs`). When deploying
-  for real, **change this in code** before a public deploy — there's no
-  config knob for the allowed origin yet.
