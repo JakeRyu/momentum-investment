@@ -212,7 +212,7 @@ export default function DecisionScreen({
       >
         <View style={styles.headerRow}>
           <Pressable onPress={onBack} hitSlop={12}>
-            <Text style={styles.back}>← 뒤로</Text>
+            <Text style={styles.back}>← Back</Text>
           </Pressable>
         </View>
 

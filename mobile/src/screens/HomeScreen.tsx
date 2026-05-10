@@ -62,7 +62,7 @@ export default function HomeScreen({
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionLabel}>기준일 (As of)</Text>
+        <Text style={styles.sectionLabel}>As of</Text>
         {Platform.OS === 'ios' ? (
           <View style={styles.dateRow}>
             <DateTimePicker
@@ -98,7 +98,7 @@ export default function HomeScreen({
           </>
         )}
 
-        <Text style={styles.sectionLabel}>거래소 (Region)</Text>
+        <Text style={styles.sectionLabel}>Region</Text>
         <View style={styles.segmented}>
           {REGION_OPTIONS.map((opt) => {
             const selected = opt.value === region;
@@ -120,7 +120,7 @@ export default function HomeScreen({
           })}
         </View>
 
-        <Text style={styles.sectionLabel}>전략 (Strategy)</Text>
+        <Text style={styles.sectionLabel}>Strategy</Text>
         <View style={styles.strategyList}>
           {STRATEGIES.map((s) => (
             <StrategyRow
@@ -138,7 +138,7 @@ export default function HomeScreen({
           style={({ pressed }) => [styles.confirm, pressed && styles.confirmPressed]}
           onPress={onConfirm}
         >
-          <Text style={styles.confirmText}>추천 종목 보기</Text>
+          <Text style={styles.confirmText}>Show recommendation</Text>
         </Pressable>
       </View>
     </View>
