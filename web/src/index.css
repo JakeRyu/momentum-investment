@@ -269,22 +269,64 @@ code {
   background: var(--surface);
   border: 1px solid var(--border);
 }
-.decision-card__mode {
+.decision__mode {
   font-size: 12px;
   letter-spacing: 1.5px;
   font-weight: 700;
   color: var(--accent);
-  margin: 0 0 8px;
+  margin: 0 0 12px;
 }
-.decision-card__reasoning {
-  margin: 0 0 16px;
+.decision__mode--offensive {
+  color: #2e9d6a;
+}
+.decision__mode--defensive {
+  color: #c46d2f;
+}
+.decision__mode--hybrid {
+  color: #b88a1a;
+}
+@media (prefers-color-scheme: dark) {
+  .decision__mode--offensive {
+    color: #7ed4a3;
+  }
+  .decision__mode--defensive {
+    color: #ffb37e;
+  }
+  .decision__mode--hybrid {
+    color: #ffd980;
+  }
+}
+.decision__reasoning {
+  margin: 16px 0;
   line-height: 1.5;
+  font-size: 15px;
 }
 
+/* Single-asset hero (VAA, HAA defensive, BAA defensive, etc.) */
+.alloc-hero {
+  margin: 4px 0 12px;
+}
+.alloc-hero__ticker {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-h);
+  margin: 0;
+  line-height: 1.05;
+}
+.alloc-hero__weight {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 4px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Multi-asset list (DAA offensive/hybrid, BAA offensive, HAA offensive) */
 .alloc-list {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 4px 0 12px;
 }
 .alloc-row {
   display: flex;
@@ -295,6 +337,131 @@ code {
 }
 .alloc-row:first-child {
   border-top: none;
+}
+.alloc-row__ticker {
+  font-weight: 600;
+  color: var(--text-h);
+}
+.alloc-row__weight {
+  color: var(--text);
+}
+.alloc-row--total {
+  margin-top: 4px;
+  border-top-width: 1px;
+  font-size: 13px;
+}
+.alloc-row__total-label,
+.alloc-row__total-weight {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* PAA protection-level segmented control */
+.protection {
+  margin: 0 0 20px;
+}
+.protection__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.protection__row {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.protection__seg {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: background 120ms ease;
+}
+.protection__seg:hover {
+  background: var(--surface-hover);
+}
+.protection__seg--selected {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+}
+.protection__seg-label {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+.protection__seg--selected .protection__seg-label {
+  color: var(--accent);
+}
+.protection__seg-sub {
+  font-size: 11px;
+}
+.protection__seg--selected .protection__seg-sub {
+  color: var(--text-h);
+}
+
+/* Per-bucket momentum score rows */
+.score-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.score-section__title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  margin: 0 0 8px;
+}
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-variant-numeric: tabular-nums;
+}
+.score-row__left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.score-row__ticker {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.score-row__ticker--allocated {
+  color: var(--accent);
+  font-weight: 700;
+}
+.score-row__caption {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+}
+.score-row__value {
+  font-size: 15px;
+  color: var(--text);
+}
+.score-row__value--negative {
+  color: #c43030;
+}
+@media (prefers-color-scheme: dark) {
+  .score-row__value--negative {
+    color: #ff8a8a;
+  }
 }
 
 /* ─── Misc ───────────────────────────────────────────────────────── */
