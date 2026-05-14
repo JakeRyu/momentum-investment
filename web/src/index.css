@@ -368,7 +368,7 @@ hr {
 .back-link {
   margin: 36px 0 0;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 14px;
   letter-spacing: 2.5px;
   text-transform: uppercase;
 }
@@ -480,9 +480,6 @@ hr {
   padding-top: 0;
   border-top: 0;
 }
-.score-section + .score-section {
-  margin-top: 24px;
-}
 .score-section__title {
   font-family: var(--mono);
   font-size: 12px;
@@ -551,20 +548,47 @@ hr {
   gap: 36px;
   margin-bottom: 24px;
 }
+
+/* Canary strategies (DAA/BAA/HAA): canary alone on row 1 col 1;
+   risky and cash share row 2. */
+.score-grid--canary-top {
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "canary ."
+    "risky cash";
+  column-gap: 36px;
+  row-gap: 28px;
+}
+.score-cell--canary { grid-area: canary; }
+.score-cell--risky { grid-area: risky; }
+.score-cell--cash { grid-area: cash; }
+
 @media (max-width: 720px) {
-  .score-grid {
+  .score-grid,
+  .score-grid--canary-top {
     grid-template-columns: 1fr;
+    grid-template-areas: none;
     gap: 24px;
+  }
+  /* Release named areas at narrow widths so cells flow in DOM order
+     (canary → risky → cash, set in DecisionTool). Without this, the
+     `grid-area` rules below overlap all cells into the same slot. */
+  .score-cell--canary,
+  .score-cell--risky,
+  .score-cell--cash {
+    grid-area: auto;
   }
 }
 
-/* PAA protection-level segmented control */
+/* PAA protection-level segmented control — column structure matches
+   the decision-spread below (2fr 1fr, 48px gap) so the segmented row
+   and the allocations block share a left edge / width. */
 .protection {
   margin: 0 0 24px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 48px;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 .protection__label {
   font-family: var(--mono);
@@ -580,7 +604,8 @@ hr {
   border: var(--rule-thin);
 }
 .protection__seg {
-  padding: 8px 14px;
+  flex: 1 1 0;
+  padding: 10px 14px;
   background: transparent;
   border: 0;
   border-left: var(--rule-thin);
@@ -591,6 +616,7 @@ hr {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   cursor: pointer;
+  text-align: center;
 }
 .protection__seg:first-child {
   border-left: 0;
@@ -631,10 +657,14 @@ hr {
   font-size: 28px;
   margin: 32px 0 12px;
 }
-.about-page p {
+.about-page p,
+.about-page ul {
   max-width: 70ch;
   font-size: 17px;
   line-height: 1.6;
+}
+.about-page li {
+  margin-bottom: 8px;
 }
 .about-page section {
   border-top: var(--rule-thin);

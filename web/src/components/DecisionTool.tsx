@@ -65,6 +65,26 @@ function DecisionCard({ decision }: { decision: AllocationDecision }) {
     if (!bucketOrder.includes(s.bucket)) bucketOrder.push(s.bucket)
   }
 
+  // Canary is the regime-gate signal, not a peer of risky/cash. Pull it
+  // into a dedicated right column so the left column reads top-to-bottom
+  // as the primary universe (risky → cash). Strategies without canary
+  // (VAA, PAA, LAA) keep the original 2-col auto-flow.
+  const canaryBuckets = bucketOrder.filter(
+    (b) => b.toLowerCase() === 'canary',
+  )
+  const otherBuckets = bucketOrder.filter(
+    (b) => b.toLowerCase() !== 'canary',
+  )
+
+  const renderSection = (bucket: string) => (
+    <ScoreSection
+      key={bucket}
+      title={bucket}
+      rows={decision.scores.filter((s) => s.bucket === bucket)}
+      allocatedTickers={allocatedTickers}
+    />
+  )
+
   return (
     <>
       <span className="decision__mode">State · {decision.modeLabel}</span>
@@ -76,16 +96,21 @@ function DecisionCard({ decision }: { decision: AllocationDecision }) {
         <p className="decision-spread__rationale">{decision.reasoning}</p>
       </div>
 
-      <div className="score-grid">
-        {bucketOrder.map((bucket) => (
-          <ScoreSection
-            key={bucket}
-            title={bucket}
-            rows={decision.scores.filter((s) => s.bucket === bucket)}
-            allocatedTickers={allocatedTickers}
-          />
-        ))}
-      </div>
+      {canaryBuckets.length > 0 ? (
+        // Wide screens: canary row 1 col 1; risky+cash row 2 (col 1 + 2)
+        // via grid-template-areas. Narrow screens: stack in DOM order
+        // — render canary first so the stack reads canary → risky → cash
+        // regardless of the backend's bucket order (HAA emits risky first).
+        <div className="score-grid score-grid--canary-top">
+          {[...canaryBuckets, ...otherBuckets].map((b) => (
+            <div key={b} className={`score-cell score-cell--${b.toLowerCase()}`}>
+              {renderSection(b)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="score-grid">{bucketOrder.map(renderSection)}</div>
+      )}
     </>
   )
 }
