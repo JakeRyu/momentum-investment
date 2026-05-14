@@ -2,10 +2,6 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { STRATEGIES } from '../strategies'
 
-const API_BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  'http://localhost:5050'
-
 export default function Layout() {
   return (
     <div className="layout">
@@ -22,6 +18,7 @@ export default function Layout() {
           </NavLink>
         </nav>
       </header>
+      <div className="site-header__rule" />
 
       <main className="layout-main">
         <Outlet />
@@ -29,11 +26,11 @@ export default function Layout() {
 
       <footer className="site-footer">
         <p className="disclaimer">
-          Educational tool. Not investment advice. Past performance is not
+          Educational tool — Not investment advice — Past performance is not
           indicative of future results.
         </p>
         <p className="papers">
-          Papers:{' '}
+          Papers ·{' '}
           {STRATEGIES.map((s, i) => (
             <span key={s.id}>
               {i > 0 && ' · '}
@@ -42,9 +39,6 @@ export default function Layout() {
               </a>
             </span>
           ))}
-        </p>
-        <p className="api-line">
-          Calling <code>{API_BASE}</code>
         </p>
       </footer>
     </div>

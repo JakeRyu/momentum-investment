@@ -15,7 +15,6 @@ export default function PaaProtectionPicker({
 }) {
   return (
     <div className="protection">
-      <p className="protection__label">PROTECTION LEVEL</p>
       <div className="protection__row" role="group" aria-label="PAA protection level">
         {OPTIONS.map((opt) => {
           const selected = opt.v === value
@@ -33,6 +32,7 @@ export default function PaaProtectionPicker({
           )
         })}
       </div>
+      <p className="protection__label">PROTECTION LEVEL</p>
     </div>
   )
 }

@@ -47,7 +47,7 @@ export const STRATEGIES: readonly Strategy[] = [
       'The strategy goes fully into the single best-scoring offensive asset whenever all four offensive assets show positive momentum. As soon as even one offensive asset prints a non-positive score, VAA rotates entirely into the best-scoring defensive asset. The aggressive concentration plus the strict "all-positive" gate gives VAA its characteristic profile: high upside in trending markets, fast retreat at the first sign of breadth deterioration.',
     ],
     paperTitle: 'Breadth Momentum and Vigilant Asset Allocation (VAA): Winning More by Losing Less',
-    paperUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2964091',
+    paperUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3002624',
     paperYear: 2017,
     defaultUniverse: {
       kind: 'vaa',
