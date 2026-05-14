@@ -11,12 +11,6 @@ import AllocationsBlock from './AllocationsBlock'
 import PaaProtectionPicker from './PaaProtectionPicker'
 import ScoreSection from './ScoreSection'
 
-const MODE_CLASS: Record<string, string> = {
-  Offensive: 'decision__mode--offensive',
-  Defensive: 'decision__mode--defensive',
-  Hybrid: 'decision__mode--hybrid',
-}
-
 export default function DecisionTool({ strategy }: { strategy: Strategy }) {
   const [decision, setDecision] = useState<AllocationDecision | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -25,8 +19,6 @@ export default function DecisionTool({ strategy }: { strategy: Strategy }) {
 
   const asOf = new Date().toISOString().slice(0, 10)
   const isPaa = strategy.defaultUniverse.kind === 'paa'
-  // `paaA` only meaningfully changes requests for PAA — keying on it for
-  // other strategies is harmless and lets the effect stay simple.
   const requestKey = `${strategy.id}|${asOf}|a=${paaA}`
   const loading = loadedKey !== requestKey
 
@@ -67,32 +59,33 @@ export default function DecisionTool({ strategy }: { strategy: Strategy }) {
 
 function DecisionCard({ decision }: { decision: AllocationDecision }) {
   const allocatedTickers = new Set(decision.allocations.map((a) => a.ticker))
-  const modeClass = MODE_CLASS[decision.modeLabel] ?? ''
 
-  // Preserve the bucket order the backend emitted (e.g. canary → risky → cash).
   const bucketOrder: string[] = []
   for (const s of decision.scores) {
     if (!bucketOrder.includes(s.bucket)) bucketOrder.push(s.bucket)
   }
 
   return (
-    <div className="decision-card">
-      <p className={`decision__mode ${modeClass}`}>
-        {decision.modeLabel.toUpperCase()} MODE
-      </p>
+    <>
+      <span className="decision__mode">State · {decision.modeLabel}</span>
 
-      <AllocationsBlock allocations={decision.allocations} />
+      <div className="decision-spread">
+        <div>
+          <AllocationsBlock allocations={decision.allocations} />
+        </div>
+        <p className="decision-spread__rationale">{decision.reasoning}</p>
+      </div>
 
-      <p className="decision__reasoning">{decision.reasoning}</p>
-
-      {bucketOrder.map((bucket) => (
-        <ScoreSection
-          key={bucket}
-          title={bucket}
-          rows={decision.scores.filter((s) => s.bucket === bucket)}
-          allocatedTickers={allocatedTickers}
-        />
-      ))}
-    </div>
+      <div className="score-grid">
+        {bucketOrder.map((bucket) => (
+          <ScoreSection
+            key={bucket}
+            title={bucket}
+            rows={decision.scores.filter((s) => s.bucket === bucket)}
+            allocatedTickers={allocatedTickers}
+          />
+        ))}
+      </div>
+    </>
   )
 }

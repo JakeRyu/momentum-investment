@@ -5,6 +5,12 @@ function formatPercent(weight: number): string {
   return Number.isInteger(pct) ? `${pct.toFixed(0)}%` : `${pct.toFixed(2)}%`
 }
 
+function spellPercent(weight: number): string {
+  if (Math.abs(weight - 1) < 1e-9) return 'One hundred percent of the portfolio.'
+  const pct = weight * 100
+  return `${pct.toFixed(2)}% of the portfolio.`
+}
+
 export default function AllocationsBlock({
   allocations,
 }: {
@@ -15,7 +21,7 @@ export default function AllocationsBlock({
     return (
       <div className="alloc-hero">
         <p className="alloc-hero__ticker">{a.ticker}</p>
-        <p className="alloc-hero__weight">{formatPercent(a.weight)}</p>
+        <p className="alloc-hero__weight">— {spellPercent(a.weight)}</p>
       </div>
     )
   }
