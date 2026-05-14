@@ -2,10 +2,6 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { STRATEGIES } from '../strategies'
 
-const API_BASE =
-  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
-  'http://localhost:5050'
-
 export default function Layout() {
   return (
     <div className="layout">
@@ -43,9 +39,6 @@ export default function Layout() {
               </a>
             </span>
           ))}
-        </p>
-        <p className="api-line">
-          API · <code>{API_BASE}</code>
         </p>
       </footer>
     </div>

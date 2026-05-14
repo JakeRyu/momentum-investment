@@ -1,4 +1,7 @@
+import { useState } from 'react'
+
 import type { AssetMomentum } from '../api/decisions'
+import { describeTicker } from '../etfDescriptions'
 
 const DOT_CELLS = 10
 
@@ -25,9 +28,6 @@ function signalCaption(ticker: string, score: number): string {
   return ''
 }
 
-// Per-bucket normalization: scale magnitudes to 0-DOT_CELLS using the
-// bucket's max absolute score so the bars stay informative regardless of
-// score scale (13612W momentum, % deviations, SMA12 ratios all map fine).
 function dotBar(score: number, bucketMaxAbs: number): string {
   const safeMax = bucketMaxAbs > 0 ? bucketMaxAbs : 1
   const filled = Math.round((Math.abs(score) / safeMax) * DOT_CELLS)
@@ -44,6 +44,7 @@ export default function ScoreSection({
   rows: AssetMomentum[]
   allocatedTickers: Set<string>
 }) {
+  const [expanded, setExpanded] = useState<string | null>(null)
   const isSignal = title.toLowerCase() === 'signal'
   const bucketMaxAbs = rows.reduce((acc, r) => Math.max(acc, Math.abs(r.score)), 0)
 
@@ -55,39 +56,58 @@ export default function ScoreSection({
       {rows.map((r) => {
         const allocated = allocatedTickers.has(r.ticker)
         const negative = !isSignal && r.score < 0
+        const description = describeTicker(r.ticker)
+        const isExpanded = expanded === r.ticker
+        const rowId = `desc-${r.bucket}-${r.ticker}`
         return (
-          <div key={`${r.bucket}:${r.ticker}`} className="score-row">
-            <div className="score-row__left">
+          <div key={`${r.bucket}:${r.ticker}`}>
+            <button
+              type="button"
+              className={
+                'score-row' + (isExpanded ? ' score-row--expanded' : '')
+              }
+              onClick={() => setExpanded(isExpanded ? null : r.ticker)}
+              aria-expanded={isExpanded}
+              aria-controls={description ? rowId : undefined}
+              disabled={!description}
+            >
+              <span className="score-row__left">
+                <span
+                  className={
+                    'score-row__ticker' +
+                    (allocated ? ' score-row__ticker--allocated' : '')
+                  }
+                >
+                  {r.ticker}
+                </span>
+                {isSignal && (
+                  <span className="score-row__caption">
+                    {signalCaption(r.ticker, r.score)}
+                  </span>
+                )}
+              </span>
               <span
                 className={
-                  'score-row__ticker' +
-                  (allocated ? ' score-row__ticker--allocated' : '')
+                  'score-row__value' +
+                  (negative ? ' score-row__value--negative' : '')
                 }
               >
-                {r.ticker}
+                {isSignal ? formatSignal(r.score) : formatScore(r.score)}
               </span>
-              {isSignal && (
-                <span className="score-row__caption">
-                  {signalCaption(r.ticker, r.score)}
-                </span>
-              )}
-            </div>
-            <span
-              className={
-                'score-row__value' +
-                (negative ? ' score-row__value--negative' : '')
-              }
-            >
-              {isSignal ? formatSignal(r.score) : formatScore(r.score)}
-            </span>
-            <span
-              className={
-                'score-row__bar' + (negative ? ' score-row__bar--negative' : '')
-              }
-            >
-              {dotBar(r.score, bucketMaxAbs)}
-            </span>
-            <span className="score-row__marker">{allocated ? '■' : ''}</span>
+              <span
+                className={
+                  'score-row__bar' + (negative ? ' score-row__bar--negative' : '')
+                }
+              >
+                {dotBar(r.score, bucketMaxAbs)}
+              </span>
+              <span className="score-row__marker">{allocated ? '■' : ''}</span>
+            </button>
+            {isExpanded && description && (
+              <p id={rowId} className="score-row__description">
+                {description}
+              </p>
+            )}
           </div>
         )
       })}
