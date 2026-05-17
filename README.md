@@ -5,7 +5,8 @@
 A personal mobile app to compute Wouter Keller's momentum signals and surface
 monthly asset-allocation decisions.
 
-![Home screen](/docs/screenshots/app.png)
+![Home screen
+](/docs/screenshots/app.png)
 
 ## Strategies
 
@@ -125,7 +126,7 @@ extended periods. Do your own research before allocating capital.
 
 ## References
 
-- Keller, W. & Keuning, J. (2017). *Breadth Momentum and Vigilant Asset Allocation (VAA): Winning More by Losing Less.* SSRN [3002624](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3002624).
+- Keller, W. & Keuning, J. (2017). *Breadth Momentum and Vigilant Asset Allocation (VAA): Winning More by Losing Less.* SSRN [2964091](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2964091).
 - Keller, W. & Keuning, J. (2018). *Breadth Momentum and the Canary Universe: Defensive Asset Allocation (DAA).* SSRN [3212862](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3212862).
 - Keller, W. & van Putten, J. W. (2016). *Protective Asset Allocation (PAA): A Simple Momentum-Based Alternative for Term Deposits.* SSRN [2759734](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2759734).
 - Keller, W. & Keuning, J. (2023). *Relative and Absolute Momentum in Times of Rising/Low Yields: Hybrid Asset Allocation (HAA).* SSRN [4346906](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4346906).
