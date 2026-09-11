@@ -874,9 +874,15 @@ hr {
   font-weight: 700;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--muted);
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--ink);
   padding: 6px 14px;
+}
+.app-promo__cta:hover,
+.app-promo__cta:focus-visible {
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .app-section {
@@ -932,6 +938,17 @@ hr {
   content: '■ ';
   color: var(--red);
   font-size: 11px;
+}
+.app-badge {
+  display: inline-block;
+  line-height: 0;
+  padding: 5px;
+  margin: -5px;
+}
+.app-badge img {
+  display: block;
+  height: 48px;
+  width: auto;
 }
 
 @media (max-width: 720px) {
