@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -21,6 +22,7 @@ import { fetchVaaDecision } from '../api/vaaClient';
 import { rebalanceHint } from '../rebalance';
 import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
+import { strategyWebUrl } from '../webLinks';
 
 /**
  * Discriminated union of the strategy-specific query parameters. Any new
@@ -252,6 +254,14 @@ export default function DecisionScreen({
         )}
 
         {decision && <DecisionCard decision={decision} asOf={asOf} />}
+
+        <Pressable
+          style={styles.learnMore}
+          onPress={() => Linking.openURL(strategyWebUrl(strategy.id))}
+          hitSlop={8}
+        >
+          <Text style={styles.learnMoreText}>How this strategy works →</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -740,5 +750,15 @@ const styles = StyleSheet.create({
   },
   rowScoreNegative: {
     color: '#ff8a8a',
+  },
+  learnMore: {
+    marginTop: 20,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  learnMoreText: {
+    color: '#7ed4a3',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
