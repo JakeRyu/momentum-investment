@@ -1,5 +1,5 @@
 /**
- * Persists user preferences across app launches via AsyncStorage. Five
+ * Persists user preferences across app launches via AsyncStorage. Seven
  * pieces of state live here:
  *
  *   - region                     'US' | 'UK'
@@ -7,10 +7,11 @@
  *   - customs:UK                 user-added tickers per asset class (catalog extension)
  *   - selectedStrategyId         last picked strategy
  *   - paaA                       last picked PAA protection factor (0|1|2)
+ *   - registeredStrategies       the strategies the user actually runs, shown on Home
+ *   - done                       per strategy, the in-force month ticked off
  *
- * Note: asOfDate is intentionally NOT persisted — for an investment
- * decision app, a stale `asOf` is dangerous (user could mistake last
- * Tuesday's decision for today's). Each launch resets to `new Date()`.
+ * Note: asOfDate is gone — with the date picker removed, `asOf` is always
+ * either the in-force month-end or today, so there is nothing to persist.
  *
  * All keys are namespaced with `momentum:` so they don't collide with
  * anything else in the same Expo Go shell.
@@ -39,6 +40,8 @@ const KEY_OVERRIDES_UK = 'momentum:overrides:UK';
 const KEY_CUSTOMS_UK = 'momentum:customs:UK';
 const KEY_SELECTED_STRATEGY = 'momentum:selectedStrategy';
 const KEY_PAA_A = 'momentum:paaA';
+const KEY_REGISTERED = 'momentum:registeredStrategies';
+const KEY_DONE = 'momentum:done';
 
 // ----------------------------------------------------------------------
 // Region
@@ -135,4 +138,60 @@ export async function savePaaProtectionFactor(
   a: PaaProtectionFactor,
 ): Promise<void> {
   await AsyncStorage.setItem(KEY_PAA_A, String(a));
+}
+
+// ----------------------------------------------------------------------
+// Registered strategies — the ones the user actually runs, shown on Home.
+// A newcomer starts with VAA alone so the home screen is never empty and
+// never asks for a choice the app cannot help with.
+
+export const DEFAULT_REGISTERED: StrategyId[] = ['vaa'];
+
+export async function loadRegisteredStrategies(): Promise<StrategyId[]> {
+  const raw = await AsyncStorage.getItem(KEY_REGISTERED);
+  if (!raw) return [...DEFAULT_REGISTERED];
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [...DEFAULT_REGISTERED];
+    // Same defensive filter as loadSelectedStrategyId: an id we no longer
+    // ship is dropped rather than crashing a screen that maps over it.
+    const known = parsed.filter((id): id is StrategyId =>
+      STRATEGIES.some((s) => s.id === id),
+    );
+    return known.length > 0 ? known : [...DEFAULT_REGISTERED];
+  } catch {
+    return [...DEFAULT_REGISTERED];
+  }
+}
+
+export async function saveRegisteredStrategies(ids: StrategyId[]): Promise<void> {
+  await AsyncStorage.setItem(KEY_REGISTERED, JSON.stringify(ids));
+}
+
+// ----------------------------------------------------------------------
+// Done markers — per strategy, the in-force month the user ticked off
+// (e.g. "2026-08"). When the month rolls over the stored key stops matching
+// the current in-force month and the card reverts to pending on its own.
+
+export async function loadDoneMarkers(): Promise<Partial<Record<StrategyId, string>>> {
+  const raw = await AsyncStorage.getItem(KEY_DONE);
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveDoneMarker(id: StrategyId, monthKey: string): Promise<void> {
+  const markers = await loadDoneMarkers();
+  markers[id] = monthKey;
+  await AsyncStorage.setItem(KEY_DONE, JSON.stringify(markers));
+}
+
+export async function clearDoneMarker(id: StrategyId): Promise<void> {
+  const markers = await loadDoneMarkers();
+  delete markers[id];
+  await AsyncStorage.setItem(KEY_DONE, JSON.stringify(markers));
 }
