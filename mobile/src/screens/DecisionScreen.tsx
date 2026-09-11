@@ -18,6 +18,7 @@ import { fetchHaaDecision } from '../api/haaClient';
 import { fetchLaaDecision } from '../api/laaClient';
 import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
+import { rebalanceHint } from '../rebalance';
 import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
 
@@ -250,7 +251,7 @@ export default function DecisionScreen({
           </View>
         )}
 
-        {decision && <DecisionCard decision={decision} />}
+        {decision && <DecisionCard decision={decision} asOf={asOf} />}
       </ScrollView>
     </View>
   );
@@ -313,7 +314,7 @@ function ProtectionFactorPicker({
   );
 }
 
-function DecisionCard({ decision }: { decision: AllocationDecision }) {
+function DecisionCard({ decision, asOf }: { decision: AllocationDecision; asOf: string }) {
   const allocatedTickers = new Set(decision.allocations.map((a) => a.ticker));
   const modeColor = MODE_BADGE_COLOR[decision.modeLabel] ?? '#8a93a0';
 
@@ -334,6 +335,8 @@ function DecisionCard({ decision }: { decision: AllocationDecision }) {
       )}
 
       <AllocationsBlock allocations={decision.allocations} accent={modeColor} />
+
+      <Text style={styles.rebalanceHint}>{rebalanceHint(asOf)}</Text>
 
       <Text style={styles.reasoning}>{decision.reasoning}</Text>
 
@@ -656,6 +659,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontVariant: ['tabular-nums'],
     fontWeight: '600',
+  },
+  rebalanceHint: {
+    color: '#cfd5dc',
+    fontSize: 13,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#2a2f37',
   },
   reasoning: {
     color: '#cfd5dc',
