@@ -7,7 +7,7 @@ namespace MomentumInvestment.Api.YahooFinance;
 
 /// <summary>
 /// Minimal client over Yahoo's unofficial v8 chart endpoint.
-///   GET https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=2y&interval=1d
+///   GET https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=10y&interval=1d
 ///
 /// Returns daily adjusted closes sorted chronologically. Callers handle
 /// any date-based lookup (e.g. trailing-month lookback) themselves.
@@ -35,7 +35,13 @@ public sealed class YahooFinanceClient
         string ticker,
         CancellationToken cancellationToken)
     {
-        var url = $"{_options.BaseUrl}/v8/finance/chart/{Uri.EscapeDataString(ticker)}?range=2y&interval=1d";
+        // 10y, not 2y: the window ends today, but `asOf` can be any past date
+        // the client's picker allows. A 2y window only covers an `asOf` within
+        // ~12 months of today — anything older pushed the 12-month lookback off
+        // the front of the series and surfaced as a 500. Widening the range
+        // keeps the cache key `asOf`-independent, which a computed
+        // period1/period2 window would not.
+        var url = $"{_options.BaseUrl}/v8/finance/chart/{Uri.EscapeDataString(ticker)}?range=10y&interval=1d";
 
         using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
