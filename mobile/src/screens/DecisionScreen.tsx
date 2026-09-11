@@ -216,7 +216,7 @@ export default function DecisionScreen({
   // Both VAA and DAA resolve their universe via the region picker +
   // per-asset-class overrides on the mobile side, so the region flag is
   // meaningful for either.
-  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} universe`;
+  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} funds`;
 
   return (
     <View style={styles.root}>
@@ -262,6 +262,7 @@ export default function DecisionScreen({
         >
           <Text style={styles.learnMoreText}>How this strategy works →</Text>
         </Pressable>
+        <Text style={styles.disclaimer}>Educational tool — not investment advice.</Text>
       </ScrollView>
     </View>
   );
@@ -760,5 +761,10 @@ const styles = StyleSheet.create({
     color: '#7ed4a3',
     fontSize: 14,
     fontWeight: '600',
+  },
+  disclaimer: {
+    color: '#5e6671',
+    fontSize: 11,
+    textAlign: 'center',
   },
 });
