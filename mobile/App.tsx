@@ -3,9 +3,7 @@ import { View } from 'react-native';
 
 import type { Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaClient';
-import { buildDecisionRequest } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
-import { inForceAsOf } from './src/rebalance';
 import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -192,9 +190,8 @@ export default function App() {
   return (
     <DecisionScreen
       strategy={screen.strategy}
-      asOf={inForceAsOf()}
       region={region}
-      request={buildDecisionRequest(screen.strategy.id, region, overrides)}
+      overrides={overrides}
       paaA={paaProtectionFactor}
       onPaaAChange={handlePaaAChange}
       onBack={() => setScreen({ kind: 'home' })}

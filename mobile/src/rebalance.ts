@@ -62,31 +62,3 @@ export function holdingHint(today: string = formatYmd(new Date())): string {
 export function previewHint(today: string = formatYmd(new Date())): string {
   return `Not in force yet · takes effect at the end of ${currentMonthName(today)}`;
 }
-
-// TODO(Task 6): DecisionScreen.tsx still imports this. Task 6 deletes the
-// date picker that made a past `asOf` possible and removes this export.
-export function rebalanceHint(asOf: string, today: string = formatYmd(new Date())): string {
-  const [year, month, day] = asOf.split('-').map(Number);
-  const monthIndex = month - 1;
-
-  const [todayYear, todayMonth] = today.split('-').map(Number);
-  const todayMonthIndex = todayMonth - 1;
-
-  // A future `asOf` cannot occur (the date picker caps at today), so the
-  // only cross-month case to handle is `asOf` landing strictly before
-  // today's month.
-  const isPastMonth = year * 12 + monthIndex < todayYear * 12 + todayMonthIndex;
-  if (isPastMonth) {
-    return `Rebalance monthly · this is a past decision for ${MONTH_NAMES[monthIndex]} ${year}`;
-  }
-
-  // On month-end itself the current month's rebalance is already the one
-  // being shown, so the next one is a month out.
-  const isMonthEnd = day >= daysInMonth(year, monthIndex);
-  if (isMonthEnd) {
-    const nextIndex = (monthIndex + 1) % 12;
-    return `Rebalance monthly · next at the end of ${MONTH_NAMES[nextIndex]}`;
-  }
-
-  return `Rebalance monthly · next at the end of ${MONTH_NAMES[monthIndex]}. Today's reading can still change.`;
-}
