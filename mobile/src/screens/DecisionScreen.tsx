@@ -411,6 +411,8 @@ function ScoreSection({
   rows: AssetMomentum[];
   allocatedTickers: Set<string>;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   // The "Signal" bucket (currently only LAA) carries macro trend
   // deviations rather than per-asset momentum, and the bearish-trigger
   // direction is signal-specific (SPY: bearish when below SMA → score
@@ -422,31 +424,41 @@ function ScoreSection({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        {isSignalSection ? 'MACRO SIGNALS' : title.toUpperCase()}
-      </Text>
-      {rows.map((r) => (
-        <View key={`${r.bucket}:${r.ticker}`} style={styles.row}>
-          <View style={styles.rowLeft}>
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={() => setExpanded((v) => !v)}
+        activeOpacity={0.7}
+        hitSlop={8}
+      >
+        <Text style={styles.sectionTitle}>
+          {isSignalSection ? 'MACRO SIGNALS' : title.toUpperCase()}
+        </Text>
+        <Text style={styles.sectionChevron}>{expanded ? '▾' : '▸'}</Text>
+      </TouchableOpacity>
+
+      {expanded &&
+        rows.map((r) => (
+          <View key={`${r.bucket}:${r.ticker}`} style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text
+                style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+              >
+                {r.ticker}
+              </Text>
+              {isSignalSection && (
+                <Text style={styles.signalCaption}>{signalCaption(r.ticker, r.score)}</Text>
+              )}
+            </View>
             <Text
-              style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+              style={[
+                styles.rowScore,
+                !isSignalSection && r.score < 0 && styles.rowScoreNegative,
+              ]}
             >
-              {r.ticker}
+              {isSignalSection ? formatSignal(r.score) : formatScore(r.score)}
             </Text>
-            {isSignalSection && (
-              <Text style={styles.signalCaption}>{signalCaption(r.ticker, r.score)}</Text>
-            )}
           </View>
-          <Text
-            style={[
-              styles.rowScore,
-              !isSignalSection && r.score < 0 && styles.rowScoreNegative,
-            ]}
-          >
-            {isSignalSection ? formatSignal(r.score) : formatScore(r.score)}
-          </Text>
-        </View>
-      ))}
+        ))}
     </View>
   );
 }
@@ -681,12 +693,21 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#2a2f37',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   sectionTitle: {
     color: '#8a93a0',
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 8,
+  },
+  sectionChevron: {
+    color: '#8a93a0',
+    fontSize: 12,
   },
   row: {
     flexDirection: 'row',
