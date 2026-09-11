@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -18,7 +19,10 @@ import { fetchHaaDecision } from '../api/haaClient';
 import { fetchLaaDecision } from '../api/laaClient';
 import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
+import { rebalanceHint } from '../rebalance';
+import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
+import { strategyWebUrl } from '../webLinks';
 
 /**
  * Discriminated union of the strategy-specific query parameters. Any new
@@ -98,6 +102,17 @@ const MODE_BADGE_COLOR: Record<string, string> = {
   Offensive: '#7ed4a3',
   Defensive: '#ffb37e',
   Hybrid: '#ffd980',
+};
+
+/**
+ * Plain-language gloss per mode, shown under the badge. Keyed on the same
+ * `modeLabel` the backend emits; an unknown label renders no caption rather
+ * than a wrong one.
+ */
+const MODE_CAPTION: Record<string, string> = {
+  Offensive: 'Momentum is healthy — the strategy is invested in risk assets.',
+  Defensive: 'Momentum has deteriorated — the strategy has moved to bonds or cash.',
+  Hybrid: 'Momentum is mixed — the strategy is only partly invested in risk assets.',
 };
 
 function formatScore(score: number): string {
@@ -201,7 +216,7 @@ export default function DecisionScreen({
   // Both VAA and DAA resolve their universe via the region picker +
   // per-asset-class overrides on the mobile side, so the region flag is
   // meaningful for either.
-  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} universe`;
+  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} funds`;
 
   return (
     <View style={styles.root}>
@@ -238,7 +253,16 @@ export default function DecisionScreen({
           </View>
         )}
 
-        {decision && <DecisionCard decision={decision} />}
+        {decision && <DecisionCard decision={decision} asOf={asOf} />}
+
+        <Pressable
+          style={styles.learnMore}
+          onPress={() => Linking.openURL(strategyWebUrl(strategy.id))}
+          hitSlop={8}
+        >
+          <Text style={styles.learnMoreText}>How this strategy works →</Text>
+        </Pressable>
+        <Text style={styles.disclaimer}>Educational tool — not investment advice.</Text>
       </ScrollView>
     </View>
   );
@@ -301,7 +325,7 @@ function ProtectionFactorPicker({
   );
 }
 
-function DecisionCard({ decision }: { decision: AllocationDecision }) {
+function DecisionCard({ decision, asOf }: { decision: AllocationDecision; asOf: string }) {
   const allocatedTickers = new Set(decision.allocations.map((a) => a.ticker));
   const modeColor = MODE_BADGE_COLOR[decision.modeLabel] ?? '#8a93a0';
 
@@ -317,8 +341,13 @@ function DecisionCard({ decision }: { decision: AllocationDecision }) {
       <Text style={[styles.modeLabel, { color: modeColor }]}>
         {decision.modeLabel.toUpperCase()} MODE
       </Text>
+      {MODE_CAPTION[decision.modeLabel] && (
+        <Text style={styles.modeCaption}>{MODE_CAPTION[decision.modeLabel]}</Text>
+      )}
 
       <AllocationsBlock allocations={decision.allocations} accent={modeColor} />
+
+      <Text style={styles.rebalanceHint}>{rebalanceHint(asOf)}</Text>
 
       <Text style={styles.reasoning}>{decision.reasoning}</Text>
 
@@ -345,9 +374,11 @@ function AllocationsBlock({
   // pick is visually impactful.
   if (allocations.length === 1) {
     const a = allocations[0];
+    const description = describeTicker(a.ticker);
     return (
       <View>
         <Text style={styles.heroTicker}>{a.ticker}</Text>
+        {description && <Text style={styles.heroDescription}>{description}</Text>}
         <Text style={[styles.heroWeight, { color: accent }]}>{formatPercent(a.weight)}</Text>
       </View>
     );
@@ -358,12 +389,22 @@ function AllocationsBlock({
   const total = allocations.reduce((acc, a) => acc + a.weight, 0);
   return (
     <View style={styles.allocList}>
-      {allocations.map((a) => (
-        <View key={a.ticker} style={styles.allocRow}>
-          <Text style={[styles.allocTicker, { color: accent }]}>{a.ticker}</Text>
-          <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
-        </View>
-      ))}
+      {allocations.map((a) => {
+        const description = describeTicker(a.ticker);
+        return (
+          <View key={a.ticker} style={styles.allocRow}>
+            <View style={styles.allocRowLeft}>
+              <Text style={[styles.allocTicker, { color: accent }]}>{a.ticker}</Text>
+              {description && (
+                <Text style={styles.allocDescription} numberOfLines={1}>
+                  {description}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
+          </View>
+        );
+      })}
       <View style={[styles.allocRow, styles.allocTotalRow]}>
         <Text style={styles.allocTotalLabel}>Total</Text>
         <Text style={styles.allocTotalWeight}>{formatPercent(total)}</Text>
@@ -381,6 +422,8 @@ function ScoreSection({
   rows: AssetMomentum[];
   allocatedTickers: Set<string>;
 }) {
+  const [expanded, setExpanded] = useState(false);
+
   // The "Signal" bucket (currently only LAA) carries macro trend
   // deviations rather than per-asset momentum, and the bearish-trigger
   // direction is signal-specific (SPY: bearish when below SMA → score
@@ -392,31 +435,41 @@ function ScoreSection({
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>
-        {isSignalSection ? 'MACRO SIGNALS' : title.toUpperCase()}
-      </Text>
-      {rows.map((r) => (
-        <View key={`${r.bucket}:${r.ticker}`} style={styles.row}>
-          <View style={styles.rowLeft}>
+      <TouchableOpacity
+        style={styles.sectionHeader}
+        onPress={() => setExpanded((v) => !v)}
+        activeOpacity={0.7}
+        hitSlop={8}
+      >
+        <Text style={styles.sectionTitle}>
+          {isSignalSection ? 'MACRO SIGNALS' : title.toUpperCase()}
+        </Text>
+        <Text style={styles.sectionChevron}>{expanded ? '▾' : '▸'}</Text>
+      </TouchableOpacity>
+
+      {expanded &&
+        rows.map((r) => (
+          <View key={`${r.bucket}:${r.ticker}`} style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Text
+                style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+              >
+                {r.ticker}
+              </Text>
+              {isSignalSection && (
+                <Text style={styles.signalCaption}>{signalCaption(r.ticker, r.score)}</Text>
+              )}
+            </View>
             <Text
-              style={[styles.rowTicker, allocatedTickers.has(r.ticker) && styles.rowTickerHighlight]}
+              style={[
+                styles.rowScore,
+                !isSignalSection && r.score < 0 && styles.rowScoreNegative,
+              ]}
             >
-              {r.ticker}
+              {isSignalSection ? formatSignal(r.score) : formatScore(r.score)}
             </Text>
-            {isSignalSection && (
-              <Text style={styles.signalCaption}>{signalCaption(r.ticker, r.score)}</Text>
-            )}
           </View>
-          <Text
-            style={[
-              styles.rowScore,
-              !isSignalSection && r.score < 0 && styles.rowScoreNegative,
-            ]}
-          >
-            {isSignalSection ? formatSignal(r.score) : formatScore(r.score)}
-          </Text>
-        </View>
-      ))}
+        ))}
     </View>
   );
 }
@@ -559,12 +612,24 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     fontWeight: '600',
   },
+  modeCaption: {
+    color: '#8a93a0',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
+  },
   // Single-asset hero (VAA, or DAA defensive)
   heroTicker: {
     color: '#f4f6f8',
     fontSize: 56,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  heroDescription: {
+    color: '#8a93a0',
+    fontSize: 13,
+    marginTop: 2,
+    marginBottom: 6,
   },
   heroWeight: {
     fontSize: 22,
@@ -585,6 +650,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 0.5,
+  },
+  allocRowLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  allocDescription: {
+    color: '#8a93a0',
+    fontSize: 12,
+    marginTop: 1,
   },
   allocWeight: {
     color: '#cfd5dc',
@@ -609,6 +683,14 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     fontWeight: '600',
   },
+  rebalanceHint: {
+    color: '#cfd5dc',
+    fontSize: 13,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#2a2f37',
+  },
   reasoning: {
     color: '#cfd5dc',
     fontSize: 14,
@@ -622,12 +704,21 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#2a2f37',
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   sectionTitle: {
     color: '#8a93a0',
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 1.2,
-    marginBottom: 8,
+  },
+  sectionChevron: {
+    color: '#8a93a0',
+    fontSize: 18,
   },
   row: {
     flexDirection: 'row',
@@ -660,5 +751,20 @@ const styles = StyleSheet.create({
   },
   rowScoreNegative: {
     color: '#ff8a8a',
+  },
+  learnMore: {
+    marginTop: 20,
+    marginBottom: 8,
+    alignItems: 'center',
+  },
+  learnMoreText: {
+    color: '#7ed4a3',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  disclaimer: {
+    color: '#5e6671',
+    fontSize: 11,
+    textAlign: 'center',
   },
 });
