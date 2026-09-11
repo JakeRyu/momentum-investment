@@ -101,6 +101,17 @@ const MODE_BADGE_COLOR: Record<string, string> = {
   Hybrid: '#ffd980',
 };
 
+/**
+ * Plain-language gloss per mode, shown under the badge. Keyed on the same
+ * `modeLabel` the backend emits; an unknown label renders no caption rather
+ * than a wrong one.
+ */
+const MODE_CAPTION: Record<string, string> = {
+  Offensive: 'Momentum is healthy — the strategy is invested in risk assets.',
+  Defensive: 'Momentum has deteriorated — the strategy has moved to bonds or cash.',
+  Hybrid: 'Momentum is mixed — the strategy is only partly invested in risk assets.',
+};
+
 function formatScore(score: number): string {
   return (score >= 0 ? '+' : '') + score.toFixed(4);
 }
@@ -318,6 +329,9 @@ function DecisionCard({ decision }: { decision: AllocationDecision }) {
       <Text style={[styles.modeLabel, { color: modeColor }]}>
         {decision.modeLabel.toUpperCase()} MODE
       </Text>
+      {MODE_CAPTION[decision.modeLabel] && (
+        <Text style={styles.modeCaption}>{MODE_CAPTION[decision.modeLabel]}</Text>
+      )}
 
       <AllocationsBlock allocations={decision.allocations} accent={modeColor} />
 
@@ -571,6 +585,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     letterSpacing: 1.5,
     fontWeight: '600',
+  },
+  modeCaption: {
+    color: '#8a93a0',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 2,
   },
   // Single-asset hero (VAA, or DAA defensive)
   heroTicker: {
