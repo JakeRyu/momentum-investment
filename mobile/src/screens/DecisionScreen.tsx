@@ -168,6 +168,10 @@ export default function DecisionScreen({
   };
 
   useEffect(() => {
+    // Clear unconditionally: a view that resolves from cache below still
+    // needs to drop whatever error the other view's failed fetch left on
+    // screen — otherwise it renders above the cached, perfectly good result.
+    setError(null);
     if (cachedParamsKeyRef.current !== paramsKey) {
       cachedParamsKeyRef.current = paramsKey;
       setDecisions({ holding: null, preview: null });
