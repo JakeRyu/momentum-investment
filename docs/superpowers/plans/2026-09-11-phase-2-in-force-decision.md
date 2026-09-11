@@ -721,7 +721,19 @@ Add, in place of the form:
 ```
 
   A failing card must not clear the others — hence per-id state rather than one screen-level error. Use a `cancelled` flag in the effect's cleanup, matching the pattern already in `App.tsx`'s hydration effect.
-- Done markers in local state, loaded once on mount via `loadDoneMarkers()`. A card is `done` when `markers[id] === inForceMonthKey()`. Toggling calls `saveDoneMarker(id, inForceMonthKey())` or `clearDoneMarker(id)` and updates local state — same write-through pattern as `App.tsx`'s other persisted setters.
+- Done markers in local state, loaded once on mount via `loadDoneMarkers()`. A card is `done` when `markers[id] === inForceMonthKey()`.
+
+  **Replace `saveDoneMarker` / `clearDoneMarker` with a whole-map write.** Those two read storage, modify, and write back; ticking two cards in quick succession can interleave so the second read predates the first write and one marker is lost — invisible until the next relaunch, because the screen's own state still shows both as done. The screen already holds the complete map, so it should write the complete map:
+
+```typescript
+export async function saveDoneMarkers(
+  markers: Partial<Record<StrategyId, string>>,
+): Promise<void> {
+  await AsyncStorage.setItem(KEY_DONE, JSON.stringify(markers));
+}
+```
+
+  Delete `saveDoneMarker` and `clearDoneMarker` from `mobile/src/storage.ts` and replace their two tests in `mobile/src/__tests__/storage.test.ts` with round-trip tests over `saveDoneMarkers` — including one that writes a map with a key removed, standing in for the old `clearDoneMarker`. Toggling then computes the next map in the screen and writes it, matching the write-through pattern of `App.tsx`'s other persisted setters.
 - A `ScrollView` with `RefreshControl` that re-runs the fetch, one `StrategyDecisionCard` per registered id in `registered` order, then a final `Add another strategy →` row (`#7ed4a3`, 14, weight 600) calling `onOpenSettings`.
 
 - [ ] **Step 2: Rewire `App.tsx`**
