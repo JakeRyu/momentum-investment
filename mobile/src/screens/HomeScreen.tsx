@@ -31,6 +31,21 @@ const REGION_OPTIONS: { value: Region; label: string; sub: string }[] = [
   { value: 'UK', label: '🇬🇧 UK', sub: 'LSE UCITS' },
 ];
 
+/**
+ * Oldest as-of date the backend can answer. Its price window is 3 years
+ * ending today, and a decision needs 12 months of history before its own
+ * date — so 12 months back leaves a year of headroom. The picker used to
+ * offer any past date and anything older than this returned a 500.
+ *
+ * Computed at module load rather than per render so the prop identity stays
+ * stable; a session left open across midnight is not worth handling.
+ */
+const MIN_AS_OF = (() => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - 1);
+  return d;
+})();
+
 export default function HomeScreen({
   selectedStrategyId,
   onStrategyChange,
@@ -71,6 +86,7 @@ export default function HomeScreen({
               display="compact"
               themeVariant="dark"
               maximumDate={new Date()}
+              minimumDate={MIN_AS_OF}
               onChange={(_, d) => d && onAsOfChange(d)}
             />
             <Text style={styles.dateText}>{formatYmd(asOfDate)}</Text>
@@ -89,6 +105,7 @@ export default function HomeScreen({
                 mode="date"
                 display="default"
                 maximumDate={new Date()}
+                minimumDate={MIN_AS_OF}
                 onChange={(_, d) => {
                   setShowAndroidPicker(false);
                   if (d) onAsOfChange(d);
