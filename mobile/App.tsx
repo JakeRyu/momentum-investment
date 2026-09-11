@@ -7,6 +7,7 @@ import { type AssetClassCode } from './src/etfCatalog';
 import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 import {
   clearOverrides as persistClearOverrides,
   loadCustomTickers,
@@ -18,6 +19,7 @@ import {
   saveOverrides as persistOverrides,
   savePaaProtectionFactor as persistPaaA,
   saveRegion as persistRegion,
+  saveRegisteredStrategies as persistRegisteredStrategies,
   type CustomEtfEntry,
   type CustomTickers,
   type Overrides,
@@ -85,6 +87,11 @@ export default function App() {
   const handlePaaAChange = (a: PaaProtectionFactor) => {
     setPaaProtectionFactor(a);
     void persistPaaA(a);
+  };
+
+  const handleRegisteredChange = (ids: StrategyId[]) => {
+    setRegistered(ids);
+    void persistRegisteredStrategies(ids);
   };
 
   const handleRegionChange = (r: Region) => {
@@ -167,14 +174,22 @@ export default function App() {
   }
 
   if (screen.kind === 'settings') {
-    // Task 7
-    return null;
+    return (
+      <SettingsScreen
+        registered={registered}
+        onRegisteredChange={handleRegisteredChange}
+        region={region}
+        onRegionChange={handleRegionChange}
+        onOpenEtfConfig={() => setScreen({ kind: 'config' })}
+        onBack={() => setScreen({ kind: 'home' })}
+      />
+    );
   }
 
   if (screen.kind === 'config') {
     return (
       <ETFConfigScreen
-        strategyId={DEFAULT_STRATEGY_ID}
+        strategyId={registered[0]}
         region={region}
         overrides={overrides}
         customs={customs}
@@ -182,7 +197,7 @@ export default function App() {
         onAddCustom={handleAddCustom}
         onRemoveCustom={handleRemoveCustom}
         onReset={handleResetOverrides}
-        onBack={() => setScreen({ kind: 'home' })}
+        onBack={() => setScreen({ kind: 'settings' })}
       />
     );
   }

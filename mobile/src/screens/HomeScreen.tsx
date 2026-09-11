@@ -61,6 +61,16 @@ export default function HomeScreen({
   useEffect(() => {
     let cancelled = false;
     const asOf = inForceAsOf();
+    // Drop results for strategies no longer registered, so unregistering
+    // then later re-registering shows a skeleton instead of the stale
+    // allocation from before (e.g. fetched under a different region).
+    setResults((prev) => {
+      const next: Partial<Record<StrategyId, CardState>> = {};
+      for (const id of registered) {
+        if (prev[id]) next[id] = prev[id];
+      }
+      return next;
+    });
     (async () => {
       await Promise.all(
         registered.map(async (id) => {
@@ -90,14 +100,16 @@ export default function HomeScreen({
 
   const handleToggleDone = (id: StrategyId) => {
     const monthKey = inForceMonthKey();
-    const next = { ...markers };
-    if (next[id] === monthKey) {
-      delete next[id];
-    } else {
-      next[id] = monthKey;
-    }
-    setMarkers(next);
-    void saveDoneMarkers(next);
+    setMarkers((prev) => {
+      const next = { ...prev };
+      if (next[id] === monthKey) {
+        delete next[id];
+      } else {
+        next[id] = monthKey;
+      }
+      void saveDoneMarkers(next);
+      return next;
+    });
   };
 
   const onRefresh = () => {
