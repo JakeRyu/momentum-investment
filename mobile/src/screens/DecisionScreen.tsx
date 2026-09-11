@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
   },
   sectionChevron: {
     color: '#8a93a0',
-    fontSize: 12,
+    fontSize: 18,
   },
   row: {
     flexDirection: 'row',
