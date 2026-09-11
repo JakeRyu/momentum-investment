@@ -62,24 +62,24 @@ export default function StrategyDecisionCard({
 
       <Text style={styles.holdingLine}>{holdingLine}</Text>
 
-      {decision === null && error === null && (
+      {error !== null ? (
+        <Text style={styles.errorText}>Could not load</Text>
+      ) : decision !== null ? (
+        <View style={styles.allocList}>
+          {decision.allocations.map((a) => (
+            <View key={a.ticker} style={styles.allocRow}>
+              <View style={styles.allocRowLeft}>
+                <Text style={styles.allocTicker}>{a.ticker}</Text>
+              </View>
+              <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
         <View style={styles.allocList}>
           <View style={[styles.skeletonBar, { width: '60%' }]} />
           <View style={[styles.skeletonBar, { width: '45%' }]} />
           <View style={[styles.skeletonBar, { width: '52%' }]} />
-        </View>
-      )}
-
-      {error !== null && <Text style={styles.errorText}>Could not load</Text>}
-
-      {decision !== null && (
-        <View style={styles.allocList}>
-          {decision.allocations.map((a) => (
-            <View key={a.ticker} style={styles.allocRow}>
-              <Text style={styles.allocTicker}>{a.ticker}</Text>
-              <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
-            </View>
-          ))}
         </View>
       )}
 
@@ -156,6 +156,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  allocRowLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
   allocTicker: {
     color: '#f4f6f8',
     fontSize: 16,
@@ -189,7 +193,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   donePillDone: {
-    borderColor: 'transparent',
+    // Filled state follows the same tinted-background convention as
+    // DecisionScreen's protectionSegmentSelected.
+    backgroundColor: '#22323a',
+    borderColor: '#7ed4a3',
   },
   doneText: {
     color: '#8a93a0',
