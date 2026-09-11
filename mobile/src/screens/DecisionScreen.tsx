@@ -13,44 +13,12 @@ import {
 } from 'react-native';
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
-import { fetchBaaDecision } from '../api/baaClient';
-import { fetchDaaG12Decision } from '../api/daaClient';
-import { fetchHaaDecision } from '../api/haaClient';
-import { fetchLaaDecision } from '../api/laaClient';
-import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
-import { fetchVaaDecision } from '../api/vaaClient';
+import { type PaaProtectionFactor } from '../api/paaClient';
+import { fetchDecisionFor, type DecisionRequest } from '../decisions';
 import { rebalanceHint } from '../rebalance';
 import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
 import { strategyWebUrl } from '../webLinks';
-
-/**
- * Discriminated union of the strategy-specific query parameters. Any new
- * Keller strategy (BAA / HAA / ...) adds a variant here and the matching
- * `fetchXxxDecision` call site below.
- *
- * PAA's protection factor `a` is intentionally NOT part of the request
- * struct — it lives as App-level state and is passed to this screen as
- * a sibling prop (`paaA`), so the segmented control here can toggle it
- * freely without rebuilding the screen state. The request describes
- * "which universe to evaluate"; `paaA` describes "at which protection
- * level". Same separation will likely apply if BAA/HAA introduce their
- * own user-tunable parameters.
- */
-export type DecisionRequest =
-  | { kind: 'vaa'; offensive: string[]; defensive: string[] }
-  | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'haa'; risky: readonly string[]; canary: string; cash: string }
-  | { kind: 'baa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | {
-      kind: 'laa';
-      permanent: readonly string[];
-      risky: string;
-      cash: string;
-      signalEquity: string;
-      unemploymentSeriesId: string;
-    };
 
 export type DecisionScreenProps = {
   strategy: Strategy;
@@ -168,34 +136,7 @@ export default function DecisionScreen({
     setLoading(true);
     setError(null);
     try {
-      let d: AllocationDecision;
-      switch (request.kind) {
-        case 'vaa':
-          d = await fetchVaaDecision(asOf, request.offensive, request.defensive);
-          break;
-        case 'daa-g12':
-          d = await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
-          break;
-        case 'paa':
-          d = await fetchPaaDecision(asOf, request.risky, request.cash, paaA);
-          break;
-        case 'haa':
-          d = await fetchHaaDecision(asOf, request.risky, request.canary, request.cash);
-          break;
-        case 'baa-g12':
-          d = await fetchBaaDecision(asOf, request.canary, request.risky, request.cash);
-          break;
-        case 'laa':
-          d = await fetchLaaDecision(
-            asOf,
-            request.permanent,
-            request.risky,
-            request.cash,
-            request.signalEquity,
-            request.unemploymentSeriesId,
-          );
-          break;
-      }
+      const d = await fetchDecisionFor(request, asOf, paaA);
       setDecision(d);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

@@ -3,8 +3,9 @@ import { View } from 'react-native';
 
 import type { Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaClient';
+import { buildDecisionRequest, type DecisionRequest } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
-import DecisionScreen, { type DecisionRequest } from './src/screens/DecisionScreen';
+import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import NotImplementedScreen from './src/screens/NotImplementedScreen';
@@ -30,20 +31,6 @@ import {
   type Strategy,
   type StrategyId,
 } from './src/strategies';
-import {
-  baaTickerArrays,
-  daaG12TickerArrays,
-  haaTickerArrays,
-  laaTickerArrays,
-  paaTickerArrays,
-  resolveBaaUniverse,
-  resolveDaaG12Universe,
-  resolveHaaUniverse,
-  resolveLaaUniverse,
-  resolvePaaUniverse,
-  resolveUniverse,
-  tickerArrays,
-} from './src/universe';
 import { formatYmd } from './src/utils';
 
 type Screen =
@@ -186,50 +173,7 @@ export default function App() {
       return;
     }
 
-    // Strategy-specific universe resolution. VAA / DAA / PAA / LAA each
-    // have their own resolver but share the same region + per-asset-class
-    // override semantics under the hood. LAA additionally carries the
-    // signal-equity and FRED series ids straight through to the API call.
-    //
-    // PAA's `a` parameter is kept *outside* the request struct — it lives
-    // as App state and is passed to DecisionScreen separately, so the
-    // segmented control there can toggle it without rebuilding the screen
-    // state. The request describes "which universe", paaProtectionFactor
-    // describes "which protection level to compute".
-    let request: DecisionRequest;
-    if (strategy.id === 'daa') {
-      const universe = resolveDaaG12Universe(region, overrides);
-      const { canary, risky, cash } = daaG12TickerArrays(universe);
-      request = { kind: 'daa-g12', canary, risky, cash };
-    } else if (strategy.id === 'paa') {
-      const universe = resolvePaaUniverse(region, overrides);
-      const { risky, cash } = paaTickerArrays(universe);
-      request = { kind: 'paa', risky, cash };
-    } else if (strategy.id === 'haa') {
-      const universe = resolveHaaUniverse(region, overrides);
-      const { risky, canary, cash } = haaTickerArrays(universe);
-      request = { kind: 'haa', risky, canary, cash };
-    } else if (strategy.id === 'baa') {
-      const universe = resolveBaaUniverse(region, overrides);
-      const { canary, risky, cash } = baaTickerArrays(universe);
-      request = { kind: 'baa-g12', canary, risky, cash };
-    } else if (strategy.id === 'laa') {
-      const universe = resolveLaaUniverse(region, overrides);
-      const { permanent, risky, cash, signalEquity, unemploymentSeriesId } =
-        laaTickerArrays(universe);
-      request = {
-        kind: 'laa',
-        permanent,
-        risky,
-        cash,
-        signalEquity,
-        unemploymentSeriesId,
-      };
-    } else {
-      const universe = resolveUniverse(region, overrides);
-      const { offensive, defensive } = tickerArrays(universe);
-      request = { kind: 'vaa', offensive, defensive };
-    }
+    const request = buildDecisionRequest(strategy.id, region, overrides);
 
     setScreen({ kind: 'decision', strategy, asOf, region, request });
   };
