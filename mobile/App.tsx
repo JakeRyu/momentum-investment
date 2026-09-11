@@ -34,7 +34,7 @@ import {
 type Screen =
   | { kind: 'home' }
   | { kind: 'settings' }
-  | { kind: 'config' }
+  | { kind: 'config'; strategyId: StrategyId }
   | { kind: 'decision'; strategy: Strategy };
 
 export default function App() {
@@ -180,7 +180,7 @@ export default function App() {
         onRegisteredChange={handleRegisteredChange}
         region={region}
         onRegionChange={handleRegionChange}
-        onOpenEtfConfig={() => setScreen({ kind: 'config' })}
+        onOpenEtfConfig={(strategyId) => setScreen({ kind: 'config', strategyId })}
         onBack={() => setScreen({ kind: 'home' })}
       />
     );
@@ -189,7 +189,7 @@ export default function App() {
   if (screen.kind === 'config') {
     return (
       <ETFConfigScreen
-        strategyId={registered[0]}
+        strategyId={screen.strategyId}
         region={region}
         overrides={overrides}
         customs={customs}

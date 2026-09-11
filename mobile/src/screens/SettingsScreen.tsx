@@ -9,7 +9,7 @@ export type SettingsScreenProps = {
   onRegisteredChange: (ids: StrategyId[]) => void;
   region: Region;
   onRegionChange: (r: Region) => void;
-  onOpenEtfConfig: () => void;
+  onOpenEtfConfig: (strategyId: StrategyId) => void;
   onBack: () => void;
 };
 
@@ -97,10 +97,22 @@ export default function SettingsScreen({
         </View>
 
         <Text style={styles.sectionLabel}>ETF universe</Text>
-        <TouchableOpacity style={styles.linkRow} onPress={onOpenEtfConfig} activeOpacity={0.7}>
-          <Text style={styles.linkRowText}>Customise tickers</Text>
-          <Text style={styles.linkRowArrow}>→</Text>
-        </TouchableOpacity>
+        <View style={styles.strategyList}>
+          {registered.map((id) => {
+            const s = STRATEGIES.find((x) => x.id === id);
+            return (
+              <TouchableOpacity
+                key={id}
+                style={styles.linkRow}
+                onPress={() => onOpenEtfConfig(id)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.linkRowText}>Customise {s?.shortName} tickers</Text>
+                <Text style={styles.linkRowArrow}>→</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </ScrollView>
     </View>
   );
