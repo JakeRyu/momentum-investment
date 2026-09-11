@@ -1,11 +1,10 @@
 /**
- * Persists user preferences across app launches via AsyncStorage. Seven
+ * Persists user preferences across app launches via AsyncStorage. Six
  * pieces of state live here:
  *
  *   - region                     'US' | 'UK'
  *   - overrides:UK               which curated/custom ticker is active per asset class
  *   - customs:UK                 user-added tickers per asset class (catalog extension)
- *   - selectedStrategyId         last picked strategy
  *   - paaA                       last picked PAA protection factor (0|1|2)
  *   - registeredStrategies       the strategies the user actually runs, shown on Home
  *   - done                       per strategy, the in-force month ticked off
@@ -38,7 +37,6 @@ export type CustomTickers = { [K in AssetClassCode]?: CustomEtfEntry[] };
 const KEY_REGION = 'momentum:region';
 const KEY_OVERRIDES_UK = 'momentum:overrides:UK';
 const KEY_CUSTOMS_UK = 'momentum:customs:UK';
-const KEY_SELECTED_STRATEGY = 'momentum:selectedStrategy';
 const KEY_PAA_A = 'momentum:paaA';
 const KEY_REGISTERED = 'momentum:registeredStrategies';
 const KEY_DONE = 'momentum:done';
@@ -104,25 +102,6 @@ export async function saveCustomTickers(
 }
 
 // ----------------------------------------------------------------------
-// Selected strategy (last user pick on HomeScreen)
-
-export async function loadSelectedStrategyId(
-  fallback: StrategyId,
-): Promise<StrategyId> {
-  const v = await AsyncStorage.getItem(KEY_SELECTED_STRATEGY);
-  if (!v) return fallback;
-  // Defensive parse — if a previously-saved id is no longer in the
-  // current STRATEGIES list (e.g. we renamed `paa-a2` → `paa` in this
-  // refactor; or we drop a strategy in a future revision), drop it
-  // silently and fall back to the default.
-  return STRATEGIES.some((s) => s.id === v) ? (v as StrategyId) : fallback;
-}
-
-export async function saveSelectedStrategyId(id: StrategyId): Promise<void> {
-  await AsyncStorage.setItem(KEY_SELECTED_STRATEGY, id);
-}
-
-// ----------------------------------------------------------------------
 // PAA protection factor (a ∈ {0, 1, 2}). Defaults to Vigilant (a=2),
 // Keller's recommended baseline.
 
@@ -153,8 +132,8 @@ export async function loadRegisteredStrategies(): Promise<StrategyId[]> {
   try {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [...DEFAULT_REGISTERED];
-    // Same defensive filter as loadSelectedStrategyId: an id we no longer
-    // ship is dropped rather than crashing a screen that maps over it.
+    // Defensive filter: an id we no longer ship is dropped rather than
+    // crashing a screen that maps over it.
     const known = parsed.filter((id): id is StrategyId =>
       STRATEGIES.some((s) => s.id === id),
     );
@@ -184,14 +163,13 @@ export async function loadDoneMarkers(): Promise<Partial<Record<StrategyId, stri
   }
 }
 
-export async function saveDoneMarker(id: StrategyId, monthKey: string): Promise<void> {
-  const markers = await loadDoneMarkers();
-  markers[id] = monthKey;
-  await AsyncStorage.setItem(KEY_DONE, JSON.stringify(markers));
-}
-
-export async function clearDoneMarker(id: StrategyId): Promise<void> {
-  const markers = await loadDoneMarkers();
-  delete markers[id];
+// Writes the whole map rather than read-modify-write a single key: two
+// cards ticked in quick succession can otherwise interleave their
+// load-then-save, and the second write clobbers the first with a map it
+// read before the first write landed. The screen already holds the
+// complete map in state, so it writes the complete map back.
+export async function saveDoneMarkers(
+  markers: Partial<Record<StrategyId, string>>,
+): Promise<void> {
   await AsyncStorage.setItem(KEY_DONE, JSON.stringify(markers));
 }

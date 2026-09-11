@@ -3,24 +3,23 @@ import { View } from 'react-native';
 
 import type { Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaClient';
-import { buildDecisionRequest, type DecisionRequest } from './src/decisions';
+import { buildDecisionRequest } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
+import { inForceAsOf } from './src/rebalance';
 import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import NotImplementedScreen from './src/screens/NotImplementedScreen';
 import {
   clearOverrides as persistClearOverrides,
   loadCustomTickers,
   loadOverrides,
   loadPaaProtectionFactor,
   loadRegion,
-  loadSelectedStrategyId,
+  loadRegisteredStrategies,
   saveCustomTickers as persistCustomTickers,
   saveOverrides as persistOverrides,
   savePaaProtectionFactor as persistPaaA,
   saveRegion as persistRegion,
-  saveSelectedStrategyId as persistSelectedStrategyId,
   type CustomEtfEntry,
   type CustomTickers,
   type Overrides,
@@ -31,25 +30,17 @@ import {
   type Strategy,
   type StrategyId,
 } from './src/strategies';
-import { formatYmd } from './src/utils';
 
 type Screen =
   | { kind: 'home' }
+  | { kind: 'settings' }
   | { kind: 'config' }
-  | {
-      kind: 'decision';
-      strategy: Strategy;
-      asOf: string;
-      region: Region;
-      request: DecisionRequest;
-    }
-  | { kind: 'notImplemented'; strategy: Strategy };
+  | { kind: 'decision'; strategy: Strategy };
 
 export default function App() {
   // Selection state lives at the App level so it's preserved when the user
   // navigates Home → Decision → Back → Home.
-  const [selectedStrategyId, setSelectedStrategyId] = useState<StrategyId>(DEFAULT_STRATEGY_ID);
-  const [asOfDate, setAsOfDate] = useState<Date>(() => new Date());
+  const [registered, setRegistered] = useState<StrategyId[]>([DEFAULT_STRATEGY_ID]);
   const [region, setRegion] = useState<Region>('US');
   const [overrides, setOverrides] = useState<Overrides>({});
   const [customs, setCustoms] = useState<CustomTickers>({});
@@ -63,24 +54,24 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
 
   // Rehydrate persisted preferences on mount. While loading we render a
-  // dark blank screen so a UK user doesn't see a brief US flash and so a
-  // strategy chosen last session doesn't appear to "jump" from VAA to its
-  // saved value after the home screen mounts.
+  // dark blank screen so a UK user doesn't see a brief US flash and so the
+  // registered strategy list doesn't appear to "jump" after the home
+  // screen mounts.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const r = await loadRegion();
-      const [o, c, savedStrategy, savedPaaA] = await Promise.all([
+      const [o, c, savedRegistered, savedPaaA] = await Promise.all([
         loadOverrides(r),
         loadCustomTickers(r),
-        loadSelectedStrategyId(DEFAULT_STRATEGY_ID),
+        loadRegisteredStrategies(),
         loadPaaProtectionFactor(),
       ]);
       if (cancelled) return;
       setRegion(r);
       setOverrides(o);
       setCustoms(c);
-      setSelectedStrategyId(savedStrategy);
+      setRegistered(savedRegistered);
       setPaaProtectionFactor(savedPaaA);
       setHydrated(true);
     })();
@@ -93,11 +84,6 @@ export default function App() {
   // tiny handlers (rather than `useEffect` watching the state) so a
   // navigation/Confirm doesn't trigger redundant writes when nothing
   // changed.
-  const handleStrategyChange = (id: StrategyId) => {
-    setSelectedStrategyId(id);
-    void persistSelectedStrategyId(id);
-  };
-
   const handlePaaAChange = (a: PaaProtectionFactor) => {
     setPaaProtectionFactor(a);
     void persistPaaA(a);
@@ -165,19 +151,6 @@ export default function App() {
     }
   };
 
-  const handleConfirm = () => {
-    const strategy = findStrategy(selectedStrategyId);
-    const asOf = formatYmd(asOfDate);
-    if (!strategy.implemented) {
-      setScreen({ kind: 'notImplemented', strategy });
-      return;
-    }
-
-    const request = buildDecisionRequest(strategy.id, region, overrides);
-
-    setScreen({ kind: 'decision', strategy, asOf, region, request });
-  };
-
   if (!hydrated) {
     return <View style={{ flex: 1, backgroundColor: '#0b0d10' }} />;
   }
@@ -185,22 +158,25 @@ export default function App() {
   if (screen.kind === 'home') {
     return (
       <HomeScreen
-        selectedStrategyId={selectedStrategyId}
-        onStrategyChange={handleStrategyChange}
-        asOfDate={asOfDate}
-        onAsOfChange={setAsOfDate}
+        registered={registered}
         region={region}
-        onRegionChange={handleRegionChange}
-        onConfirm={handleConfirm}
-        onOpenConfig={() => setScreen({ kind: 'config' })}
+        overrides={overrides}
+        paaA={paaProtectionFactor}
+        onOpenStrategy={(id) => setScreen({ kind: 'decision', strategy: findStrategy(id) })}
+        onOpenSettings={() => setScreen({ kind: 'settings' })}
       />
     );
+  }
+
+  if (screen.kind === 'settings') {
+    // Task 7
+    return null;
   }
 
   if (screen.kind === 'config') {
     return (
       <ETFConfigScreen
-        strategyId={selectedStrategyId}
+        strategyId={DEFAULT_STRATEGY_ID}
         region={region}
         overrides={overrides}
         customs={customs}
@@ -213,23 +189,14 @@ export default function App() {
     );
   }
 
-  if (screen.kind === 'decision') {
-    return (
-      <DecisionScreen
-        strategy={screen.strategy}
-        asOf={screen.asOf}
-        region={screen.region}
-        request={screen.request}
-        paaA={paaProtectionFactor}
-        onPaaAChange={handlePaaAChange}
-        onBack={() => setScreen({ kind: 'home' })}
-      />
-    );
-  }
-
   return (
-    <NotImplementedScreen
+    <DecisionScreen
       strategy={screen.strategy}
+      asOf={inForceAsOf()}
+      region={region}
+      request={buildDecisionRequest(screen.strategy.id, region, overrides)}
+      paaA={paaProtectionFactor}
+      onPaaAChange={handlePaaAChange}
       onBack={() => setScreen({ kind: 'home' })}
     />
   );

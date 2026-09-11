@@ -1,10 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
-  clearDoneMarker,
   loadDoneMarkers,
   loadRegisteredStrategies,
-  saveDoneMarker,
+  saveDoneMarkers,
   saveRegisteredStrategies,
 } from '../storage';
 
@@ -43,16 +42,14 @@ describe('done markers', () => {
     expect(await loadDoneMarkers()).toEqual({});
   });
 
-  it('round-trips a marker per strategy', async () => {
-    await saveDoneMarker('vaa', '2026-08');
-    await saveDoneMarker('daa', '2026-08');
+  it('round-trips a map of markers', async () => {
+    await saveDoneMarkers({ vaa: '2026-08', daa: '2026-08' });
     expect(await loadDoneMarkers()).toEqual({ vaa: '2026-08', daa: '2026-08' });
   });
 
-  it('clears one without disturbing the others', async () => {
-    await saveDoneMarker('vaa', '2026-08');
-    await saveDoneMarker('daa', '2026-08');
-    await clearDoneMarker('vaa');
+  it('writing a map with a key removed clears that marker', async () => {
+    await saveDoneMarkers({ vaa: '2026-08', daa: '2026-08' });
+    await saveDoneMarkers({ daa: '2026-08' });
     expect(await loadDoneMarkers()).toEqual({ daa: '2026-08' });
   });
 });
