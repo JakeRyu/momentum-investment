@@ -18,6 +18,7 @@ import { fetchHaaDecision } from '../api/haaClient';
 import { fetchLaaDecision } from '../api/laaClient';
 import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
 import { fetchVaaDecision } from '../api/vaaClient';
+import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
 
 /**
@@ -345,9 +346,11 @@ function AllocationsBlock({
   // pick is visually impactful.
   if (allocations.length === 1) {
     const a = allocations[0];
+    const description = describeTicker(a.ticker);
     return (
       <View>
         <Text style={styles.heroTicker}>{a.ticker}</Text>
+        {description && <Text style={styles.heroDescription}>{description}</Text>}
         <Text style={[styles.heroWeight, { color: accent }]}>{formatPercent(a.weight)}</Text>
       </View>
     );
@@ -358,12 +361,22 @@ function AllocationsBlock({
   const total = allocations.reduce((acc, a) => acc + a.weight, 0);
   return (
     <View style={styles.allocList}>
-      {allocations.map((a) => (
-        <View key={a.ticker} style={styles.allocRow}>
-          <Text style={[styles.allocTicker, { color: accent }]}>{a.ticker}</Text>
-          <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
-        </View>
-      ))}
+      {allocations.map((a) => {
+        const description = describeTicker(a.ticker);
+        return (
+          <View key={a.ticker} style={styles.allocRow}>
+            <View style={styles.allocRowLeft}>
+              <Text style={[styles.allocTicker, { color: accent }]}>{a.ticker}</Text>
+              {description && (
+                <Text style={styles.allocDescription} numberOfLines={1}>
+                  {description}
+                </Text>
+              )}
+            </View>
+            <Text style={styles.allocWeight}>{formatPercent(a.weight)}</Text>
+          </View>
+        );
+      })}
       <View style={[styles.allocRow, styles.allocTotalRow]}>
         <Text style={styles.allocTotalLabel}>Total</Text>
         <Text style={styles.allocTotalWeight}>{formatPercent(total)}</Text>
@@ -566,6 +579,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
   },
+  heroDescription: {
+    color: '#8a93a0',
+    fontSize: 13,
+    marginTop: 2,
+    marginBottom: 6,
+  },
   heroWeight: {
     fontSize: 22,
     fontWeight: '600',
@@ -585,6 +604,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     letterSpacing: 0.5,
+  },
+  allocRowLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  allocDescription: {
+    color: '#8a93a0',
+    fontSize: 12,
+    marginTop: 1,
   },
   allocWeight: {
     color: '#cfd5dc',
