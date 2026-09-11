@@ -943,7 +943,7 @@ hr {
   display: inline-block;
   line-height: 0;
   padding: 5px;
-  margin: -5px;
+  margin: 15px -5px -5px;
 }
 .app-badge img {
   display: block;

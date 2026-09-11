@@ -65,7 +65,14 @@ Apple's US-UK RGB black SVG, 119.66×40 native) linked to `APP_STORE_URL`.
 Home is the marketing surface where recognition beats grid purity — a
 reader scanning the page should spot a badge they already know. Rendered at
 48px tall (above Apple's 40px web minimum) with 5px padding as clear space,
-negative-margined so it does not disturb the section's spacing.
+negative-margined at the sides and bottom so it does not disturb the cell.
+
+**Placement:** inside the `THE APP` column, below its list — not below the
+grid as Phase A's marker was. Left-aligned under the whole grid, the CTA
+sits closest to the `THIS SITE` column and reads as belonging to it; in the
+app column it lands directly under the claims it acts on. The grid stretches
+both cells to the taller one, which leaves whitespace under `THIS SITE` —
+fine in this design system, and it reinforces which side the CTA is for.
 
 Alt text is the CTA wording, not a description of the image.
 

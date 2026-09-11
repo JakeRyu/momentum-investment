@@ -39,21 +39,21 @@ export default function Home() {
               <li>Any decision date</li>
               <li>The same six Keller strategies</li>
             </ul>
+            <a
+              className="app-badge"
+              href={APP_STORE_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img
+                src="/app-store-badge.svg"
+                alt={APP_STORE_CTA}
+                width="143"
+                height="48"
+              />
+            </a>
           </div>
         </div>
-        <a
-          className="app-badge"
-          href={APP_STORE_URL}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <img
-            src="/app-store-badge.svg"
-            alt={APP_STORE_CTA}
-            width="143"
-            height="48"
-          />
-        </a>
       </section>
     </div>
   )
