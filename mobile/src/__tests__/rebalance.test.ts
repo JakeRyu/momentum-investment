@@ -1,74 +1,70 @@
-import { rebalanceHint } from '../rebalance';
+import {
+  holdingHint,
+  inForceAsOf,
+  inForceMonthKey,
+  previewHint,
+} from '../rebalance';
 
-describe('rebalanceHint', () => {
-  describe('asOf in a past month', () => {
-    it('reports a past decision when asOf is a month before today', () => {
-      expect(rebalanceHint('2022-06-30', '2026-09-11')).toBe(
-        'Rebalance monthly · this is a past decision for June 2022',
-      );
-    });
-
-    it('reports a past decision for a mid-month asOf too', () => {
-      expect(rebalanceHint('2026-01-15', '2026-09-11')).toBe(
-        'Rebalance monthly · this is a past decision for January 2026',
-      );
-    });
-
-    it('reports a past decision across a year boundary', () => {
-      expect(rebalanceHint('2025-12-31', '2026-01-05')).toBe(
-        'Rebalance monthly · this is a past decision for December 2025',
-      );
-    });
+describe('inForceAsOf', () => {
+  it('is the last day of the previous month', () => {
+    expect(inForceAsOf('2026-09-11')).toBe('2026-08-31');
   });
 
-  describe('asOf in the current month, not month-end', () => {
-    it('points at the end of the current month and flags it as provisional', () => {
-      expect(rebalanceHint('2026-09-11', '2026-09-11')).toBe(
-        "Rebalance monthly · next at the end of September. Today's reading can still change.",
-      );
-    });
-
-    it('still flags provisional when asOf is earlier in the month than today', () => {
-      expect(rebalanceHint('2026-09-01', '2026-09-15')).toBe(
-        "Rebalance monthly · next at the end of September. Today's reading can still change.",
-      );
-    });
-
-    it('handles a leap-year February that is not yet month-end', () => {
-      // 2028 is a leap year, so Feb 28 is not the last day of the month.
-      expect(rebalanceHint('2028-02-28', '2028-02-28')).toBe(
-        "Rebalance monthly · next at the end of February. Today's reading can still change.",
-      );
-    });
+  it('handles a 30-day previous month', () => {
+    expect(inForceAsOf('2026-05-02')).toBe('2026-04-30');
   });
 
-  describe('asOf is the last day of the current month', () => {
-    it('rolls to the next month with no provisional caveat', () => {
-      expect(rebalanceHint('2026-09-30', '2026-09-30')).toBe(
-        'Rebalance monthly · next at the end of October',
-      );
-    });
-
-    it('rolls across the year boundary', () => {
-      expect(rebalanceHint('2026-12-31', '2026-12-31')).toBe(
-        'Rebalance monthly · next at the end of January',
-      );
-    });
-
-    it('handles a short month', () => {
-      expect(rebalanceHint('2026-02-28', '2026-02-28')).toBe(
-        'Rebalance monthly · next at the end of March',
-      );
-    });
-
-    it('handles a leap-year February month-end', () => {
-      expect(rebalanceHint('2028-02-29', '2028-02-29')).toBe(
-        'Rebalance monthly · next at the end of March',
-      );
-    });
+  it('crosses the year boundary', () => {
+    expect(inForceAsOf('2026-01-04')).toBe('2025-12-31');
   });
 
-  it('defaults `today` to the current date without pinning the clock', () => {
-    expect(rebalanceHint('2026-09-11')).toMatch(/^Rebalance monthly · /);
+  it('handles a leap-year February', () => {
+    expect(inForceAsOf('2028-03-01')).toBe('2028-02-29');
+    expect(inForceAsOf('2026-03-01')).toBe('2026-02-28');
+  });
+
+  it('still points at the previous month on the last day of this one', () => {
+    expect(inForceAsOf('2026-09-30')).toBe('2026-08-31');
+  });
+});
+
+describe('inForceMonthKey', () => {
+  it('is the previous month', () => {
+    expect(inForceMonthKey('2026-09-11')).toBe('2026-08');
+  });
+
+  it('crosses the year boundary', () => {
+    expect(inForceMonthKey('2026-01-04')).toBe('2025-12');
+  });
+});
+
+describe('holdingHint', () => {
+  it('names where the allocation came from and when it changes', () => {
+    expect(holdingHint('2026-09-11')).toBe(
+      'Set at the 31 August rebalance · next at the end of September',
+    );
+  });
+
+  it('crosses the year boundary', () => {
+    expect(holdingHint('2026-01-04')).toBe(
+      'Set at the 31 December rebalance · next at the end of January',
+    );
+  });
+});
+
+describe('previewHint', () => {
+  it('says the reading is not yet in force', () => {
+    expect(previewHint('2026-09-11')).toBe(
+      'Not in force yet · takes effect at the end of September',
+    );
+  });
+});
+
+describe('defaults', () => {
+  it('uses today when no date is passed', () => {
+    expect(inForceAsOf()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(inForceMonthKey()).toMatch(/^\d{4}-\d{2}$/);
+    expect(holdingHint()).toMatch(/^Set at the /);
+    expect(previewHint()).toMatch(/^Not in force yet · /);
   });
 });
