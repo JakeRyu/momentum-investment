@@ -1,8 +1,8 @@
 /**
  * Wouter Keller's momentum-based asset allocation strategies.
  *
- * VAA / DAA / PAA / LAA are wired through to the backend; BAA / HAA are
- * listed but route to a "not yet implemented" placeholder when selected.
+ * All six (VAA / DAA / PAA / BAA / HAA / LAA) are wired through to the
+ * backend.
  *
  * PAA's three protection-factor variants (a ∈ {0, 1, 2}) are NOT separate
  * picker entries — they share one card, and the variant is selected via a
@@ -22,7 +22,6 @@ export type Strategy = {
   shortName: string;
   fullName: string;
   blurb: string;
-  implemented: boolean;
 };
 
 export const STRATEGIES: readonly Strategy[] = [
@@ -31,7 +30,6 @@ export const STRATEGIES: readonly Strategy[] = [
     shortName: 'VAA',
     fullName: 'Vigilant Asset Allocation',
     blurb: 'Aggressive dual-momentum with crash protection (Keller & Keuning, 2017)',
-    implemented: true,
   },
   {
     id: 'paa',
@@ -39,35 +37,30 @@ export const STRATEGIES: readonly Strategy[] = [
     fullName: 'Protective Asset Allocation',
     blurb:
       'SMA12 breadth with selectable protection level a ∈ {0, 1, 2} (Keller & van Putten, 2016)',
-    implemented: true,
   },
   {
     id: 'daa',
     shortName: 'DAA',
     fullName: 'Defensive Asset Allocation',
     blurb: "Adds a 'canary' universe to VAA for crash signalling (Keller & Keuning, 2018)",
-    implemented: true,
   },
   {
     id: 'baa',
     shortName: 'BAA',
     fullName: 'Bold Asset Allocation',
     blurb: 'Unanimous-AND canary gate (TIP/IEF/BIL); fully defensive on a single bearish signal (Keller, 2022)',
-    implemented: true,
   },
   {
     id: 'haa',
     shortName: 'HAA',
     fullName: 'Hybrid Asset Allocation',
     blurb: '8-risky universe with TIP canary; defensive when rising-yield regime kicks in (Keller & Keuning, 2023)',
-    implemented: true,
   },
   {
     id: 'laa',
     shortName: 'LAA',
     fullName: 'Lethargic Asset Allocation',
     blurb: 'Permanent sleeve + GT timing on US unemployment & SPY trend (Keller, 2019)',
-    implemented: true,
   },
 ];
 
