@@ -83,15 +83,45 @@ review adds latency that web deploys do not have.
 5. **Outbound link.** A footer link opening the matching web strategy page
    for depth.
 
-## Phase 2 — Mobile: home as dashboard
+## Phase 2 — Mobile: show the decision that is actually in force
 
-Reverses the home screen: on launch, immediately fetch and show the decision
-for the last-used strategy. Strategy, region and as-of move to compact
-controls (chips or a settings sheet) rather than a top-level form.
+Reverses the home screen: on launch, immediately fetch and show a decision
+rather than a form. Strategy and region move to compact controls.
 
-Effect: taps-to-answer goes 4 → 0, and the newcomer is no longer asked to
-make an uninformed choice before seeing anything. The as-of date picker
-stops being the first thing a newcomer meets.
+**Which decision, though — and this is the correction phase 1 surfaced.**
+Keller's rule is: compute the signal at month-end close, hold that
+allocation through the following month. So on any given day the allocation a
+user *should be holding* comes from the last month-end, not from today. A
+user who rebalances late is still meant to move to the month-end
+allocation — acting on a mid-month signal is a different, untested rule, and
+re-trading mid-month only adds cost before the next month-end rebalance
+anyway.
+
+Phase 1 therefore headlines the wrong number: it shows today's live reading,
+which is a preview of a rebalance that has not happened yet. Phase 2 shows
+both, correctly ranked:
+
+- **What you should be holding now** — the decision computed at the last
+  month-end. The headline. Stable for the whole month.
+- **Next rebalance preview** — today's reading, explicitly provisional.
+  Secondary. Phase 1's "Today's reading can still change" line belongs here.
+
+**This removes the as-of date picker.** The picker existed for exactly one
+case — "I meant to rebalance at month-end and forgot, what did it say?" —
+which the in-force decision now answers by default, permanently and without
+the user reconstructing anything. Arbitrary historical dates serve curiosity
+rather than action, and that appetite belongs on the web.
+
+Two consequences for phase 1's code, applied there as a stopgap: the picker
+is capped at 12 months back so it can no longer request dates the backend
+cannot serve (which returned a 500), and the Yahoo price window is 3 years —
+enough for a 12-month-old `asOf` plus its own 12-month lookback. Once the
+picker is gone, the deepest lookback is last-month-end minus 12 months, and
+the window could shrink again.
+
+Effect: taps-to-answer goes 4 → 0, the newcomer is no longer asked to make an
+uninformed choice before seeing anything, and the number shown largest is the
+one the user can act on.
 
 Kept out of phase 1 because it is the larger structural change and benefits
 from phase 1's result presentation already being settled.
