@@ -1,9 +1,13 @@
+import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
+
 /**
  * Web-to-app funnel notice. The web tool intentionally stays on the US
  * paper universe at today's date; local-ticker mapping and per-date
- * decisions live in the iPhone app. The CTA is a static "coming soon"
- * marker until the app ships on the App Store (Phase B swaps in the
- * real badge + link).
+ * decisions live in the iPhone app, so the CTA sends readers there.
+ *
+ * Strategy pages use the text link rather than Apple's badge — the badge's
+ * black fill and rounded corners fight the Brutalist Quarterly grid at this
+ * size. The Home section carries the official badge instead.
  */
 export default function AppPromo() {
   return (
@@ -14,7 +18,14 @@ export default function AppPromo() {
         Momentum Investment iPhone app maps every asset class to local UCITS
         alternatives (UK first) and runs any date you choose.
       </p>
-      <span className="app-promo__cta">Coming soon to the App Store</span>
+      <a
+        className="app-promo__cta"
+        href={APP_STORE_URL}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {APP_STORE_CTA} →
+      </a>
     </aside>
   )
 }

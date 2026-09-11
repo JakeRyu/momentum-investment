@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
 import StrategyGrid from '../components/StrategyGrid'
 
 export default function Home() {
@@ -38,9 +39,21 @@ export default function Home() {
               <li>Any decision date</li>
               <li>The same six Keller strategies</li>
             </ul>
+            <a
+              className="app-badge"
+              href={APP_STORE_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img
+                src="/app-store-badge.svg"
+                alt={APP_STORE_CTA}
+                width="143"
+                height="48"
+              />
+            </a>
           </div>
         </div>
-        <span className="app-promo__cta">Coming soon to the App Store</span>
       </section>
     </div>
   )

@@ -28,3 +28,7 @@ Thumbs.db
 # Claude Code IDE
 .claude/
 .gstack/
+.playwright-mcp/
+
+# Cowork scratch output (screenshots etc. dropped into the repo folder)
+Claude outputs/
