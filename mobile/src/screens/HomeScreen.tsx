@@ -86,7 +86,7 @@ export default function HomeScreen({
       <View style={styles.footer}>
         <Text style={styles.disclaimer}>
           Computed from the published rules on live market data. Not investment
-          advice — past performance does not predict future results.
+          advice.
         </Text>
       </View>
     </View>
