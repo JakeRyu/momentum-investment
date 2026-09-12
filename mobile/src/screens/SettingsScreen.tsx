@@ -63,8 +63,13 @@ export default function SettingsScreen({
                 activeOpacity={0.7}
               >
                 <View style={styles.strategyTextWrap}>
-                  <Text style={styles.strategyShort}>{s.shortName}</Text>
-                  <Text style={styles.strategyFull}>{s.fullName}</Text>
+                  <View style={styles.strategyNameRow}>
+                    <Text style={styles.strategyShort}>{s.shortName}</Text>
+                    <Text style={styles.strategyFull} numberOfLines={1}>
+                      {s.fullName}
+                    </Text>
+                  </View>
+                  <Text style={styles.strategyTagline}>{s.tagline}</Text>
                 </View>
                 <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
                   {checked && <Text style={styles.checkmark}>✓</Text>}
@@ -167,6 +172,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
+  strategyNameRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 8,
+    paddingRight: 12,
+  },
   strategyShort: {
     color: '#f4f6f8',
     fontSize: 16,
@@ -176,6 +187,12 @@ const styles = StyleSheet.create({
   strategyFull: {
     color: '#cfd5dc',
     fontSize: 13,
+    flexShrink: 1,
+  },
+  strategyTagline: {
+    color: '#8a93a0',
+    fontSize: 12,
+    marginTop: 4,
   },
   checkbox: {
     width: 24,

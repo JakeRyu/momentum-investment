@@ -21,7 +21,14 @@ export type Strategy = {
   id: StrategyId;
   shortName: string;
   fullName: string;
-  blurb: string;
+  /**
+   * One plain line on the home card, for a reader who registered this
+   * strategy and needs reminding what they picked. Says how it behaves, not
+   * how it is computed — the mechanism is the web's job, and the paper
+   * language these replaced ("SMA12 breadth", "unanimous-AND canary gate")
+   * told a newcomer nothing.
+   */
+  tagline: string;
 };
 
 export const STRATEGIES: readonly Strategy[] = [
@@ -29,38 +36,37 @@ export const STRATEGIES: readonly Strategy[] = [
     id: 'vaa',
     shortName: 'VAA',
     fullName: 'Vigilant Asset Allocation',
-    blurb: 'Aggressive dual-momentum with crash protection (Keller & Keuning, 2017)',
+    tagline: 'All-in on one winner, out at the first bad sign',
   },
   {
     id: 'paa',
     shortName: 'PAA',
     fullName: 'Protective Asset Allocation',
-    blurb:
-      'SMA12 breadth with selectable protection level a ∈ {0, 1, 2} (Keller & van Putten, 2016)',
+    tagline: 'Eases out of risk as fewer assets trend up',
   },
   {
     id: 'daa',
     shortName: 'DAA',
     fullName: 'Defensive Asset Allocation',
-    blurb: "Adds a 'canary' universe to VAA for crash signalling (Keller & Keuning, 2018)",
+    tagline: 'Two bellwether assets decide when to take cover',
   },
   {
     id: 'baa',
     shortName: 'BAA',
     fullName: 'Bold Asset Allocation',
-    blurb: 'Unanimous-AND canary gate (TIP/IEF/BIL); fully defensive on a single bearish signal (Keller, 2022)',
+    tagline: "Strictest guard: one warning and it's fully out",
   },
   {
     id: 'haa',
     shortName: 'HAA',
     fullName: 'Hybrid Asset Allocation',
-    blurb: '8-risky universe with TIP canary; defensive when rising-yield regime kicks in (Keller & Keuning, 2023)',
+    tagline: 'Four assets at once, out on an inflation warning',
   },
   {
     id: 'laa',
     shortName: 'LAA',
     fullName: 'Lethargic Asset Allocation',
-    blurb: 'Permanent sleeve + GT timing on US unemployment & SPY trend (Keller, 2019)',
+    tagline: 'Mostly buy-and-hold, one slow economic switch',
   },
 ];
 
