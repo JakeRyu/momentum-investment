@@ -1,9 +1,7 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import {
-  Platform,
-  Pressable,
+  Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,57 +9,44 @@ import {
   View,
 } from 'react-native';
 
-import type { Region } from '../api/vaaClient';
-import { STRATEGIES, type Strategy, type StrategyId } from '../strategies';
-import { formatYmd } from '../utils';
+import type { CardState } from '../../App';
+import StrategyDecisionCard from '../components/StrategyDecisionCard';
+import { holdingHint, inForceMonthKey } from '../rebalance';
+import { findStrategy, type StrategyId } from '../strategies';
+import { WEB_BASE_URL } from '../webLinks';
 
 export type HomeScreenProps = {
-  selectedStrategyId: StrategyId;
-  onStrategyChange: (id: StrategyId) => void;
-  asOfDate: Date;
-  onAsOfChange: (d: Date) => void;
-  region: Region;
-  onRegionChange: (r: Region) => void;
-  onConfirm: () => void;
-  onOpenConfig: () => void;
+  registered: StrategyId[];
+  results: Partial<Record<StrategyId, CardState>>;
+  markers: Partial<Record<StrategyId, string>>;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onToggleDone: (id: StrategyId) => void;
+  onOpenStrategy: (id: StrategyId) => void;
+  onOpenSettings: () => void;
 };
 
-const REGION_OPTIONS: { value: Region; label: string; sub: string }[] = [
-  { value: 'US', label: '🇺🇸 US', sub: 'NYSE/NASDAQ' },
-  { value: 'UK', label: '🇬🇧 UK', sub: 'LSE UCITS' },
-];
-
-/**
- * Oldest as-of date the backend can answer. Its price window is 3 years
- * ending today, and a decision needs 12 months of history before its own
- * date — so 12 months back leaves a year of headroom. The picker used to
- * offer any past date and anything older than this returned a 500.
- *
- * Computed at module load rather than per render so the prop identity stays
- * stable; a session left open across midnight is not worth handling.
- */
-const MIN_AS_OF = (() => {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - 1);
-  return d;
-})();
-
 export default function HomeScreen({
-  selectedStrategyId,
-  onStrategyChange,
-  asOfDate,
-  onAsOfChange,
-  region,
-  onRegionChange,
-  onConfirm,
-  onOpenConfig,
+  registered,
+  results,
+  markers,
+  refreshing,
+  onRefresh,
+  onToggleDone,
+  onOpenStrategy,
+  onOpenSettings,
 }: HomeScreenProps) {
-  const [showAndroidPicker, setShowAndroidPicker] = useState(false);
+  const holdingLine = holdingHint();
+  const monthKey = inForceMonthKey();
 
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>Momentum Investment</Text>
@@ -69,7 +54,7 @@ export default function HomeScreen({
           </View>
           <TouchableOpacity
             style={styles.gearButton}
-            onPress={onOpenConfig}
+            onPress={onOpenSettings}
             activeOpacity={0.7}
             hitSlop={8}
           >
@@ -77,126 +62,47 @@ export default function HomeScreen({
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionLabel}>As of</Text>
-        {Platform.OS === 'ios' ? (
-          <View style={styles.dateRow}>
-            <DateTimePicker
-              value={asOfDate}
-              mode="date"
-              display="compact"
-              themeVariant="dark"
-              maximumDate={new Date()}
-              minimumDate={MIN_AS_OF}
-              onChange={(_, d) => d && onAsOfChange(d)}
-            />
-            <Text style={styles.dateText}>{formatYmd(asOfDate)}</Text>
-          </View>
-        ) : (
-          <>
-            <TouchableOpacity
-              style={styles.androidDateButton}
-              onPress={() => setShowAndroidPicker(true)}
-            >
-              <Text style={styles.androidDateText}>{formatYmd(asOfDate)}</Text>
-            </TouchableOpacity>
-            {showAndroidPicker && (
-              <DateTimePicker
-                value={asOfDate}
-                mode="date"
-                display="default"
-                maximumDate={new Date()}
-                minimumDate={MIN_AS_OF}
-                onChange={(_, d) => {
-                  setShowAndroidPicker(false);
-                  if (d) onAsOfChange(d);
-                }}
-              />
-            )}
-          </>
-        )}
-
-        <Text style={styles.sectionLabel}>Region</Text>
-        <View style={styles.segmented}>
-          {REGION_OPTIONS.map((opt) => {
-            const selected = opt.value === region;
+        <View style={styles.cardList}>
+          {registered.map((id) => {
+            const state = results[id] ?? { decision: null, error: null };
             return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[styles.segment, selected && styles.segmentSelected]}
-                onPress={() => onRegionChange(opt.value)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
-                  {opt.label}
-                </Text>
-                <Text style={[styles.segmentSub, selected && styles.segmentSubSelected]}>
-                  {opt.sub}
-                </Text>
-              </TouchableOpacity>
+              <StrategyDecisionCard
+                key={id}
+                strategy={findStrategy(id)}
+                decision={state.decision}
+                error={state.error}
+                holdingLine={holdingLine}
+                done={markers[id] === monthKey}
+                onToggleDone={() => onToggleDone(id)}
+                onPress={() => onOpenStrategy(id)}
+              />
             );
           })}
         </View>
 
-        <Text style={styles.sectionLabel}>Strategy</Text>
-        <View style={styles.strategyList}>
-          {STRATEGIES.map((s) => (
-            <StrategyRow
-              key={s.id}
-              strategy={s}
-              selected={s.id === selectedStrategyId}
-              onPress={() => onStrategyChange(s.id)}
-            />
-          ))}
-        </View>
+        <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.manageRow}>
+          <Text style={styles.manageRowText}>Manage my strategies →</Text>
+        </TouchableOpacity>
+
+        {/* The app deliberately teaches nothing about choosing a strategy —
+            that lives on the web. Without a way out, a reader who does not
+            recognise these names has nowhere to go. */}
+        <TouchableOpacity
+          onPress={() => Linking.openURL(WEB_BASE_URL)}
+          activeOpacity={0.7}
+          style={styles.learnRow}
+        >
+          <Text style={styles.learnRowText}>How these strategies work →</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       <View style={styles.footer}>
         <Text style={styles.disclaimer}>
-          Educational tool — not investment advice. Past performance is not
-          indicative of future results.
+          Computed from the published rules on live market data. Not investment
+          advice.
         </Text>
-        <Pressable
-          style={({ pressed }) => [styles.confirm, pressed && styles.confirmPressed]}
-          onPress={onConfirm}
-        >
-          <Text style={styles.confirmText}>Show recommendation</Text>
-        </Pressable>
       </View>
     </View>
-  );
-}
-
-function StrategyRow({
-  strategy,
-  selected,
-  onPress,
-}: {
-  strategy: Strategy;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <TouchableOpacity
-      style={[styles.strategyRow, selected && styles.strategyRowSelected]}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.radioOuter, selected && styles.radioOuterSelected]}>
-        {selected && <View style={styles.radioInner} />}
-      </View>
-      <View style={styles.strategyTextWrap}>
-        <View style={styles.strategyHeaderRow}>
-          <Text style={styles.strategyShort}>{strategy.shortName}</Text>
-          <Text style={styles.strategyFull}>{strategy.fullName}</Text>
-          {!strategy.implemented && (
-            <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>Coming soon</Text>
-            </View>
-          )}
-        </View>
-        <Text style={styles.strategyBlurb}>{strategy.blurb}</Text>
-      </View>
-    </TouchableOpacity>
   );
 }
 
@@ -231,9 +137,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gearButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#161a1f',
     alignItems: 'center',
     justifyContent: 'center',
@@ -241,7 +147,7 @@ const styles = StyleSheet.create({
   },
   gearText: {
     color: '#cfd5dc',
-    fontSize: 20,
+    fontSize: 24,
   },
   title: {
     color: '#f4f6f8',
@@ -253,171 +159,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  sectionLabel: {
-    color: '#8a93a0',
-    fontSize: 12,
-    letterSpacing: 1.4,
-    fontWeight: '600',
-    marginTop: 8,
-    marginBottom: 12,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardList: {
     gap: 12,
-    marginBottom: 24,
   },
-  dateText: {
-    color: '#cfd5dc',
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
-  },
-  androidDateButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#161a1f',
-    borderRadius: 10,
-    alignSelf: 'flex-start',
-    marginBottom: 24,
-  },
-  androidDateText: {
-    color: '#f4f6f8',
-    fontSize: 16,
-    fontVariant: ['tabular-nums'],
-  },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: '#161a1f',
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
-    marginBottom: 28,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 9,
+  manageRow: {
+    marginTop: 20,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
   },
-  segmentSelected: {
-    backgroundColor: '#1a2620',
-    borderWidth: 1,
-    borderColor: '#7ed4a3',
-  },
-  segmentLabel: {
-    color: '#8a93a0',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  segmentLabelSelected: {
-    color: '#f4f6f8',
-  },
-  segmentSub: {
-    color: '#5e6671',
-    fontSize: 11,
-    letterSpacing: 0.4,
-  },
-  segmentSubSelected: {
+  manageRowText: {
     color: '#7ed4a3',
-  },
-  strategyList: {
-    gap: 8,
-    marginBottom: 28,
-  },
-  strategyRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: '#161a1f',
-    borderWidth: 1,
-    borderColor: 'transparent',
-    gap: 12,
-  },
-  strategyRowSelected: {
-    borderColor: '#7ed4a3',
-    backgroundColor: '#1a2620',
-  },
-  radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: '#3a414c',
-    marginTop: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOuterSelected: {
-    borderColor: '#7ed4a3',
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#7ed4a3',
-  },
-  strategyTextWrap: {
-    flex: 1,
-    gap: 4,
-  },
-  strategyHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  strategyShort: {
-    color: '#f4f6f8',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  strategyFull: {
-    color: '#cfd5dc',
-    fontSize: 13,
-    flexShrink: 1,
-  },
-  comingSoonBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: '#2a2f37',
-    borderRadius: 4,
-  },
-  comingSoonText: {
-    color: '#8a93a0',
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 0.5,
   },
-  strategyBlurb: {
+  learnRow: {
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  learnRowText: {
     color: '#8a93a0',
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 13,
   },
   disclaimer: {
     color: '#5e6671',
     fontSize: 11,
     lineHeight: 15,
     textAlign: 'center',
-    marginBottom: 10,
-  },
-  confirm: {
-    backgroundColor: '#7ed4a3',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  confirmPressed: {
-    opacity: 0.8,
-  },
-  confirmText: {
-    color: '#0b0d10',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
 });
