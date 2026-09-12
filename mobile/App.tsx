@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
-import type { Region } from './src/api/apiBase';
+import type { AllocationDecision, Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaClient';
+import { buildDecisionRequest, fetchDecisionFor } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
+import { inForceAsOf, inForceMonthKey } from './src/rebalance';
 import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -11,11 +13,13 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import {
   clearOverrides as persistClearOverrides,
   loadCustomTickers,
+  loadDoneMarkers,
   loadOverrides,
   loadPaaProtectionFactor,
   loadRegion,
   loadRegisteredStrategies,
   saveCustomTickers as persistCustomTickers,
+  saveDoneMarkers,
   saveOverrides as persistOverrides,
   savePaaProtectionFactor as persistPaaA,
   saveRegion as persistRegion,
@@ -37,6 +41,8 @@ type Screen =
   | { kind: 'config'; strategyId: StrategyId }
   | { kind: 'decision'; strategy: Strategy };
 
+export type CardState = { decision: AllocationDecision | null; error: string | null };
+
 export default function App() {
   // Selection state lives at the App level so it's preserved when the user
   // navigates Home → Decision → Back → Home.
@@ -52,6 +58,17 @@ export default function App() {
     useState<PaaProtectionFactor>(2);
   const [screen, setScreen] = useState<Screen>({ kind: 'home' });
   const [hydrated, setHydrated] = useState(false);
+
+  // Fetched decisions per registered strategy, plus the done-markers and
+  // pull-to-refresh state that go with them. Lives here (rather than in
+  // HomeScreen) so navigating Home → Decision → Back doesn't unmount the
+  // fetch and replay the whole loading state — the in-force decision is
+  // computed from the last month-end and doesn't change for the rest of
+  // the calendar month.
+  const [results, setResults] = useState<Partial<Record<StrategyId, CardState>>>({});
+  const [markers, setMarkers] = useState<Partial<Record<StrategyId, string>>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
 
   // Rehydrate persisted preferences on mount. While loading we render a
   // dark blank screen so a UK user doesn't see a brief US flash and so the
@@ -79,6 +96,86 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  // Loaded once — nothing else mutates markers except handleToggleDone
+  // below, which writes through immediately.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const loaded = await loadDoneMarkers();
+      if (!cancelled) setMarkers(loaded);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // A stable string so the effect below doesn't re-fire on every render
+  // just because `overrides` is a fresh object identity.
+  const overridesKey = JSON.stringify(overrides);
+
+  useEffect(() => {
+    // Don't fetch until storage has hydrated — otherwise this fires once
+    // with the default region/registered set, then immediately refetches
+    // once the real values load.
+    if (!hydrated) return;
+    let cancelled = false;
+    const asOf = inForceAsOf();
+    // Drop results for strategies no longer registered, so unregistering
+    // then later re-registering shows a skeleton instead of the stale
+    // allocation from before (e.g. fetched under a different region).
+    setResults((prev) => {
+      const next: Partial<Record<StrategyId, CardState>> = {};
+      for (const id of registered) {
+        if (prev[id]) next[id] = prev[id];
+      }
+      return next;
+    });
+    (async () => {
+      await Promise.all(
+        registered.map(async (id) => {
+          try {
+            const request = buildDecisionRequest(id, region, overrides);
+            const decision = await fetchDecisionFor(request, asOf, paaProtectionFactor);
+            if (!cancelled) {
+              setResults((prev) => ({ ...prev, [id]: { decision, error: null } }));
+            }
+          } catch (e) {
+            if (!cancelled) {
+              setResults((prev) => ({
+                ...prev,
+                [id]: { decision: null, error: e instanceof Error ? e.message : String(e) },
+              }));
+            }
+          }
+        }),
+      );
+      if (!cancelled) setRefreshing(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated, registered.join(','), region, paaProtectionFactor, overridesKey, reloadToken]);
+
+  const handleToggleDone = (id: StrategyId) => {
+    const monthKey = inForceMonthKey();
+    setMarkers((prev) => {
+      const next = { ...prev };
+      if (next[id] === monthKey) {
+        delete next[id];
+      } else {
+        next[id] = monthKey;
+      }
+      void saveDoneMarkers(next);
+      return next;
+    });
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    setReloadToken((t) => t + 1);
+  };
 
   // Wrapped setters that persist alongside updating local state. Kept as
   // tiny handlers (rather than `useEffect` watching the state) so a
@@ -164,9 +261,11 @@ export default function App() {
     return (
       <HomeScreen
         registered={registered}
-        region={region}
-        overrides={overrides}
-        paaA={paaProtectionFactor}
+        results={results}
+        markers={markers}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        onToggleDone={handleToggleDone}
         onOpenStrategy={(id) => setScreen({ kind: 'decision', strategy: findStrategy(id) })}
         onOpenSettings={() => setScreen({ kind: 'settings' })}
       />

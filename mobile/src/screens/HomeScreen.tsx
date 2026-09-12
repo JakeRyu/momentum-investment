@@ -1,5 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
 import {
   RefreshControl,
   ScrollView,
@@ -9,114 +8,32 @@ import {
   View,
 } from 'react-native';
 
-import type { AllocationDecision, Region } from '../api/apiBase';
-import type { PaaProtectionFactor } from '../api/paaClient';
+import type { CardState } from '../../App';
 import StrategyDecisionCard from '../components/StrategyDecisionCard';
-import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
-import { holdingHint, inForceAsOf, inForceMonthKey } from '../rebalance';
-import { loadDoneMarkers, saveDoneMarkers, type Overrides } from '../storage';
+import { holdingHint, inForceMonthKey } from '../rebalance';
 import { findStrategy, type StrategyId } from '../strategies';
 
 export type HomeScreenProps = {
   registered: StrategyId[];
-  region: Region;
-  overrides: Overrides;
-  paaA: PaaProtectionFactor;
+  results: Partial<Record<StrategyId, CardState>>;
+  markers: Partial<Record<StrategyId, string>>;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onToggleDone: (id: StrategyId) => void;
   onOpenStrategy: (id: StrategyId) => void;
   onOpenSettings: () => void;
 };
 
-type CardState = { decision: AllocationDecision | null; error: string | null };
-
 export default function HomeScreen({
   registered,
-  region,
-  overrides,
-  paaA,
+  results,
+  markers,
+  refreshing,
+  onRefresh,
+  onToggleDone,
   onOpenStrategy,
   onOpenSettings,
 }: HomeScreenProps) {
-  const [results, setResults] = useState<Partial<Record<StrategyId, CardState>>>({});
-  const [markers, setMarkers] = useState<Partial<Record<StrategyId, string>>>({});
-  const [refreshing, setRefreshing] = useState(false);
-  const [reloadToken, setReloadToken] = useState(0);
-
-  // Loaded once — nothing else in this screen mutates markers except the
-  // toggle handler below, which writes through immediately.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const loaded = await loadDoneMarkers();
-      if (!cancelled) setMarkers(loaded);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // A stable string so the effect below doesn't re-fire on every render
-  // just because `overrides` is a fresh object identity from App's state.
-  const overridesKey = JSON.stringify(overrides);
-
-  useEffect(() => {
-    let cancelled = false;
-    const asOf = inForceAsOf();
-    // Drop results for strategies no longer registered, so unregistering
-    // then later re-registering shows a skeleton instead of the stale
-    // allocation from before (e.g. fetched under a different region).
-    setResults((prev) => {
-      const next: Partial<Record<StrategyId, CardState>> = {};
-      for (const id of registered) {
-        if (prev[id]) next[id] = prev[id];
-      }
-      return next;
-    });
-    (async () => {
-      await Promise.all(
-        registered.map(async (id) => {
-          try {
-            const request = buildDecisionRequest(id, region, overrides);
-            const decision = await fetchDecisionFor(request, asOf, paaA);
-            if (!cancelled) {
-              setResults((prev) => ({ ...prev, [id]: { decision, error: null } }));
-            }
-          } catch (e) {
-            if (!cancelled) {
-              setResults((prev) => ({
-                ...prev,
-                [id]: { decision: null, error: e instanceof Error ? e.message : String(e) },
-              }));
-            }
-          }
-        }),
-      );
-      if (!cancelled) setRefreshing(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registered.join(','), region, paaA, overridesKey, reloadToken]);
-
-  const handleToggleDone = (id: StrategyId) => {
-    const monthKey = inForceMonthKey();
-    setMarkers((prev) => {
-      const next = { ...prev };
-      if (next[id] === monthKey) {
-        delete next[id];
-      } else {
-        next[id] = monthKey;
-      }
-      void saveDoneMarkers(next);
-      return next;
-    });
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    setReloadToken((t) => t + 1);
-  };
-
   const holdingLine = holdingHint();
   const monthKey = inForceMonthKey();
 
@@ -154,7 +71,7 @@ export default function HomeScreen({
                 error={state.error}
                 holdingLine={holdingLine}
                 done={markers[id] === monthKey}
-                onToggleDone={() => handleToggleDone(id)}
+                onToggleDone={() => onToggleDone(id)}
                 onPress={() => onOpenStrategy(id)}
               />
             );
