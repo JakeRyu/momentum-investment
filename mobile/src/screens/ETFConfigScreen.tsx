@@ -191,8 +191,9 @@ export default function ETFConfigScreen({
 
         {!editable && (
           <Text style={styles.note}>
-            US universe is fixed to the original Keller tickers. Switch to UK on the
-            home screen to customise the LSE UCITS substitutes.
+            US universe is fixed to the tickers Keller's papers specify. The UK list
+            exists because those ETFs aren't practically available to a UK investor
+            — switch region in Settings to customise the UK substitutes.
           </Text>
         )}
 
