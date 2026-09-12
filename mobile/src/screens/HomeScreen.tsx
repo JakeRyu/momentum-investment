@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import {
+  Linking,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -12,6 +13,7 @@ import type { CardState } from '../../App';
 import StrategyDecisionCard from '../components/StrategyDecisionCard';
 import { holdingHint, inForceMonthKey } from '../rebalance';
 import { findStrategy, type StrategyId } from '../strategies';
+import { WEB_BASE_URL } from '../webLinks';
 
 export type HomeScreenProps = {
   registered: StrategyId[];
@@ -80,6 +82,17 @@ export default function HomeScreen({
 
         <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.manageRow}>
           <Text style={styles.manageRowText}>Manage my strategies →</Text>
+        </TouchableOpacity>
+
+        {/* The app deliberately teaches nothing about choosing a strategy —
+            that lives on the web. Without a way out, a reader who does not
+            recognise these names has nowhere to go. */}
+        <TouchableOpacity
+          onPress={() => Linking.openURL(WEB_BASE_URL)}
+          activeOpacity={0.7}
+          style={styles.learnRow}
+        >
+          <Text style={styles.learnRowText}>How these strategies work →</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -157,6 +170,14 @@ const styles = StyleSheet.create({
     color: '#7ed4a3',
     fontSize: 14,
     fontWeight: '600',
+  },
+  learnRow: {
+    marginTop: 14,
+    alignItems: 'center',
+  },
+  learnRowText: {
+    color: '#8a93a0',
+    fontSize: 13,
   },
   disclaimer: {
     color: '#5e6671',

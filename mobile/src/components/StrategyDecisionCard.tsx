@@ -54,11 +54,16 @@ export default function StrategyDecisionCard({
             {strategy.fullName}
           </Text>
         </View>
-        {decision && (
-          <Text style={[styles.modeBadge, { color: modeColor }]}>
-            {decision.modeLabel.toUpperCase()}
-          </Text>
-        )}
+        <View style={styles.headerRight}>
+          {decision && (
+            <Text style={[styles.modeBadge, { color: modeColor }]}>
+              {decision.modeLabel.toUpperCase()}
+            </Text>
+          )}
+          {/* The card is the only route to the fund names, the mode caption
+              and the link out to the web, so it has to look like a door. */}
+          <Text style={styles.chevron}>›</Text>
+        </View>
       </View>
 
       <Text style={styles.holdingLine}>{holdingLine}</Text>
@@ -170,10 +175,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     flexShrink: 1,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   modeBadge: {
     fontSize: 11,
     letterSpacing: 1.2,
     fontWeight: '600',
+  },
+  chevron: {
+    color: '#5e6671',
+    fontSize: 20,
+    lineHeight: 20,
   },
   holdingLine: {
     color: '#8a93a0',
