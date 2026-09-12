@@ -26,8 +26,9 @@ export default function Layout() {
 
       <footer className="site-footer">
         <p className="disclaimer">
-          Educational tool — Not investment advice — Past performance is not
-          indicative of future results — <Link to="/privacy">Privacy</Link>
+          Computed from the published rules on live market data — Not investment
+          advice — Past performance does not predict future results —{' '}
+          <Link to="/privacy">Privacy</Link>
         </p>
         <p className="papers">
           Papers ·{' '}

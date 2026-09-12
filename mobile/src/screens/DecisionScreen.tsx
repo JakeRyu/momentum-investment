@@ -243,7 +243,9 @@ export default function DecisionScreen({
         >
           <Text style={styles.learnMoreText}>How this strategy works →</Text>
         </Pressable>
-        <Text style={styles.disclaimer}>Educational tool — not investment advice.</Text>
+        <Text style={styles.disclaimer}>
+          Computed from the published rule on live market data. Not investment advice.
+        </Text>
       </ScrollView>
     </View>
   );
