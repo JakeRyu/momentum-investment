@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { AllocationDecision } from '../api/apiBase';
 import type { Strategy } from '../strategies';
@@ -76,11 +77,7 @@ export default function StrategyDecisionCard({
           ))}
         </View>
       ) : (
-        <View style={styles.allocList}>
-          <View style={[styles.skeletonBar, { width: '60%' }]} />
-          <View style={[styles.skeletonBar, { width: '45%' }]} />
-          <View style={[styles.skeletonBar, { width: '52%' }]} />
-        </View>
+        <Skeleton />
       )}
 
       <View style={styles.footerRow}>
@@ -98,6 +95,41 @@ export default function StrategyDecisionCard({
         </Pressable>
       </View>
     </Pressable>
+  );
+}
+
+// Skeleton placeholder shown while a card's decision is loading. Pulses the
+// bars (breathing, not blinking) so a multi-second wait doesn't read as a
+// stall, and names what's actually happening behind it.
+function Skeleton() {
+  const pulse = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 0.4,
+          duration: 550,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 550,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  return (
+    <View style={styles.allocList}>
+      <Text style={styles.skeletonLabel}>Analysing 12 months of live prices</Text>
+      <Animated.View style={[styles.skeletonBar, { width: '60%', opacity: pulse }]} />
+      <Animated.View style={[styles.skeletonBar, { width: '45%', opacity: pulse }]} />
+      <Animated.View style={[styles.skeletonBar, { width: '52%', opacity: pulse }]} />
+    </View>
   );
 }
 
@@ -169,6 +201,10 @@ const styles = StyleSheet.create({
     color: '#cfd5dc',
     fontSize: 15,
     fontVariant: ['tabular-nums'],
+  },
+  skeletonLabel: {
+    color: '#8a93a0',
+    fontSize: 12,
   },
   skeletonBar: {
     height: 16,
