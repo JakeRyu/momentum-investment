@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gearButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#161a1f',
     alignItems: 'center',
     justifyContent: 'center',
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   gearText: {
     color: '#cfd5dc',
-    fontSize: 20,
+    fontSize: 24,
   },
   title: {
     color: '#f4f6f8',

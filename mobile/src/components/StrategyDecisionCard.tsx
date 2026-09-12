@@ -90,7 +90,7 @@ export default function StrategyDecisionCard({
           hitSlop={8}
         >
           <Text style={[styles.doneText, done && styles.doneTextDone]}>
-            {done ? '✓ Done' : 'Done'}
+            {done ? '✓ Rebalanced' : 'Mark as rebalanced'}
           </Text>
         </Pressable>
       </View>
@@ -221,25 +221,26 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 14,
   },
+  // Emphasis runs the opposite way to a selected control: the pending pill is
+  // the outstanding action and should pull the eye, while the done pill is a
+  // receipt. The card itself already drops to 0.65 opacity when done, so this
+  // only has to avoid fighting that.
   donePill: {
     borderWidth: 1,
-    borderColor: '#2a2f37',
+    borderColor: '#7ed4a3',
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 14,
   },
   donePillDone: {
-    // Filled state follows the same tinted-background convention as
-    // DecisionScreen's protectionSegmentSelected.
-    backgroundColor: '#22323a',
-    borderColor: '#7ed4a3',
+    borderColor: '#2a2f37',
   },
   doneText: {
-    color: '#8a93a0',
+    color: '#7ed4a3',
     fontSize: 13,
     fontWeight: '600',
   },
   doneTextDone: {
-    color: '#7ed4a3',
+    color: '#8a93a0',
   },
 });
