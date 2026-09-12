@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Linking,
@@ -13,48 +13,24 @@ import {
 } from 'react-native';
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
-import { fetchBaaDecision } from '../api/baaClient';
-import { fetchDaaG12Decision } from '../api/daaClient';
-import { fetchHaaDecision } from '../api/haaClient';
-import { fetchLaaDecision } from '../api/laaClient';
-import { fetchPaaDecision, type PaaProtectionFactor } from '../api/paaClient';
-import { fetchVaaDecision } from '../api/vaaClient';
-import { rebalanceHint } from '../rebalance';
+import { type PaaProtectionFactor } from '../api/paaClient';
+import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
+import { holdingHint, inForceAsOf, previewHint } from '../rebalance';
+import type { Overrides } from '../storage';
 import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
+import { formatYmd } from '../utils';
 import { strategyWebUrl } from '../webLinks';
 
 /**
- * Discriminated union of the strategy-specific query parameters. Any new
- * Keller strategy (BAA / HAA / ...) adds a variant here and the matching
- * `fetchXxxDecision` call site below.
- *
- * PAA's protection factor `a` is intentionally NOT part of the request
- * struct — it lives as App-level state and is passed to this screen as
- * a sibling prop (`paaA`), so the segmented control here can toggle it
- * freely without rebuilding the screen state. The request describes
- * "which universe to evaluate"; `paaA` describes "at which protection
- * level". Same separation will likely apply if BAA/HAA introduce their
- * own user-tunable parameters.
+ * Holding: the decision computed at the last month-end — what to hold now.
+ * Preview: today's live reading — a preview of the next rebalance, not yet
+ * in force.
  */
-export type DecisionRequest =
-  | { kind: 'vaa'; offensive: string[]; defensive: string[] }
-  | { kind: 'daa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'paa'; risky: readonly string[]; cash: readonly string[] }
-  | { kind: 'haa'; risky: readonly string[]; canary: string; cash: string }
-  | { kind: 'baa-g12'; canary: readonly string[]; risky: readonly string[]; cash: readonly string[] }
-  | {
-      kind: 'laa';
-      permanent: readonly string[];
-      risky: string;
-      cash: string;
-      signalEquity: string;
-      unemploymentSeriesId: string;
-    };
+type DecisionView = 'holding' | 'preview';
 
 export type DecisionScreenProps = {
   strategy: Strategy;
-  asOf: string;
   /**
    * Region tag shown in the header subtitle. Both VAA and DAA are
    * region-aware now (their universes resolve via per-asset-class
@@ -62,7 +38,7 @@ export type DecisionScreenProps = {
    * sent to the backend.
    */
   region: Region;
-  request: DecisionRequest;
+  overrides: Overrides;
   /**
    * Current PAA protection factor. Only meaningful for `request.kind ===
    * 'paa'`, but threaded unconditionally so the type stays simple — the
@@ -128,23 +104,30 @@ function formatPercent(weight: number): string {
 
 export default function DecisionScreen({
   strategy,
-  asOf,
   region,
-  request,
+  overrides,
   paaA,
   onPaaAChange,
   onBack,
 }: DecisionScreenProps) {
-  const [decision, setDecision] = useState<AllocationDecision | null>(null);
+  const [view, setView] = useState<DecisionView>('holding');
+  const [decisions, setDecisions] = useState<Record<DecisionView, AllocationDecision | null>>({
+    holding: null,
+    preview: null,
+  });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const request = buildDecisionRequest(strategy.id, region, overrides);
+  // Holding is always the last month-end close; Preview is always today.
+  const asOf = view === 'holding' ? inForceAsOf() : formatYmd(new Date());
 
   // Stable string key over the request payload so useEffect re-fires only
   // when the actual ticker lists change (not on every parent re-render).
   // For PAA, `paaA` is part of the key so toggling the segmented control
   // triggers a refetch — same universe so the backend hits its 6h ticker
   // cache and the response comes back instantly.
-  const requestKey = (() => {
+  const paramsKey = (() => {
     switch (request.kind) {
       case 'vaa':
         return `vaa:${request.offensive.join(',')}|${request.defensive.join(',')}`;
@@ -163,40 +146,20 @@ export default function DecisionScreen({
         );
     }
   })();
+  // `view` joins the key so switching segments re-fires the effect below.
+  const requestKey = `${paramsKey}|${view}`;
+
+  // Tracks the params a cached decision was fetched under, so a PAA
+  // protection-factor change (which changes `paramsKey`) invalidates both
+  // cached views instead of serving a stale one when the user flips back.
+  const cachedParamsKeyRef = useRef<string | null>(null);
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
-      let d: AllocationDecision;
-      switch (request.kind) {
-        case 'vaa':
-          d = await fetchVaaDecision(asOf, request.offensive, request.defensive);
-          break;
-        case 'daa-g12':
-          d = await fetchDaaG12Decision(asOf, request.canary, request.risky, request.cash);
-          break;
-        case 'paa':
-          d = await fetchPaaDecision(asOf, request.risky, request.cash, paaA);
-          break;
-        case 'haa':
-          d = await fetchHaaDecision(asOf, request.risky, request.canary, request.cash);
-          break;
-        case 'baa-g12':
-          d = await fetchBaaDecision(asOf, request.canary, request.risky, request.cash);
-          break;
-        case 'laa':
-          d = await fetchLaaDecision(
-            asOf,
-            request.permanent,
-            request.risky,
-            request.cash,
-            request.signalEquity,
-            request.unemploymentSeriesId,
-          );
-          break;
-      }
-      setDecision(d);
+      const d = await fetchDecisionFor(request, asOf, paaA);
+      setDecisions((prev) => ({ ...prev, [view]: d }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -205,9 +168,25 @@ export default function DecisionScreen({
   };
 
   useEffect(() => {
-    load();
+    // Clear unconditionally: a view that resolves from cache below still
+    // needs to drop whatever error the other view's failed fetch left on
+    // screen — otherwise it renders above the cached, perfectly good result.
+    setError(null);
+    if (cachedParamsKeyRef.current !== paramsKey) {
+      cachedParamsKeyRef.current = paramsKey;
+      setDecisions({ holding: null, preview: null });
+      load();
+      return;
+    }
+    // Already have a fresh result for this view — flipping back and forth
+    // between Holding and Preview should not refetch.
+    if (!decisions[view]) {
+      load();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [asOf, requestKey]);
+  }, [requestKey]);
+
+  const decision = decisions[view];
 
   const title = decision
     ? STRATEGY_LABELS[decision.strategyId] ?? strategy.shortName
@@ -234,6 +213,8 @@ export default function DecisionScreen({
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
 
+        <ViewPicker value={view} onChange={setView} />
+
         {request.kind === 'paa' && (
           <ProtectionFactorPicker value={paaA} onChange={onPaaAChange} />
         )}
@@ -241,7 +222,7 @@ export default function DecisionScreen({
         {loading && !decision && (
           <View style={styles.center}>
             <ActivityIndicator />
-            <Text style={styles.muted}>Fetching decision…</Text>
+            <Text style={styles.muted}>Analysing 12 months of live prices</Text>
           </View>
         )}
 
@@ -253,7 +234,7 @@ export default function DecisionScreen({
           </View>
         )}
 
-        {decision && <DecisionCard decision={decision} asOf={asOf} />}
+        {decision && <DecisionCard decision={decision} view={view} />}
 
         <Pressable
           style={styles.learnMore}
@@ -262,8 +243,66 @@ export default function DecisionScreen({
         >
           <Text style={styles.learnMoreText}>How this strategy works →</Text>
         </Pressable>
-        <Text style={styles.disclaimer}>Educational tool — not investment advice.</Text>
+        <Text style={styles.disclaimer}>
+          Computed from the published rule on live market data. Not investment
+          advice — past performance does not predict future results.
+        </Text>
       </ScrollView>
+    </View>
+  );
+}
+
+/**
+ * Two-way segmented control between the in-force Holding decision (last
+ * month-end, what to hold now) and the live Preview (today's reading, not
+ * yet in force). Sits between the screen subtitle and the PAA protection
+ * picker, styled identically via the shared `protection*` styles rather
+ * than a parallel set.
+ */
+function ViewPicker({
+  value,
+  onChange,
+}: {
+  value: DecisionView;
+  onChange: (v: DecisionView) => void;
+}) {
+  const options: { v: DecisionView; label: string; sub: string }[] = [
+    { v: 'holding', label: 'Holding', sub: 'what to hold now' },
+    { v: 'preview', label: 'Preview', sub: 'next rebalance' },
+  ];
+
+  return (
+    <View style={styles.protectionWrap}>
+      <View style={styles.protectionRow}>
+        {options.map((opt) => {
+          const selected = opt.v === value;
+          return (
+            <TouchableOpacity
+              key={opt.v}
+              style={[styles.protectionSegment, selected && styles.protectionSegmentSelected]}
+              onPress={() => onChange(opt.v)}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.protectionSegmentLabel,
+                  selected && styles.protectionSegmentLabelSelected,
+                ]}
+              >
+                {opt.label}
+              </Text>
+              <Text
+                style={[
+                  styles.protectionSegmentSub,
+                  selected && styles.protectionSegmentSubSelected,
+                ]}
+              >
+                {opt.sub}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -325,7 +364,7 @@ function ProtectionFactorPicker({
   );
 }
 
-function DecisionCard({ decision, asOf }: { decision: AllocationDecision; asOf: string }) {
+function DecisionCard({ decision, view }: { decision: AllocationDecision; view: DecisionView }) {
   const allocatedTickers = new Set(decision.allocations.map((a) => a.ticker));
   const modeColor = MODE_BADGE_COLOR[decision.modeLabel] ?? '#8a93a0';
 
@@ -347,7 +386,7 @@ function DecisionCard({ decision, asOf }: { decision: AllocationDecision; asOf: 
 
       <AllocationsBlock allocations={decision.allocations} accent={modeColor} />
 
-      <Text style={styles.rebalanceHint}>{rebalanceHint(asOf)}</Text>
+      <Text style={styles.rebalanceHint}>{view === 'holding' ? holdingHint() : previewHint()}</Text>
 
       <Text style={styles.reasoning}>{decision.reasoning}</Text>
 

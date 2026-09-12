@@ -49,8 +49,7 @@ import { pickTicker } from '../universe';
 /**
  * Strategy → ordered list of bucket sections shown in the config screen.
  * Each section has a label (the user-facing bucket name) and the asset
- * classes that compose it. An empty list means the strategy isn't
- * implemented yet; the UI shows a placeholder in that case.
+ * classes that compose it.
  *
  * Note: same `AssetClassCode` can appear across multiple sections (e.g.
  * `EM_FTSE` in DAA's canary AND risky, `IG_CORP` in DAA's risky AND cash).
@@ -162,59 +161,47 @@ export default function ETFConfigScreen({
             : '🇺🇸 US · Original Keller universe (read-only)'}
         </Text>
 
-        {sections.length === 0 ? (
-          <View style={styles.placeholderBox}>
-            <Text style={styles.placeholderTitle}>Universe not yet defined</Text>
-            <Text style={styles.placeholderBody}>
-              {STRATEGY_LABEL[strategyId]} isn't implemented yet, so there's nothing to
-              configure here. Pick VAA or DAA on the home screen to customise their
-              universes.
-            </Text>
+        {sections.map((section) => (
+          <View key={section.label}>
+            <Text style={styles.sectionLabel}>{section.label}</Text>
+            <View style={styles.list}>
+              {section.codes.map((code) => (
+                <AssetClassRow
+                  // include section in key so the same asset class
+                  // shared across sections (e.g. EM_FTSE in canary +
+                  // risky) renders both rows, with consistent state.
+                  key={`${section.label}:${code}`}
+                  code={code}
+                  region={region}
+                  overrides={overrides}
+                  customs={customs}
+                  editable={editable}
+                  onPress={() => setPickerFor(code)}
+                />
+              ))}
+            </View>
           </View>
-        ) : (
-          <>
-            {sections.map((section) => (
-              <View key={section.label}>
-                <Text style={styles.sectionLabel}>{section.label}</Text>
-                <View style={styles.list}>
-                  {section.codes.map((code) => (
-                    <AssetClassRow
-                      // include section in key so the same asset class
-                      // shared across sections (e.g. EM_FTSE in canary +
-                      // risky) renders both rows, with consistent state.
-                      key={`${section.label}:${code}`}
-                      code={code}
-                      region={region}
-                      overrides={overrides}
-                      customs={customs}
-                      editable={editable}
-                      onPress={() => setPickerFor(code)}
-                    />
-                  ))}
-                </View>
-              </View>
-            ))}
+        ))}
 
-            {editable && hasOverrides && (
-              <Pressable style={styles.reset} onPress={onReset}>
-                <Text style={styles.resetText}>Reset to defaults</Text>
-              </Pressable>
-            )}
+        {editable && hasOverrides && (
+          <Pressable style={styles.reset} onPress={onReset}>
+            <Text style={styles.resetText}>Reset to defaults</Text>
+          </Pressable>
+        )}
 
-            {!editable && (
-              <Text style={styles.note}>
-                US universe is fixed to the original Keller tickers. Switch to UK on the
-                home screen to customise the LSE UCITS substitutes.
-              </Text>
-            )}
+        {!editable && (
+          <Text style={styles.note}>
+            US universe is fixed to the tickers Keller's papers specify. The UK list
+            exists because those ETFs aren't practically available to a UK investor
+            — switch region in Settings to customise the UK substitutes.
+          </Text>
+        )}
 
-            {editable && (
-              <Text style={styles.note}>
-                Overrides are scoped per asset class, not per strategy — changing e.g.
-                IG Corp here applies to every strategy that uses it.
-              </Text>
-            )}
-          </>
+        {editable && (
+          <Text style={styles.note}>
+            Overrides are scoped per asset class, not per strategy — changing e.g.
+            IG Corp here applies to every strategy that uses it.
+          </Text>
         )}
       </ScrollView>
 
@@ -644,23 +631,6 @@ const styles = StyleSheet.create({
   list: {
     gap: 8,
     marginBottom: 16,
-  },
-  placeholderBox: {
-    borderRadius: 12,
-    padding: 18,
-    backgroundColor: '#161a1f',
-    gap: 6,
-    marginTop: 8,
-  },
-  placeholderTitle: {
-    color: '#cfd5dc',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  placeholderBody: {
-    color: '#8a93a0',
-    fontSize: 13,
-    lineHeight: 18,
   },
   row: {
     flexDirection: 'row',

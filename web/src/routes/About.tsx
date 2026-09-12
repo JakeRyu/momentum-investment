@@ -86,7 +86,8 @@ export default function About() {
       <section className="disclaimer-section">
         <h2>Disclaimer</h2>
         <p>
-          This is an educational tool, not investment advice. The strategies
+          This site computes the published strategy rules on live market data.
+          That is not investment advice. The strategies
           shown have published backtests in their source papers, but
           backtested returns do not predict future performance. Market data
           comes from unofficial Yahoo Finance and FRED endpoints — the
