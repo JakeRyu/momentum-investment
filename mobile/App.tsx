@@ -189,6 +189,17 @@ export default function App() {
   const handleRegisteredChange = (ids: StrategyId[]) => {
     setRegistered(ids);
     void persistRegisteredStrategies(ids);
+    // A strategy that leaves the list drops its rebalanced marker with it.
+    // Coming back is a fresh addition, not a resumption — the user was not
+    // holding it in between, so the old claim no longer describes anything.
+    setMarkers((prev) => {
+      const next: Partial<Record<StrategyId, string>> = {};
+      for (const id of ids) {
+        if (prev[id] !== undefined) next[id] = prev[id];
+      }
+      void saveDoneMarkers(next);
+      return next;
+    });
   };
 
   const handleRegionChange = (r: Region) => {
