@@ -78,8 +78,8 @@ export default function HomeScreen({
           })}
         </View>
 
-        <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.addRow}>
-          <Text style={styles.addRowText}>Add another strategy →</Text>
+        <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.manageRow}>
+          <Text style={styles.manageRowText}>Manage my strategies →</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -149,11 +149,11 @@ const styles = StyleSheet.create({
   cardList: {
     gap: 12,
   },
-  addRow: {
+  manageRow: {
     marginTop: 20,
     alignItems: 'center',
   },
-  addRowText: {
+  manageRowText: {
     color: '#7ed4a3',
     fontSize: 14,
     fontWeight: '600',
