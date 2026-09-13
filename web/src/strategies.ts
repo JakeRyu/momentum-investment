@@ -24,6 +24,27 @@ export type StrategyKind =
       unemploymentSeriesId: string;
     };
 
+/**
+ * A figure reported by the strategy's source paper, for the variant this
+ * site actually implements. Transcribed from the PDFs in `docs/papers/`
+ * and pinned by `strategies.test.ts`.
+ *
+ * `maxDrawdownPct` is the paper's D: the worst peak-to-trough fall
+ * measured at month-end, as a positive magnitude. Intra-month falls are
+ * deeper; `BacktestFigure` says so wherever this renders.
+ *
+ * Absent when the site's implementation diverges from the paper the
+ * figure came from — publishing it would be a false citation.
+ */
+export type Backtest = {
+  variant: string;
+  periodStart: string; // YYYY-MM
+  periodEnd: string; // YYYY-MM
+  cagrPct: number;
+  maxDrawdownPct: number;
+  sourceLabel: string;
+};
+
 export type Strategy = {
   id: StrategyId;
   shortName: string;
@@ -34,6 +55,7 @@ export type Strategy = {
   paperUrl: string;
   paperYear: number;
   defaultUniverse: StrategyKind;
+  backtest?: Backtest;
 };
 
 export const STRATEGIES: readonly Strategy[] = [
@@ -54,6 +76,18 @@ export const STRATEGIES: readonly Strategy[] = [
       offensive: ['SPY', 'EFA', 'EEM', 'AGG'],
       defensive: ['LQD', 'IEF', 'SHY'],
     },
+    // Table 8's 18.9%/13.0% is the paper's backtest on VEA/VWO/BND, not
+    // this site's ticker set (note 13). Note 16 reruns VAA-G4 on
+    // SPY/EFA/EEM/AGG — the universe this site runs — giving the figures
+    // below.
+    backtest: {
+      variant: 'VAA-G4 on SPY/EFA/EEM/AGG',
+      periodStart: '1970-12',
+      periodEnd: '2016-12',
+      cagrPct: 18.8,
+      maxDrawdownPct: 16.4,
+      sourceLabel: 'note 16',
+    },
   },
   {
     id: 'daa',
@@ -72,6 +106,14 @@ export const STRATEGIES: readonly Strategy[] = [
       canary: ['VWO', 'BND'],
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'VWO', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
       cash: ['SHY', 'IEF', 'LQD'],
+    },
+    backtest: {
+      variant: 'DAA-G12 (T=6, B=2)',
+      periodStart: '1970-12',
+      periodEnd: '2018-03',
+      cagrPct: 16.0,
+      maxDrawdownPct: 10.6,
+      sourceLabel: 'Fig. 8',
     },
   },
   {
@@ -92,6 +134,14 @@ export const STRATEGIES: readonly Strategy[] = [
       kind: 'paa',
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'HYG', 'LQD', 'TLT'],
       cash: ['IEF', 'SHY', 'LQD'],
+    },
+    backtest: {
+      variant: 'PAA2 (a=2, Top6, L=12); site adds SHY and LQD to the cash sleeve',
+      periodStart: '1970-12',
+      periodEnd: '2015-12',
+      cagrPct: 13.7,
+      maxDrawdownPct: 10.4,
+      sourceLabel: 'Fig. 6',
     },
   },
   {
@@ -114,6 +164,10 @@ export const STRATEGIES: readonly Strategy[] = [
       canary: 'TIP',
       cash: 'BIL',
     },
+    // No backtest row: HaaService computes 13612W, but the HAA paper
+    // specifies the unweighted 13612U (L=1) for all three universes.
+    // Restore the paper's Fig. 6 figures (R 15.9%, D 9.7%, Dec 1970 –
+    // Dec 2022) only once the filter matches.
   },
   {
     id: 'baa',
@@ -134,6 +188,17 @@ export const STRATEGIES: readonly Strategy[] = [
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
       cash: ['BIL', 'IEF', 'TLT', 'BND', 'LQD'],
     },
+    // No backtest row: BaaService's canary/ranking/breadth diverge from
+    // Fig 3's BAA-G12, and the canary universe is the crash-protection
+    // mechanism, so the paper's figure doesn't describe what this site
+    // computes.
+    //   - Canary: paper uses SPY/VWO/VEA/BND (NP=4); site uses TIP/IEF/BIL.
+    //   - Ranking: paper ranks risky assets by SMA12 (LO=12); site uses
+    //     13612W.
+    //   - Defensive breadth: paper takes top-3 of a 7-asset defensive set
+    //     (ND=7, TD=3); site takes top-1 of 5.
+    // Restore the paper's Fig 3 figures (R 14.6%, D 8.7%, Dec 1970 – Jun
+    // 2022) only once BaaService is reconciled with these three.
   },
   {
     id: 'laa',
@@ -155,6 +220,14 @@ export const STRATEGIES: readonly Strategy[] = [
       cash: 'SHY',
       signalEquity: 'SPY',
       unemploymentSeriesId: 'UNRATE',
+    },
+    backtest: {
+      variant: 'LAA (QQQ↔SHY); site times SPY with a 200-day SMA, the paper with a 10-month SMA',
+      periodStart: '1949-02',
+      periodEnd: '2019-10',
+      cagrPct: 10.5,
+      maxDrawdownPct: 15.0,
+      sourceLabel: 'Fig. 12',
     },
   },
 ];

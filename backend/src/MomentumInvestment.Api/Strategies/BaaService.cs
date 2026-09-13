@@ -97,10 +97,9 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
                 .ToList();
             modeLabel = "Offensive";
             reasoning =
-                $"All {canaryScores.Count} canaries positive (" +
-                $"{string.Join(", ", canaryScores.Select(c => $"{c.Ticker}={c.Score:F4}"))}). " +
-                $"Offensive mode: top {T} risky at {weight:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))}.";
+                $"All {canaryScores.Count} canary assets are trending up, so the strategy " +
+                $"holds the {T} strongest risky assets at {weight:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
         }
         else
         {
@@ -113,9 +112,9 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
 
             var bad = canaryScores.Where(c => c.Score <= 0m).ToList();
             reasoning =
-                $"{bad.Count} of {canaryScores.Count} canaries non-positive (" +
-                $"{string.Join(", ", bad.Select(c => $"{c.Ticker}={c.Score:F4}"))}). " +
-                $"Defensive mode: 100% in top cash {topCash.Ticker} (SMA12 = {topCash.Score:F4}).";
+                $"{bad.Count} of {canaryScores.Count} canary assets have turned down " +
+                $"({string.Join(", ", bad.Select(c => c.Ticker))}) — this strategy needs every " +
+                $"one of them positive — so it has moved fully into {topCash.Ticker}.";
         }
 
         return new AllocationDecision(

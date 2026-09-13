@@ -53,8 +53,8 @@ public sealed class VaaG4B3Service : IAllocationStrategy<VaaUniverse>
                 Allocations: new[] { new Allocation(top.Ticker, 1.0m) },
                 Scores: allScores,
                 Reasoning:
-                    $"At least one offensive (G4) asset has non-positive 13612W momentum. " +
-                    $"Defensive mode: top B3 by momentum is {top.Ticker} ({top.Score:F4}).");
+                    $"At least one of the four offensive assets has stopped trending up, so the " +
+                    $"strategy has moved fully into the strongest defensive holding — {top.Ticker}.");
         }
         else
         {
@@ -66,8 +66,8 @@ public sealed class VaaG4B3Service : IAllocationStrategy<VaaUniverse>
                 Allocations: new[] { new Allocation(top.Ticker, 1.0m) },
                 Scores: allScores,
                 Reasoning:
-                    $"All offensive (G4) assets have positive 13612W momentum. " +
-                    $"Offensive mode: top G4 by momentum is {top.Ticker} ({top.Score:F4}).");
+                    $"All four offensive assets are trending up, so the strategy holds the " +
+                    $"strongest of them — {top.Ticker}.");
         }
     }
 }

@@ -125,17 +125,18 @@ public sealed class DaaG12Service : IAllocationStrategy<DaaG12Universe>
         var reasoning = b switch
         {
             0 =>
-                $"Both canary assets ({string.Join(", ", universe.Canary)}) have positive 13612W momentum. " +
-                $"Offensive mode: top {t} risky at {1.0m / T:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))}.",
+                $"Both canary assets are trending up, so the strategy is fully " +
+                $"invested: the {t} strongest risky assets at {1.0m / T:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.",
             1 =>
-                $"Canary breadth: {b} of {universe.Canary.Count} bad ({string.Join(", ", badCanaries)}). " +
-                $"Hybrid mode: top {t} risky at {1.0m / T:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))} — " +
-                $"plus {cf:P0} in top cash {topCash!.Ticker} ({topCash.Score:F4}).",
+                $"One of the two canary assets ({string.Join(", ", badCanaries)}) has " +
+                $"turned down, so the strategy is half invested: the {t} strongest risky " +
+                $"assets at {1.0m / T:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))} — with {cf:P0} in " +
+                $"{topCash!.Ticker}.",
             _ =>
-                $"All canary assets ({string.Join(", ", universe.Canary)}) have non-positive 13612W momentum. " +
-                $"Defensive mode: 100% in top cash {topCash!.Ticker} ({topCash.Score:F4}).",
+                $"Both canary assets have turned down, so the strategy has moved " +
+                $"fully into {topCash!.Ticker}.",
         };
 
         return new AllocationDecision(

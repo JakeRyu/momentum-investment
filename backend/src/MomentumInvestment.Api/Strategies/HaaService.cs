@@ -84,8 +84,9 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
             };
             modeLabel = "Defensive";
             reasoning =
-                $"Canary {universe.Canary} 13612W = {canaryScore.Score:F4} ≤ 0 " +
-                $"(rising-yield regime). Defensive mode: 100% in cash {universe.Cash}.";
+                $"The inflation-protected canary ({universe.Canary}) has turned down, which " +
+                $"this strategy reads as a rising-yield shock, so it has moved fully into " +
+                $"{universe.Cash}.";
         }
         else
         {
@@ -100,9 +101,9 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
                 .ToList();
             modeLabel = "Offensive";
             reasoning =
-                $"Canary {universe.Canary} 13612W = {canaryScore.Score:F4} > 0. " +
-                $"Offensive mode: top {T} risky at {weight:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))}.";
+                $"The inflation-protected canary ({universe.Canary}) is still trending up, " +
+                $"so the strategy holds the {T} strongest risky assets at {weight:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
         }
 
         return new AllocationDecision(

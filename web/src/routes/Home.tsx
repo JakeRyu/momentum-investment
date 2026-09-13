@@ -36,7 +36,7 @@ export default function Home() {
             <p className="app-compare__label">The App</p>
             <ul>
               <li>Local UCITS ETF mapping (UK first)</li>
-              <li>Any decision date</li>
+              <li>In-force allocation, month to month</li>
               <li>The same six Keller strategies</li>
             </ul>
             <a
