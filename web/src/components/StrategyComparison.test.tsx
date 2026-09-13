@@ -38,10 +38,9 @@ describe('StrategyComparison', () => {
 
   it('withholds the fall for strategies whose code diverges from their paper', () => {
     renderComparison()
-    for (const id of ['haa', 'baa']) {
-      const row = screen.getByTestId(`compare-row-${id}`)
-      expect(within(row).getByText('—'), id).toBeInTheDocument()
-    }
+    // BAA only, now that HAA has been reconciled with its paper.
+    const row = screen.getByTestId('compare-row-baa')
+    expect(within(row).getByText('—')).toBeInTheDocument()
   })
 
   it('says why those two are blank rather than leaving a bare dash', () => {

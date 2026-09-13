@@ -95,4 +95,44 @@ public sealed class MomentumScoreCalculatorTests
         Assert.Throws<ArgumentException>(
             () => MomentumScoreCalculator.CalculateSMAMomentum(Array.Empty<decimal>()));
     }
+
+    /// <summary>
+    /// 13612U — the unweighted sibling of 13612W, used by HAA for all
+    /// three of its universes (the paper denotes it L=1). Plain mean of
+    /// the 1-, 3-, 6- and 12-month total returns.
+    /// </summary>
+    [Fact]
+    public void Calculate13612U_AveragesTheFourReturnsEqually()
+    {
+        // p0/p1 = 1.10, p0/p3 = 1.20, p0/p6 = 1.30, p0/p12 = 1.40
+        // returns: 0.10, 0.20, 0.30, 0.40 -> mean 0.25
+        var score = MomentumScoreCalculator.Calculate13612U(
+            p0: 110m, p1: 100m, p3: 110m / 1.20m, p6: 110m / 1.30m, p12: 110m / 1.40m);
+
+        Assert.Equal(0.25m, score, precision: 6);
+    }
+
+    [Fact]
+    public void Calculate13612U_WeightsNoLookbackMoreThanAnother()
+    {
+        // A gain confined to the most recent month moves 13612W far more
+        // than 13612U, because 13612W weights it 12x. Same inputs, and
+        // the unweighted score must be the smaller of the two.
+        decimal p0 = 110m, p1 = 100m, p3 = 100m, p6 = 100m, p12 = 100m;
+
+        var weighted = MomentumScoreCalculator.Calculate13612W(p0, p1, p3, p6, p12);
+        var unweighted = MomentumScoreCalculator.Calculate13612U(p0, p1, p3, p6, p12);
+
+        Assert.Equal(0.10m, unweighted, precision: 6);
+        Assert.True(unweighted < weighted);
+    }
+
+    [Fact]
+    public void Calculate13612U_IsNegativeWhenEveryLookbackIsDown()
+    {
+        var score = MomentumScoreCalculator.Calculate13612U(
+            p0: 90m, p1: 100m, p3: 100m, p6: 100m, p12: 100m);
+
+        Assert.True(score < 0m);
+    }
 }

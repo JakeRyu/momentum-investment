@@ -273,7 +273,7 @@ app.MapGet("/api/haa/decision", async (
     DateOnly asOf,
     string[] risky,
     string? canary,
-    string? cash,
+    string[] cash,
     YahooFinanceClient yahoo,
     HaaService haa,
     IMemoryCache cacheStore,
@@ -287,12 +287,12 @@ app.MapGet("/api/haa/decision", async (
     {
         return Results.BadRequest("Query parameter 'canary' is required.");
     }
-    if (string.IsNullOrWhiteSpace(cash))
+    if (cash is null || cash.Length == 0)
     {
-        return Results.BadRequest("Query parameter 'cash' is required.");
+        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
     }
 
-    var universe = new HaaUniverse(risky, canary.Trim(), cash.Trim());
+    var universe = new HaaUniverse(risky, canary.Trim(), cash);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
     if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
 

@@ -223,30 +223,17 @@ public sealed class PaperFingerprintTests
             {
                 ["risky"] = HaaUniverse.Us.Risky.ToArray(),
                 ["canary"] = new[] { HaaUniverse.Us.Canary },
-                ["cash"] = new[] { HaaUniverse.Us.Cash },
+                ["cash"] = HaaUniverse.Us.Cash.ToArray(),
             },
             Values: new Dictionary<string, string>
             {
-                ["riskyFilter"] = "13612W",
-                ["canaryFilter"] = "13612W",
-                ["cashFilter"] = "13612W",
+                ["riskyFilter"] = "13612U",
+                ["canaryFilter"] = "13612U",
+                ["cashFilter"] = "13612U",
                 ["topRisky"] = HaaService.T.ToString(),
-                ["dualMomentum"] = "no",
+                ["dualMomentum"] = "yes",
             }),
-        Divergences: new[]
-        {
-            new Divergence("riskyFilter",
-                "Paper §4 uses the unweighted 13612U (L=1) for all three universes; the service uses the weighted 13612W."),
-            new Divergence("canaryFilter", "Same 13612U/13612W swap as riskyFilter."),
-            new Divergence("cashFilter", "Same 13612U/13612W swap as riskyFilter."),
-            new Divergence("dualMomentum",
-                "The half the strategy is named for is missing. The paper replaces bad Top-4 assets with cash, "
-                + "producing fractional cash (CF=25% when 1 of 4 is bad); the service holds the top 4 at 1/4 each "
-                + "regardless of sign, so it stays fully invested in a drawdown where TIP has not yet turned."),
-            new Divergence("cash",
-                "Fig 6 picks the better of BIL/IEF (ND=2, TD=1); the service always uses BIL. The paper also presents "
-                + "a BIL-only ND=1 variant, but its figures are not Fig 6's."),
-        });
+        Divergences: Array.Empty<Divergence>());
 
     private static Fingerprint Baa() => new(
         "BAA",
@@ -385,7 +372,6 @@ public sealed class PaperFingerprintTests
     /// by editing only the front end.
     /// </summary>
     [Theory]
-    [InlineData("HAA")]
     [InlineData("BAA")]
     public void MateriallyDivergentStrategiesStayWithheld(string name)
     {

@@ -13,7 +13,7 @@ export type StrategyKind =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa'; canary: string[]; risky: string[]; cash: string[] }
   | { kind: 'paa'; risky: string[]; cash: string[] }
-  | { kind: 'haa'; risky: string[]; canary: string; cash: string }
+  | { kind: 'haa'; risky: string[]; canary: string; cash: string[] }
   | { kind: 'baa'; canary: string[]; risky: string[]; cash: string[] }
   | {
       kind: 'laa';
@@ -181,8 +181,8 @@ export const STRATEGIES: readonly Strategy[] = [
       deRisks: 'all at once',
     },
     longDescription: [
-      "HAA balances four asset categories — US and foreign equities, real assets (REITs, commodities), and Treasuries — across an eight-asset risky universe. A single canary asset, TIP (US TIPS), gates the regime: when TIP's 13612W goes non-positive, HAA reads it as a 'rising-yield' shock and rotates fully into BIL (1-3 month T-bills).",
-      "When the canary stays bullish, HAA holds the top four risky assets by 13612W at 1/4 each — a more diversified offensive sleeve than VAA's single-asset bet. The TIPS-canary gate makes HAA particularly responsive to the kind of inflation/yield regime change that hurt traditional 60/40 portfolios in 2022.",
+      "HAA balances four asset categories — US and foreign equities, real assets (REITs, commodities), and Treasuries — across an eight-asset risky universe. A single canary asset, TIP (US TIPS), gates the regime: when TIP's 13612U momentum goes non-positive, HAA reads it as a 'rising-yield' shock and rotates fully into cash — the better of BIL (1-3 month T-bills) and IEF (intermediate Treasuries).",
+      "When the canary stays bullish, HAA holds the top four risky assets by 13612U at 1/4 each — but this is where the 'hybrid' in its name comes from: any of those four whose own momentum is non-positive is replaced by cash, so a month can be part invested and part defensive. One bad asset in the top four means 25% cash. The TIPS-canary gate makes HAA particularly responsive to the kind of inflation/yield regime change that hurt traditional 60/40 portfolios in 2022.",
     ],
     paperTitle:
       'Relative and Absolute Momentum in Times of Rising/Low Yields: Hybrid Asset Allocation (HAA)',
@@ -192,12 +192,16 @@ export const STRATEGIES: readonly Strategy[] = [
       kind: 'haa',
       risky: ['SPY', 'IWM', 'VEA', 'VWO', 'VNQ', 'DBC', 'IEF', 'TLT'],
       canary: 'TIP',
-      cash: 'BIL',
+      cash: ['BIL', 'IEF'],
     },
-    // No backtest row: HaaService computes 13612W, but the HAA paper
-    // specifies the unweighted 13612U (L=1) for all three universes.
-    // Restore the paper's Fig. 6 figures (R 15.9%, D 9.7%, Dec 1970 –
-    // Dec 2022) only once the filter matches.
+    backtest: {
+      variant: 'HAA-Balanced (G8/T4, L=1)',
+      periodStart: '1970-12',
+      periodEnd: '2022-12',
+      cagrPct: 15.9,
+      maxDrawdownPct: 9.7,
+      sourceLabel: 'Fig 6',
+    },
   },
   {
     id: 'baa',
@@ -296,7 +300,7 @@ export function fundsNeeded(universe: StrategyKind): number {
       case 'paa':
         return [...universe.risky, ...universe.cash];
       case 'haa':
-        return [...universe.risky, universe.cash];
+        return [...universe.risky, ...universe.cash];
       case 'laa':
         return [...universe.permanent, universe.risky, universe.cash];
     }

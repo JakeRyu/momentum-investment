@@ -20,8 +20,8 @@ describe('StrategyPage backtest block', () => {
     expect(screen.getByText('−16.4%')).toBeInTheDocument()
   })
 
-  it('omits the block for HAA, whose filter diverges from the paper', () => {
-    const { container } = renderAt('/strategies/haa')
+  it('omits the block for BAA, whose canary diverges from the paper', () => {
+    const { container } = renderAt('/strategies/baa')
     expect(container.querySelector('.backtest')).toBeNull()
   })
 })

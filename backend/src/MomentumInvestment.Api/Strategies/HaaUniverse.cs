@@ -28,13 +28,17 @@ namespace MomentumInvestment.Api.Strategies;
 public sealed record HaaUniverse(
     IReadOnlyList<string> Risky,
     string Canary,
-    string Cash)
+    IReadOnlyList<string> Cash)
 {
     public IEnumerable<string> AllTickers()
     {
+        var seen = new HashSet<string>(Risky, StringComparer.OrdinalIgnoreCase);
         foreach (var t in Risky) yield return t;
-        if (!Risky.Contains(Canary)) yield return Canary;
-        if (!Risky.Contains(Cash) && Canary != Cash) yield return Cash;
+        if (seen.Add(Canary)) yield return Canary;
+        foreach (var c in Cash)
+        {
+            if (seen.Add(c)) yield return c;
+        }
     }
 
     /// <summary>
@@ -45,5 +49,6 @@ public sealed record HaaUniverse(
     public static readonly HaaUniverse Us = new(
         Risky: new[] { "SPY", "IWM", "VEA", "VWO", "VNQ", "DBC", "IEF", "TLT" },
         Canary: "TIP",
-        Cash: "BIL");
+        // ND=2, TD=1: the better of BIL/IEF by 13612U becomes "cash".
+        Cash: new[] { "BIL", "IEF" });
 }
