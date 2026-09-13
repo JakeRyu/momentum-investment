@@ -32,3 +32,7 @@ Thumbs.db
 
 # Cowork scratch output (screenshots etc. dropped into the repo folder)
 Claude outputs/
+
+# Source papers — downloadable from SSRN but not ours to redistribute.
+# Keep them locally at docs/papers/; docs/papers/README.md carries the links.
+docs/papers/*.pdf
