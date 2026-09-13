@@ -53,7 +53,7 @@ export async function fetchDecision(
       path = '/api/haa/decision'
       u.risky.forEach((t) => params.append('risky', t))
       params.append('canary', u.canary)
-      params.append('cash', u.cash)
+      u.cash.forEach((t) => params.append('cash', t))
       break
     case 'baa':
       path = '/api/baa/decision'

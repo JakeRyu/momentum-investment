@@ -13,7 +13,7 @@ export type StrategyKind =
   | { kind: 'vaa'; offensive: string[]; defensive: string[] }
   | { kind: 'daa'; canary: string[]; risky: string[]; cash: string[] }
   | { kind: 'paa'; risky: string[]; cash: string[] }
-  | { kind: 'haa'; risky: string[]; canary: string; cash: string }
+  | { kind: 'haa'; risky: string[]; canary: string; cash: string[] }
   | { kind: 'baa'; canary: string[]; risky: string[]; cash: string[] }
   | {
       kind: 'laa';
@@ -181,8 +181,8 @@ export const STRATEGIES: readonly Strategy[] = [
       deRisks: 'all at once',
     },
     longDescription: [
-      "HAA balances four asset categories — US and foreign equities, real assets (REITs, commodities), and Treasuries — across an eight-asset risky universe. A single canary asset, TIP (US TIPS), gates the regime: when TIP's 13612W goes non-positive, HAA reads it as a 'rising-yield' shock and rotates fully into BIL (1-3 month T-bills).",
-      "When the canary stays bullish, HAA holds the top four risky assets by 13612W at 1/4 each — a more diversified offensive sleeve than VAA's single-asset bet. The TIPS-canary gate makes HAA particularly responsive to the kind of inflation/yield regime change that hurt traditional 60/40 portfolios in 2022.",
+      "HAA balances four asset categories — US and foreign equities, real assets (REITs, commodities), and Treasuries — across an eight-asset risky universe. A single canary asset, TIP (US TIPS), gates the regime: when TIP's 13612U momentum goes non-positive, HAA reads it as a 'rising-yield' shock and rotates fully into cash — the better of BIL (1-3 month T-bills) and IEF (intermediate Treasuries).",
+      "When the canary stays bullish, HAA holds the top four risky assets by 13612U at 1/4 each — but this is where the 'hybrid' in its name comes from: any of those four whose own momentum is non-positive is replaced by cash, so a month can be part invested and part defensive. One bad asset in the top four means 25% cash. The TIPS-canary gate makes HAA particularly responsive to the kind of inflation/yield regime change that hurt traditional 60/40 portfolios in 2022.",
     ],
     paperTitle:
       'Relative and Absolute Momentum in Times of Rising/Low Yields: Hybrid Asset Allocation (HAA)',
@@ -192,12 +192,16 @@ export const STRATEGIES: readonly Strategy[] = [
       kind: 'haa',
       risky: ['SPY', 'IWM', 'VEA', 'VWO', 'VNQ', 'DBC', 'IEF', 'TLT'],
       canary: 'TIP',
-      cash: 'BIL',
+      cash: ['BIL', 'IEF'],
     },
-    // No backtest row: HaaService computes 13612W, but the HAA paper
-    // specifies the unweighted 13612U (L=1) for all three universes.
-    // Restore the paper's Fig. 6 figures (R 15.9%, D 9.7%, Dec 1970 –
-    // Dec 2022) only once the filter matches.
+    backtest: {
+      variant: 'HAA-Balanced (G8/T4, L=1)',
+      periodStart: '1970-12',
+      periodEnd: '2022-12',
+      cagrPct: 15.9,
+      maxDrawdownPct: 9.7,
+      sourceLabel: 'Fig 6',
+    },
   },
   {
     id: 'baa',
@@ -209,29 +213,26 @@ export const STRATEGIES: readonly Strategy[] = [
       deRisks: 'all at once',
     },
     longDescription: [
-      "BAA tightens DAA's canary gate into a 'unanimous AND' rule: all three canaries (TIP, IEF, BIL) must show positive 13612W momentum to enter offensive mode. A single bearish canary forces the strategy to 100% in the single best-scoring cash asset, ranked by SMA12 momentum across BIL, IEF, TLT, BND, and LQD.",
-      'When all three canaries are bullish, BAA holds the top six of twelve risky assets at 1/6 each — same risky universe as DAA-G12. The dual-signal design (13612W for canary/risky, SMA12 for cash) and the strict canary gate combine to produce more defensive activations than DAA, which is the whole point: aggressive in clear uptrends, decisively defensive at the first hint of macro stress.',
+      "BAA tightens DAA's canary gate into a 'unanimous AND' rule: all four canaries (SPY, VWO, VEA, BND) must show positive 13612W momentum to enter offensive mode. A single bearish canary sends the whole portfolio into the defensive sleeve — the top three of seven bond-and-hedge assets by SMA12, equally weighted, with any pick trailing BIL replaced by BIL itself.",
+      'When all four canaries are bullish, BAA holds the top six of twelve risky assets at 1/6 each. The dual-signal design is the point: a fast 13612W filter on the canary so the gate reacts quickly, and a slow SMA12 ranking on both sleeves so the holdings themselves turn over less. Unlike HAA, a falling asset that still ranks in the top six is held — the paper applies no absolute-momentum filter to the offensive selection.',
     ],
     paperTitle: 'Bold Asset Allocation: A Tactical Asset Allocation Strategy with Aggressive Crash Protection',
     paperUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4166845',
     paperYear: 2022,
     defaultUniverse: {
       kind: 'baa',
-      canary: ['TIP', 'IEF', 'BIL'],
-      risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
-      cash: ['BIL', 'IEF', 'TLT', 'BND', 'LQD'],
+      canary: ['SPY', 'VWO', 'VEA', 'BND'],
+      risky: ['SPY', 'QQQ', 'IWM', 'VGK', 'EWJ', 'VWO', 'VNQ', 'DBC', 'GLD', 'TLT', 'HYG', 'LQD'],
+      cash: ['TIP', 'DBC', 'BIL', 'IEF', 'TLT', 'LQD', 'BND'],
     },
-    // No backtest row: BaaService's canary/ranking/breadth diverge from
-    // Fig 3's BAA-G12, and the canary universe is the crash-protection
-    // mechanism, so the paper's figure doesn't describe what this site
-    // computes.
-    //   - Canary: paper uses SPY/VWO/VEA/BND (NP=4); site uses TIP/IEF/BIL.
-    //   - Ranking: paper ranks risky assets by SMA12 (LO=12); site uses
-    //     13612W.
-    //   - Defensive breadth: paper takes top-3 of a 7-asset defensive set
-    //     (ND=7, TD=3); site takes top-1 of 5.
-    // Restore the paper's Fig 3 figures (R 14.6%, D 8.7%, Dec 1970 – Jun
-    // 2022) only once BaaService is reconciled with these three.
+    backtest: {
+      variant: 'BAA-G12',
+      periodStart: '1970-12',
+      periodEnd: '2022-06',
+      cagrPct: 14.6,
+      maxDrawdownPct: 8.7,
+      sourceLabel: 'Fig 3',
+    },
   },
   {
     id: 'laa',
@@ -296,7 +297,7 @@ export function fundsNeeded(universe: StrategyKind): number {
       case 'paa':
         return [...universe.risky, ...universe.cash];
       case 'haa':
-        return [...universe.risky, universe.cash];
+        return [...universe.risky, ...universe.cash];
       case 'laa':
         return [...universe.permanent, universe.risky, universe.cash];
     }

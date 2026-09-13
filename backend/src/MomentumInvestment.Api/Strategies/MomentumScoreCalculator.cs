@@ -34,6 +34,33 @@ public static class MomentumScoreCalculator
     }
 
     /// <summary>
+    /// 13612U momentum (Keller &amp; Keuning, HAA 2023; denoted L=1):
+    /// the plain mean of the 1-, 3-, 6- and 12-month total returns.
+    ///
+    /// <para>Same four lookbacks as <see cref="Calculate13612W"/>, but
+    /// unweighted — so a move confined to the most recent month counts
+    /// for a quarter here rather than 12/19ths. The HAA paper picks it
+    /// as a middle setting: "less fast than the 13612W, but faster than
+    /// the SMA(12) filter used in BAA".</para>
+    ///
+    /// <para>Only the sign and the ordering of these scores are used, so
+    /// the choice of mean over sum changes no decision — it just keeps
+    /// the number readable as a return.</para>
+    /// </summary>
+    public static decimal Calculate13612U(
+        decimal p0,
+        decimal p1,
+        decimal p3,
+        decimal p6,
+        decimal p12)
+    {
+        return ((p0 / p1 - 1m)
+              + (p0 / p3 - 1m)
+              + (p0 / p6 - 1m)
+              + (p0 / p12 - 1m)) / 4m;
+    }
+
+    /// <summary>
     /// SMA12 momentum (Keller, PAA 2016):
     ///   momentum = p₀ / SMA(p₀..p₁₁) − 1
     ///   SMA(p₀..p₁₁) = (p₀ + p₁ + … + p₁₁) / 12

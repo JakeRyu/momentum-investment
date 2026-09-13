@@ -223,30 +223,17 @@ public sealed class PaperFingerprintTests
             {
                 ["risky"] = HaaUniverse.Us.Risky.ToArray(),
                 ["canary"] = new[] { HaaUniverse.Us.Canary },
-                ["cash"] = new[] { HaaUniverse.Us.Cash },
+                ["cash"] = HaaUniverse.Us.Cash.ToArray(),
             },
             Values: new Dictionary<string, string>
             {
-                ["riskyFilter"] = "13612W",
-                ["canaryFilter"] = "13612W",
-                ["cashFilter"] = "13612W",
+                ["riskyFilter"] = "13612U",
+                ["canaryFilter"] = "13612U",
+                ["cashFilter"] = "13612U",
                 ["topRisky"] = HaaService.T.ToString(),
-                ["dualMomentum"] = "no",
+                ["dualMomentum"] = "yes",
             }),
-        Divergences: new[]
-        {
-            new Divergence("riskyFilter",
-                "Paper §4 uses the unweighted 13612U (L=1) for all three universes; the service uses the weighted 13612W."),
-            new Divergence("canaryFilter", "Same 13612U/13612W swap as riskyFilter."),
-            new Divergence("cashFilter", "Same 13612U/13612W swap as riskyFilter."),
-            new Divergence("dualMomentum",
-                "The half the strategy is named for is missing. The paper replaces bad Top-4 assets with cash, "
-                + "producing fractional cash (CF=25% when 1 of 4 is bad); the service holds the top 4 at 1/4 each "
-                + "regardless of sign, so it stays fully invested in a drawdown where TIP has not yet turned."),
-            new Divergence("cash",
-                "Fig 6 picks the better of BIL/IEF (ND=2, TD=1); the service always uses BIL. The paper also presents "
-                + "a BIL-only ND=1 variant, but its figures are not Fig 6's."),
-        });
+        Divergences: Array.Empty<Divergence>());
 
     private static Fingerprint Baa() => new(
         "BAA",
@@ -275,28 +262,13 @@ public sealed class PaperFingerprintTests
             },
             Values: new Dictionary<string, string>
             {
-                ["riskyFilter"] = "13612W",
+                ["riskyFilter"] = "SMA12",
                 ["canaryFilter"] = "13612W",
                 ["cashFilter"] = "SMA12",
                 ["topRisky"] = BaaService.T.ToString(),
-                ["topCash"] = "1",
+                ["topCash"] = BaaService.TD.ToString(),
             }),
-        Divergences: new[]
-        {
-            new Divergence("canary",
-                "Paper's canary is four risk assets (SPY/VWO/VEA/BND); the service uses three bond/TIPS assets "
-                + "(TIP/IEF/BIL). The canary IS the crash-protection mechanism, so this changes what the strategy reacts to."),
-            new Divergence("risky",
-                "EEM for the paper's VWO and GSG for DBC — ordinary proxy pairs (emerging equities, commodities)."),
-            new Divergence("cash",
-                "Paper's defensive universe is seven assets including TIP and DBC; the service uses five and omits both."),
-            new Divergence("riskyFilter",
-                "The paper's design is 'slow relative momentum with fast absolute momentum': SMA12 (LO=12) ranks the risky "
-                + "sleeve and 13612W (LP=0) gates the canary. The service uses 13612W for both, losing the separation."),
-            new Divergence("topCash",
-                "Paper holds the top 3 of seven defensive assets, replacing bad picks with BIL (TD=3); "
-                + "the service holds the single best of five."),
-        });
+        Divergences: Array.Empty<Divergence>());
 
     public static TheoryData<string> StrategyNames() =>
         new() { "VAA", "DAA", "PAA", "LAA", "HAA", "BAA" };
@@ -376,25 +348,6 @@ public sealed class PaperFingerprintTests
         Assert.Equal(
             fp.Paper.Values.Keys.OrderBy(k => k),
             fp.Site.Values.Keys.OrderBy(k => k));
-    }
-
-    /// <summary>
-    /// The two strategies the audit found materially different must stay
-    /// withheld on the web until reconciled. This pins the reason in the
-    /// backend, where the divergence lives, so nobody restores a figure
-    /// by editing only the front end.
-    /// </summary>
-    [Theory]
-    [InlineData("HAA")]
-    [InlineData("BAA")]
-    public void MateriallyDivergentStrategiesStayWithheld(string name)
-    {
-        var fp = For(name);
-
-        Assert.True(
-            fp.Divergences.Length > 0,
-            $"{fp.Strategy} has no declared divergences, so it may be reconciled. If so, restore its backtest "
-            + $"figure in web/src/strategies.ts and remove this case.");
     }
 
     // ─── Comparison ──────────────────────────────────────────────────

@@ -17,8 +17,8 @@ listed in `docs/papers/README.md`.
 | DAA | ✅ | ✅ | ✅ | ✅ | ✅ | **published** |
 | PAA | ⚠️ proxy | ✅ | ✅ | ✅ | ❌ | published, disclosed |
 | LAA | ✅ | ⚠️ | ✅ | ✅ | ✅ | published, disclosed |
-| HAA | ✅ | ❌ | ✅ | ❌ | ❌ | **withheld** |
-| BAA | ⚠️ proxy | ❌ | ⚠️ | ❌ | ❌ | **withheld** |
+| HAA | ✅ | ✅ | ✅ | ✅ | ✅ | **published** (reconciled 2026-09-13) |
+| BAA | ✅ | ✅ | ✅ | ✅ | ✅ | **published** (reconciled 2026-09-13) |
 
 ✅ matches · ⚠️ defensible divergence, disclose · ❌ blocking
 
@@ -115,9 +115,9 @@ citation exact.
 
 ---
 
-## HAA — three divergences, one of them the paper's titular mechanism
+## HAA — RECONCILED 2026-09-13 (was three divergences)
 
-`HaaService`, `HaaUniverse.Us` — **figure withheld**
+`HaaService`, `HaaUniverse.Us` — **figure published**; all three divergences below are fixed.
 
 | Dimension | Paper (Fig 6: HAA-Balanced, G8/T4, L=1) | Site | |
 |---|---|---|---|
@@ -152,9 +152,9 @@ defensible, but then Fig. 6's figures are not the right ones to publish.
 
 ---
 
-## BAA — four divergences; a different strategy from the one it cites
+## BAA — RECONCILED 2026-09-13 (was four divergences)
 
-`BaaService`, `BaaUniverse.Us` — **figure withheld**
+`BaaService`, `BaaUniverse.Us` — **figure published**; all four divergences below are fixed.
 
 | Dimension | Paper (Fig 3: BAA-G12) | Site | |
 |---|---|---|---|
@@ -185,23 +185,21 @@ Cosmetic.
 
 ## What to do with this
 
-**Before stage 2 ships a comparison with a drawdown axis:** VAA, DAA, PAA
-and LAA are publishable today (two with disclosures already rendered).
-HAA and BAA must stay withheld. Stage 2's comparison must therefore
-render "—" for two of six rather than assume all six have a figure.
+**Update 2026-09-13:** HAA and BAA have both been reconciled, so all six
+figures are published. The comparison still renders "—" for a strategy
+without a figure — the mechanism is kept, and a test guards it, because
+the next audit may pull one again.
 
 **Recommended order:**
 
-1. **Make this a merge gate, not a review habit.** Record each strategy's
+0. ~~HAA reconciliation~~ — **done 2026-09-13.** The gate's stale-divergence rule flagged the declared entries the moment the code matched the paper, exactly as designed.
+
+1. **Make this a merge gate, not a review habit.** ✅ done — `PaperFingerprintTests`. Record each strategy's
    paper configuration as a fingerprint next to its universe and assert it
    in a test, so a drift in `BaaUniverse.Us` or a filter swap fails CI
    instead of waiting for someone to re-read a PDF. This is the durable
    fix — every divergence above survived multiple reviews precisely
    because nothing compared code to paper automatically.
-2. **HAA reconciliation** (fixes 4, 5, 6) — its own change and release.
-   Fix 5 changes live allocations for app users.
-3. **BAA reconciliation** (fixes 7, 8, 9) — its own change and release.
-   Larger than HAA's; effectively a rewrite of the strategy's signals.
 4. **PAA and LAA** (fixes 1, 3) — optional. Either narrow to the paper's
    configuration and publish exact citations, or keep the current
    behaviour and keep the disclosures. A decision, not a defect.

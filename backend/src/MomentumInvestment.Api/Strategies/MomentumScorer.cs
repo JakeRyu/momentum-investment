@@ -48,6 +48,38 @@ public static class MomentumScorer
     }
 
     /// <summary>
+    /// 13612U for one ticker — the unweighted filter HAA uses on all
+    /// three of its universes. Same lookbacks as <see cref="Score13612W"/>.
+    /// </summary>
+    public static decimal Score13612U(
+        string ticker,
+        DateOnly asOf,
+        IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> dailyByTicker,
+        ILogger? logger = null)
+    {
+        if (!dailyByTicker.TryGetValue(ticker, out var history))
+        {
+            throw new InvalidOperationException($"Missing daily history for ticker '{ticker}'.");
+        }
+
+        var p = LookbackPriceLookup.FindLookbackPrices(asOf, history);
+        var score = MomentumScoreCalculator.Calculate13612U(
+            p.P0.AdjClose, p.P1.AdjClose, p.P3.AdjClose, p.P6.AdjClose, p.P12.AdjClose);
+
+        logger?.LogInformation(
+            "13612U {Ticker,-6} p0={P0,9:F4} ({D0:yyyy-MM-dd}) p1={P1,9:F4} ({D1:yyyy-MM-dd}) p3={P3,9:F4} ({D3:yyyy-MM-dd}) p6={P6,9:F4} ({D6:yyyy-MM-dd}) p12={P12,9:F4} ({D12:yyyy-MM-dd}) -> score={Score,8:F4}",
+            ticker,
+            p.P0.AdjClose, p.P0.Date,
+            p.P1.AdjClose, p.P1.Date,
+            p.P3.AdjClose, p.P3.Date,
+            p.P6.AdjClose, p.P6.Date,
+            p.P12.AdjClose, p.P12.Date,
+            score);
+
+        return score;
+    }
+
+    /// <summary>
     /// SMA12 momentum score for a single ticker (Keller PAA 2016):
     ///   momentum = p₀ / mean(p₀..p₁₁) − 1
     ///

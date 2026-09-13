@@ -35,7 +35,7 @@ public sealed class HaaServiceTests
     [Fact]
     public void Decide_CanaryPositive_AllRiskyPositive_OffensiveTopFourAtTwentyFivePercent()
     {
-        // TIP positive (1.01 → score +0.19) → offensive.
+        // TIP positive (1.01 → 13612U +0.01) → offensive.
         // 8 risky all positive, ranked SPY > IWM > VEA > VWO > VNQ > DBC > IEF > TLT.
         // Top T=4 = SPY, IWM, VEA, VWO at 25% each.
         var prices = PricesFor(
@@ -57,36 +57,57 @@ public sealed class HaaServiceTests
     }
 
     [Fact]
-    public void Decide_CanaryPositive_MixedRisky_TopFourTakenRegardlessOfSign()
+    public void Decide_CanaryPositive_BadAssetInTopFour_SendsThatQuarterToCash()
     {
-        // TIP positive → offensive. Risky has 3 positive + 5 negative.
-        // Top 4 by score still picked, even though one of them is negative.
-        // This matches Keller's HAA: the canary IS the on/off filter; once
-        // bullish, individual asset signs don't gate inclusion — only ranking.
-        // Ranked: SPY=1.90 > IWM=1.71 > VEA=1.52 > VWO=−0.19 > others lower.
+        // The "hybrid" half. TIP positive so the regime is risk-on, but
+        // the 4th-ranked asset (VWO, -0.01) is not rising, so its quarter
+        // goes to cash instead of being held. One month can be part
+        // invested and part defensive.
+        // Cash universe: BIL +0.001 beats IEF -0.04, so BIL is "cash".
         var prices = PricesFor(
             ("TIP", 1.01m),
-            ("SPY", 1.10m), ("IWM", 1.09m), ("VEA", 1.08m), // 3 positive
-            ("VWO", 0.99m),                                 // 1st of negatives, still top 4
+            ("SPY", 1.10m), ("IWM", 1.09m), ("VEA", 1.08m),
+            ("VWO", 0.99m),
             ("VNQ", 0.98m), ("DBC", 0.97m), ("IEF", 0.96m), ("TLT", 0.95m),
             ("BIL", 1.001m));
 
         var decision = new HaaService().Decide(AsOf, HaaUniverse.Us, prices);
 
-        Assert.Equal("Offensive", decision.ModeLabel);
-        Assert.Equal(4, decision.Allocations.Count);
+        Assert.Equal("Hybrid", decision.ModeLabel);
         Assert.Equal(
-            new[] { "SPY", "IWM", "VEA", "VWO" },
+            new[] { "SPY", "IWM", "VEA", "BIL" },
             decision.Allocations.Select(a => a.Ticker));
         Assert.All(decision.Allocations, a => Assert.Equal(0.25m, a.Weight));
+        Assert.Equal(1.0m, decision.Allocations.Sum(a => a.Weight), precision: 10);
+    }
+
+    [Fact]
+    public void Decide_CanaryPositive_EveryTopFourAssetBad_GoesFullyToCash()
+    {
+        // Canary still bullish, but nothing in the Top-4 is rising, so
+        // all four quarters go to cash. Before this strategy implemented
+        // dual momentum it stayed 100% invested in the least-bad four.
+        // Cash: BIL +0.001 beats IEF -0.07.
+        var prices = PricesFor(
+            ("TIP", 1.01m),
+            ("SPY", 0.99m), ("IWM", 0.98m), ("VEA", 0.97m), ("VWO", 0.96m),
+            ("VNQ", 0.95m), ("DBC", 0.94m), ("IEF", 0.93m), ("TLT", 0.92m),
+            ("BIL", 1.001m));
+
+        var decision = new HaaService().Decide(AsOf, HaaUniverse.Us, prices);
+
+        Assert.Equal("Hybrid", decision.ModeLabel);
+        Assert.Single(decision.Allocations);
+        Assert.Equal("BIL", decision.Allocations[0].Ticker);
+        Assert.Equal(1.0m, decision.Allocations[0].Weight);
     }
 
     [Fact]
     public void Decide_CanaryNegative_DefensiveMode_HundredPercentInCash()
     {
-        // TIP negative (0.99 → score −0.19) → defensive regardless of risky.
+        // TIP negative (0.99 → 13612U −0.01) → defensive regardless of risky.
         // Even though some risky have positive momentum, the canary gate
-        // forces 100% into BIL.
+        // forces everything into cash.
         var prices = PricesFor(
             ("TIP", 0.99m),
             ("SPY", 1.10m), ("IWM", 1.09m), ("VEA", 1.08m), ("VWO", 1.07m),
@@ -98,14 +119,15 @@ public sealed class HaaServiceTests
         Assert.Equal("haa", decision.StrategyId);
         Assert.Equal("Defensive", decision.ModeLabel);
         Assert.Single(decision.Allocations);
-        Assert.Equal("BIL", decision.Allocations[0].Ticker);
+        // ND=2, TD=1: cash is the better of BIL (+0.001) and IEF (+0.04).
+        Assert.Equal("IEF", decision.Allocations[0].Ticker);
         Assert.Equal(1.0m, decision.Allocations[0].Weight);
     }
 
     [Fact]
     public void Decide_CanaryExactlyZero_DefensiveBoundary()
     {
-        // TIP at 1.0 → score = 19·(1 − 1) = 0 exactly.
+        // TIP at 1.0 → 13612U = 0 exactly.
         // The defensive gate is ≤ 0 (inclusive), so this lands defensive.
         // Same convention as DAA's canary check and PAA's "good" definition.
         var prices = PricesFor(
@@ -118,30 +140,7 @@ public sealed class HaaServiceTests
 
         Assert.Equal("Defensive", decision.ModeLabel);
         Assert.Single(decision.Allocations);
-        Assert.Equal("BIL", decision.Allocations[0].Ticker);
-    }
-
-    [Fact]
-    public void Decide_AllRiskyNegative_StillSelectsTopFourWhenCanaryBullish()
-    {
-        // Adversarial: TIP slightly positive (offensive) but every risky
-        // is negative. Strategy still picks the 4 least-bad risky at 25%
-        // each. The "correct" thing per Keller is to trust the canary; if
-        // the user wants to override, it's their portfolio decision.
-        var prices = PricesFor(
-            ("TIP", 1.01m), // +0.19
-            ("SPY", 0.99m), ("IWM", 0.98m), ("VEA", 0.97m), ("VWO", 0.96m),
-            ("VNQ", 0.95m), ("DBC", 0.94m), ("IEF", 0.93m), ("TLT", 0.92m),
-            ("BIL", 1.001m));
-
-        var decision = new HaaService().Decide(AsOf, HaaUniverse.Us, prices);
-
-        Assert.Equal("Offensive", decision.ModeLabel);
-        Assert.Equal(4, decision.Allocations.Count);
-        // Top 4 = least-bad: SPY, IWM, VEA, VWO.
-        Assert.Equal(
-            new[] { "SPY", "IWM", "VEA", "VWO" },
-            decision.Allocations.Select(a => a.Ticker));
+        Assert.Equal("IEF", decision.Allocations[0].Ticker);
     }
 
     [Fact]
@@ -155,11 +154,12 @@ public sealed class HaaServiceTests
 
         var decision = new HaaService().Decide(AsOf, HaaUniverse.Us, prices);
 
-        // 1 canary + 8 risky + 1 cash = 10 score entries.
-        Assert.Equal(10, decision.Scores.Count);
+        // 1 canary + 8 risky + 2 cash = 11 score entries. IEF appears
+        // twice by design: it is both a risky asset and a cash candidate.
+        Assert.Equal(11, decision.Scores.Count);
         Assert.Single(decision.Scores, s => s.Bucket == "Canary");
         Assert.Equal(8, decision.Scores.Count(s => s.Bucket == "Risky"));
-        Assert.Single(decision.Scores, s => s.Bucket == "Cash");
+        Assert.Equal(2, decision.Scores.Count(s => s.Bucket == "Cash"));
 
         // Canary should be the first score row so the mobile UI's
         // bucket-order rendering shows it on top.

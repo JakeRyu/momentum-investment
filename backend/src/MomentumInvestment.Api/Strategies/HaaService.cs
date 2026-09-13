@@ -6,21 +6,26 @@ namespace MomentumInvestment.Api.Strategies;
 /// <summary>
 /// HAA — Hybrid Asset Allocation (Keller &amp; Keuning, 2023).
 ///
-/// Designed for rising-yield regimes that broke 60/40 portfolios in
-/// 2022. The canary (TIP, TIPS-class) gates a binary on/off:
+/// "Hybrid" because two mechanisms combine. A canary (TIP, TIPS-class)
+/// gates the regime, and ordinary dual momentum then filters what is
+/// left:
 ///
-///   13612W(TIP) ≤ 0  →  100% in cash (BIL)               (Defensive)
-///   13612W(TIP) &gt; 0  →  top T=4 risky at 1/T each         (Offensive)
+///   13612U(TIP) &#8804; 0  &#8594;  100% cash                       (Defensive)
+///   otherwise        &#8594;  top T=4 risky at 1/T each, but any
+///                            slot whose own momentum is &#8804; 0 goes
+///                            to cash                      (Offensive/Hybrid)
 ///
-/// 13612W is the same momentum metric used by VAA/DAA. The risky
-/// universe (default 8 ETFs across 4 categories — US equities, foreign
-/// equities, real assets, treasuries) is selected by flat top-T scoring,
-/// not per-category. T = 4 is Keller's "Balanced" default; lower T
-/// values give "Aggressive" variants we have not exposed yet.
+/// So a month can be part invested and part defensive — one bad asset
+/// in the Top-4 means 25% cash. Cash is the better of the two-asset
+/// defensive universe (BIL/IEF, ND=2, TD=1).
 ///
-/// Reference: Keller &amp; Keuning, "Relative and Absolute Momentum in
-/// Times of Rising/Low Yields: Hybrid Asset Allocation (HAA)", SSRN
-/// 4346906, 2023.
+/// All three universes are scored with 13612U — the unweighted mean of
+/// the 1/3/6/12-month returns (the paper's L=1), not the weighted
+/// 13612W used by VAA/DAA/BAA.
+///
+/// Reference: Keller &amp; Keuning, "Dual and Canary Momentum with Rising
+/// Yields/Inflation: Hybrid Asset Allocation (HAA)", SSRN 4346906, 2023,
+/// Fig 6 (HAA-Balanced, G8/T4).
 /// </summary>
 public sealed class HaaService : IAllocationStrategy<HaaUniverse>
 {
@@ -46,7 +51,7 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
         var scoresByTicker = new Dictionary<string, decimal>();
         foreach (var ticker in universe.AllTickers())
         {
-            scoresByTicker[ticker] = MomentumScorer.Score13612W(ticker, asOf, dailyByTicker, _logger);
+            scoresByTicker[ticker] = MomentumScorer.Score13612U(ticker, asOf, dailyByTicker, _logger);
         }
 
         var riskyScores = universe.Risky
@@ -56,16 +61,20 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
             universe.Canary,
             scoresByTicker[universe.Canary],
             Bucket: "Canary");
-        var cashScore = new AssetMomentum(
-            universe.Cash,
-            scoresByTicker[universe.Cash],
-            Bucket: "Cash");
+        var cashScores = universe.Cash
+            .Select(t => new AssetMomentum(t, scoresByTicker[t], Bucket: "Cash"))
+            .ToList();
+
+        // TD=1: the best of the defensive universe is what "cash" means
+        // for this month, both for the canary switch and for replacing
+        // bad assets inside the Top-T.
+        var topCash = cashScores.OrderByDescending(s => s.Score).First();
 
         // Emit canary first so the mobile UI's bucket-order rendering
         // shows the trigger signal at the top of the score list.
         var allScores = new List<AssetMomentum> { canaryScore };
         allScores.AddRange(riskyScores);
-        allScores.Add(cashScore);
+        allScores.AddRange(cashScores);
 
         // Binary regime switch. Keller's convention: ≤ 0 is bearish (>
         // 0 alone is "good"), same as the canary semantics in DAA and
@@ -80,13 +89,13 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
         {
             allocations = new List<Allocation>
             {
-                new Allocation(universe.Cash, 1m),
+                new Allocation(topCash.Ticker, 1m),
             };
             modeLabel = "Defensive";
             reasoning =
                 $"The inflation-protected canary ({universe.Canary}) has turned down, which " +
                 $"this strategy reads as a rising-yield shock, so it has moved fully into " +
-                $"{universe.Cash}.";
+                $"{topCash.Ticker}.";
         }
         else
         {
@@ -95,15 +104,36 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
                 .Take(T)
                 .ToList();
 
+            // The "hybrid" half: the canary gates the regime, and then
+            // ordinary dual momentum filters what is left. A Top-T slot
+            // whose own momentum is non-positive is not held — that
+            // quarter goes to cash instead, so a month can be part
+            // invested and part defensive.
+            var held = topRisky.Where(r => r.Score > 0m).ToList();
+            int badSlots = topRisky.Count - held.Count;
+
             decimal weight = 1m / T;
-            allocations = topRisky
+            allocations = held
                 .Select(r => new Allocation(r.Ticker, weight))
                 .ToList();
-            modeLabel = "Offensive";
-            reasoning =
-                $"The inflation-protected canary ({universe.Canary}) is still trending up, " +
-                $"so the strategy holds the {T} strongest risky assets at {weight:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
+
+            if (badSlots > 0)
+            {
+                allocations.Add(new Allocation(topCash.Ticker, badSlots * weight));
+            }
+
+            modeLabel = badSlots == 0 ? "Offensive" : "Hybrid";
+            reasoning = badSlots == 0
+                ? $"The inflation-protected canary ({universe.Canary}) is still trending up and " +
+                  $"all {T} of the strongest risky assets are rising, so the strategy is fully " +
+                  $"invested at {weight:P2} each — {string.Join(", ", held.Select(r => r.Ticker))}."
+                : $"The inflation-protected canary ({universe.Canary}) is still trending up, but " +
+                  $"{badSlots} of the {T} strongest risky assets {(badSlots == 1 ? "is" : "are")} " +
+                  $"not rising, so {(badSlots * weight):P0} of the portfolio sits in " +
+                  $"{topCash.Ticker} instead" +
+                  (held.Count > 0
+                      ? $", alongside {string.Join(", ", held.Select(r => r.Ticker))}."
+                      : ".");
         }
 
         return new AllocationDecision(
