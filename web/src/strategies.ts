@@ -24,6 +24,27 @@ export type StrategyKind =
       unemploymentSeriesId: string;
     };
 
+/**
+ * A figure reported by the strategy's source paper, for the variant this
+ * site actually implements. Transcribed from the PDFs in `docs/papers/`
+ * and pinned by `strategies.test.ts`.
+ *
+ * `maxDrawdownPct` is the paper's D: the worst peak-to-trough fall
+ * measured at month-end, as a positive magnitude. Intra-month falls are
+ * deeper; `BacktestFigure` says so wherever this renders.
+ *
+ * Absent when the site's implementation diverges from the paper the
+ * figure came from — publishing it would be a false citation.
+ */
+export type Backtest = {
+  variant: string;
+  periodStart: string; // YYYY-MM
+  periodEnd: string; // YYYY-MM
+  cagrPct: number;
+  maxDrawdownPct: number;
+  sourceLabel: string;
+};
+
 export type Strategy = {
   id: StrategyId;
   shortName: string;
@@ -34,6 +55,7 @@ export type Strategy = {
   paperUrl: string;
   paperYear: number;
   defaultUniverse: StrategyKind;
+  backtest?: Backtest;
 };
 
 export const STRATEGIES: readonly Strategy[] = [
@@ -54,6 +76,14 @@ export const STRATEGIES: readonly Strategy[] = [
       offensive: ['SPY', 'EFA', 'EEM', 'AGG'],
       defensive: ['LQD', 'IEF', 'SHY'],
     },
+    backtest: {
+      variant: 'VAA-G4 (T/B=1/1)',
+      periodStart: '1970-12',
+      periodEnd: '2016-12',
+      cagrPct: 18.9,
+      maxDrawdownPct: 13.0,
+      sourceLabel: 'Table 8',
+    },
   },
   {
     id: 'daa',
@@ -72,6 +102,14 @@ export const STRATEGIES: readonly Strategy[] = [
       canary: ['VWO', 'BND'],
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'VWO', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
       cash: ['SHY', 'IEF', 'LQD'],
+    },
+    backtest: {
+      variant: 'DAA-G12 (T=6, B=2)',
+      periodStart: '1970-12',
+      periodEnd: '2018-03',
+      cagrPct: 16.0,
+      maxDrawdownPct: 10.6,
+      sourceLabel: 'Fig. 8',
     },
   },
   {
@@ -92,6 +130,14 @@ export const STRATEGIES: readonly Strategy[] = [
       kind: 'paa',
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'HYG', 'LQD', 'TLT'],
       cash: ['IEF', 'SHY', 'LQD'],
+    },
+    backtest: {
+      variant: 'PAA2 (a=2, Top6, L=12)',
+      periodStart: '1970-12',
+      periodEnd: '2015-12',
+      cagrPct: 13.7,
+      maxDrawdownPct: 10.4,
+      sourceLabel: 'Fig. 6',
     },
   },
   {
@@ -114,6 +160,10 @@ export const STRATEGIES: readonly Strategy[] = [
       canary: 'TIP',
       cash: 'BIL',
     },
+    // No backtest row: HaaService computes 13612W, but the HAA paper
+    // specifies the unweighted 13612U (L=1) for all three universes.
+    // Restore the paper's Fig. 6 figures (R 15.9%, D 9.7%, Dec 1970 –
+    // Dec 2022) only once the filter matches.
   },
   {
     id: 'baa',
@@ -133,6 +183,14 @@ export const STRATEGIES: readonly Strategy[] = [
       canary: ['TIP', 'IEF', 'BIL'],
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
       cash: ['BIL', 'IEF', 'TLT', 'BND', 'LQD'],
+    },
+    backtest: {
+      variant: 'BAA-G12',
+      periodStart: '1970-12',
+      periodEnd: '2022-06',
+      cagrPct: 14.6,
+      maxDrawdownPct: 8.7,
+      sourceLabel: 'Fig. 3',
     },
   },
   {
@@ -155,6 +213,14 @@ export const STRATEGIES: readonly Strategy[] = [
       cash: 'SHY',
       signalEquity: 'SPY',
       unemploymentSeriesId: 'UNRATE',
+    },
+    backtest: {
+      variant: 'LAA (QQQ↔SHY)',
+      periodStart: '1949-02',
+      periodEnd: '2019-10',
+      cagrPct: 10.5,
+      maxDrawdownPct: 15.0,
+      sourceLabel: 'Fig. 12',
     },
   },
 ];
