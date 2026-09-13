@@ -22,6 +22,18 @@ export default function Home() {
         <StrategyComparison />
       </section>
 
+      <section className="learn-entry">
+        <h2 className="section-title">New To This?</h2>
+        <p className="learn-entry__body">
+          Four short lessons on why these rules exist, what they measure,
+          and what you would actually buy — starting from no background at
+          all.
+        </p>
+        <Link to="/learn" className="learn-entry__cta">
+          Start the course →
+        </Link>
+      </section>
+
       <section className="app-section">
         <h2 className="section-title">Take It With You</h2>
         <div className="app-compare">

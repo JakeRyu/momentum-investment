@@ -13,6 +13,9 @@ export default function Layout() {
           <NavLink to="/" end className={navClass}>
             Strategies
           </NavLink>
+          <NavLink to="/learn" className={navClass}>
+            Learn
+          </NavLink>
           <NavLink to="/about" className={navClass}>
             About
           </NavLink>
