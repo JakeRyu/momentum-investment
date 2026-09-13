@@ -125,17 +125,17 @@ public sealed class DaaG12Service : IAllocationStrategy<DaaG12Universe>
         var reasoning = b switch
         {
             0 =>
-                $"Both bellwether assets are trending up, so the strategy is fully " +
+                $"Both canary assets are trending up, so the strategy is fully " +
                 $"invested: the {t} strongest risky assets at {1.0m / T:P2} each — " +
                 $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.",
             1 =>
-                $"One of the two bellwether assets ({string.Join(", ", badCanaries)}) has " +
+                $"One of the two canary assets ({string.Join(", ", badCanaries)}) has " +
                 $"turned down, so the strategy is half invested: the {t} strongest risky " +
                 $"assets at {1.0m / T:P2} each — " +
                 $"{string.Join(", ", topRisky.Select(r => r.Ticker))} — with {cf:P0} in " +
                 $"{topCash!.Ticker}.",
             _ =>
-                $"Both bellwether assets have turned down, so the strategy has moved " +
+                $"Both canary assets have turned down, so the strategy has moved " +
                 $"fully into {topCash!.Ticker}.",
         };
 

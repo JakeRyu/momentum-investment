@@ -179,8 +179,8 @@ public sealed class PaaService : IAllocationStrategy<PaaUniverse>
             int threshold = N - (int)n1;
             reasoning =
                 $"Only {n} of {N} risky assets are above their 12-month average — at or below " +
-                $"the {threshold} this protection level allows — so the strategy has moved " +
-                $"fully into {topCash!.Ticker}.";
+                $"the {threshold}-asset threshold this protection level allows — so the " +
+                $"strategy has moved fully into {topCash!.Ticker}.";
         }
         else
         {

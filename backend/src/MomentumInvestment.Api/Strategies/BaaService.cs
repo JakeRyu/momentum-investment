@@ -97,7 +97,7 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
                 .ToList();
             modeLabel = "Offensive";
             reasoning =
-                $"All {canaryScores.Count} bellwether assets are trending up, so the strategy " +
+                $"All {canaryScores.Count} canary assets are trending up, so the strategy " +
                 $"holds the {T} strongest risky assets at {weight:P2} each — " +
                 $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
         }
@@ -112,7 +112,7 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
 
             var bad = canaryScores.Where(c => c.Score <= 0m).ToList();
             reasoning =
-                $"{bad.Count} of {canaryScores.Count} bellwether assets have turned down " +
+                $"{bad.Count} of {canaryScores.Count} canary assets have turned down " +
                 $"({string.Join(", ", bad.Select(c => c.Ticker))}) — this strategy needs every " +
                 $"one of them positive — so it has moved fully into {topCash.Ticker}.";
         }

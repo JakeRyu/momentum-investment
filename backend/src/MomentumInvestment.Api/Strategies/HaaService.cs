@@ -84,7 +84,7 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
             };
             modeLabel = "Defensive";
             reasoning =
-                $"The inflation-protected bellwether ({universe.Canary}) has turned down, which " +
+                $"The inflation-protected canary ({universe.Canary}) has turned down, which " +
                 $"this strategy reads as a rising-yield shock, so it has moved fully into " +
                 $"{universe.Cash}.";
         }
@@ -101,7 +101,7 @@ public sealed class HaaService : IAllocationStrategy<HaaUniverse>
                 .ToList();
             modeLabel = "Offensive";
             reasoning =
-                $"The inflation-protected bellwether ({universe.Canary}) is still trending up, " +
+                $"The inflation-protected canary ({universe.Canary}) is still trending up, " +
                 $"so the strategy holds the {T} strongest risky assets at {weight:P2} each — " +
                 $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
         }
