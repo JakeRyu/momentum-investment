@@ -3,8 +3,11 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import AppPromo from './components/AppPromo'
+import { LESSONS } from './lessons'
 import { STRATEGIES } from './strategies'
 import About from './routes/About'
+import Learn from './routes/Learn'
+import Lesson from './routes/Lesson'
 import Home from './routes/Home'
 import NotFound from './routes/NotFound'
 import Privacy from './routes/Privacy'
@@ -17,6 +20,8 @@ function renderAt(path: string) {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/strategies/:id" element={<StrategyPage />} />
+        <Route path="/learn" element={<Learn />} />
+        <Route path="/learn/:slug" element={<Lesson />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
@@ -54,5 +59,42 @@ describe('AppPromo', () => {
   it('describes what the app actually does', () => {
     render(<AppPromo />)
     expect(screen.getByText(/in force/i)).toBeInTheDocument()
+  })
+})
+
+describe('the course', () => {
+  it('lists every lesson on /learn', () => {
+    renderAt('/learn')
+    for (const l of LESSONS) {
+      expect(
+        screen.getByRole('link', { name: new RegExp(l.title.replace(/[?]/g, '\\?')) }),
+        l.slug,
+      ).toHaveAttribute('href', `/learn/${l.slug}`)
+    }
+  })
+
+  it.each(LESSONS.map((l) => l.slug))('serves /learn/%s', (slug) => {
+    const { container } = renderAt(`/learn/${slug}`)
+    expect(container.querySelector('.not-found')).toBeNull()
+  })
+
+  it('404s on a lesson that does not exist', () => {
+    const { container } = renderAt('/learn/how-to-get-rich')
+    expect(container.querySelector('.not-found')).not.toBeNull()
+  })
+
+  it('says where the reader is in the sequence', () => {
+    const { container } = renderAt('/learn/what-breadth-adds')
+    expect(container.textContent).toMatch(/Lesson 3 of 4/)
+  })
+
+  it('makes no forward-looking claim in any lesson body', () => {
+    for (const l of LESSONS) {
+      const { container, unmount } = renderAt(`/learn/${l.slug}`)
+      expect(container.textContent, l.slug).not.toMatch(
+        /will (?:return|earn|beat|grow|rise)|guarantee|is expected to return/i,
+      )
+      unmount()
+    }
   })
 })

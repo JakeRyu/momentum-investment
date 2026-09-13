@@ -978,6 +978,220 @@ hr {
   }
 }
 
+/* ─── Teaching register (Learn + Lesson) ──────────────────────────── */
+
+/* The newspaper setting — three justified columns, dense rules — is for
+   scanning a reference page. These pages are read start to finish, so
+   they get a single measure of ~65ch, no justification, and more air
+   between paragraphs. Same palette, same faces: this is a second voice
+   in the existing system, not a second system. */
+
+.learn header h1,
+.lesson__head h1 {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(38px, 6vw, 68px);
+  letter-spacing: -1.5px;
+  line-height: 1.02;
+  margin: 6px 0 18px;
+}
+
+.learn__eyebrow,
+.lesson__marker {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin: 12px 0 0;
+}
+
+.learn__lede {
+  font-size: 20px;
+  line-height: 1.5;
+  font-style: italic;
+  max-width: 58ch;
+  margin: 0 0 32px;
+}
+
+/* Contents */
+
+.learn__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--rule-thin);
+}
+.learn__list li {
+  border-bottom: 1px solid rgba(10, 10, 10, 0.15);
+}
+.learn__item {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 18px 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background 100ms ease;
+}
+.learn__item:hover {
+  background: var(--red-tint);
+}
+.learn__item:hover .learn__title {
+  color: var(--red);
+}
+.learn__number {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 26px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.learn__title {
+  display: block;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 23px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.learn__summary {
+  display: block;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  max-width: 58ch;
+}
+
+/* One lesson — rail beside a single reading column */
+
+.lesson {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.lesson__rail {
+  position: sticky;
+  top: 24px;
+  border-left: var(--rule-thin);
+  padding-left: 16px;
+}
+.lesson__rail ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.lesson__rail li {
+  margin-bottom: 12px;
+}
+.lesson__rail a {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--muted);
+  align-items: baseline;
+}
+.lesson__rail a:hover {
+  color: var(--red);
+}
+.lesson__rail-number {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lesson__rail-title {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.lesson__rail .is-current a {
+  color: var(--ink);
+}
+.lesson__rail .is-current .lesson__rail-number {
+  color: var(--red);
+}
+.lesson__rail .is-current .lesson__rail-title {
+  font-weight: 700;
+}
+
+.lesson__body {
+  max-width: 65ch;
+}
+.lesson__body p {
+  font-size: 18px;
+  line-height: 1.65;
+  margin: 0 0 20px;
+  text-align: left; /* not justified — this is prose to read, not to scan */
+}
+.lesson__body strong {
+  font-weight: 700;
+}
+
+.lesson__pager {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 40px;
+  padding-top: 18px;
+  border-top: var(--rule-thin);
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 16px;
+}
+.lesson__pager a {
+  color: var(--ink);
+  text-decoration: none;
+  max-width: 24ch;
+}
+.lesson__pager a:hover {
+  color: var(--red);
+}
+.lesson__next {
+  text-align: right;
+  margin-left: auto;
+}
+
+@media (max-width: 860px) {
+  .lesson {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  /* The rail becomes a horizontal strip of numbers above the lesson —
+     still a position indicator, no longer a table of contents. */
+  .lesson__rail {
+    position: static;
+    border-left: 0;
+    border-bottom: var(--rule-thin);
+    padding: 0 0 12px;
+  }
+  .lesson__rail ol {
+    display: flex;
+    gap: 14px;
+  }
+  .lesson__rail li {
+    margin-bottom: 0;
+  }
+  .lesson__rail-title {
+    display: none;
+  }
+  .lesson__rail a {
+    grid-template-columns: auto;
+  }
+  .lesson__rail-number {
+    font-size: 14px;
+  }
+  .lesson__body p {
+    font-size: 17px;
+  }
+}
+
 /* ─── Misc ───────────────────────────────────────────────────────── */
 
 .muted {
@@ -1126,4 +1340,34 @@ hr {
     gap: 24px;
   }
   .decision-spread__rationale { padding-top: 0; }
+}
+
+/* ─── Course entrance (Home) ──────────────────────────────────────── */
+
+.learn-entry {
+  border-top: var(--rule-heavy);
+  margin-top: 48px;
+  padding-top: 24px;
+}
+.learn-entry__body {
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 58ch;
+  margin: 0 0 18px;
+}
+.learn-entry__cta {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--ink);
+  padding: 8px 16px;
+}
+.learn-entry__cta:hover {
+  background: var(--ink);
+  color: var(--bg);
 }
