@@ -2,8 +2,9 @@ import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
 
 /**
  * Web-to-app funnel notice. The web tool intentionally stays on the US
- * paper universe at today's date; local-ticker mapping and per-date
- * decisions live in the iPhone app, so the CTA sends readers there.
+ * paper universe at today's date; local-ticker mapping and the in-force
+ * monthly allocation live in the iPhone app, so the CTA sends readers
+ * there.
  *
  * Strategy pages use the text link rather than Apple's badge — the badge's
  * black fill and rounded corners fight the Brutalist Quarterly grid at this
@@ -16,7 +17,8 @@ export default function AppPromo() {
       <p className="app-promo__body">
         This tool runs Keller's original US-ETF universe at today's date. The
         Momentum Investment iPhone app maps every asset class to local UCITS
-        alternatives (UK first) and runs any date you choose.
+        alternatives (UK first) and holds the allocation currently in force,
+        month to month.
       </p>
       <a
         className="app-promo__cta"
