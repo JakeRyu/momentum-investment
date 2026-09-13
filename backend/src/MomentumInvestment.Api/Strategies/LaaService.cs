@@ -153,19 +153,15 @@ public sealed class LaaService
         // existing badge colours apply without per-strategy theming.
         string modeLabel = riskOff ? "Defensive" : "Offensive";
 
-        string spyDirection = spyBearish ? "below" : "above";
-        string ueDirection = ueBearish ? "above" : "below";
         string reasoning = riskOff
-            ? $"GT timing both signals bearish: {universe.SignalEquity} {spyDirection} SMA{SpyTrendWindow} " +
-              $"({spyClose:F2} vs {spySma:F2}) AND {universe.UnemploymentSeriesId} {ueDirection} SMA{UeTrendWindow} " +
-              $"({ueValue:F2} vs {ueSma:F2}). " +
-              $"Risk-Off: 25% each in {string.Join(", ", universe.Permanent)} (permanent sleeve) " +
-              $"plus 25% in {universe.Cash} (cash, replacing {universe.Risky})."
-            : $"GT timing not both bearish: {universe.SignalEquity} {spyDirection} SMA{SpyTrendWindow} " +
-              $"({spyClose:F2} vs {spySma:F2}); {universe.UnemploymentSeriesId} {ueDirection} SMA{UeTrendWindow} " +
-              $"({ueValue:F2} vs {ueSma:F2}). " +
-              $"Risk-On: 25% each in {string.Join(", ", universe.Permanent)} (permanent sleeve) " +
-              $"plus 25% in {universe.Risky}.";
+            ? $"Both slow signals have turned: {universe.SignalEquity} is below its " +
+              $"{SpyTrendWindow}-day average and unemployment is above its " +
+              $"{UeTrendWindow}-month average. The permanent quarter-shares in " +
+              $"{string.Join(", ", universe.Permanent)} stay, and the rotating quarter moves " +
+              $"to {universe.Cash} instead of {universe.Risky}."
+            : $"The two slow signals are not both negative, so the rotating quarter stays in " +
+              $"{universe.Risky}, alongside permanent quarter-shares in " +
+              $"{string.Join(", ", universe.Permanent)}.";
 
         return new AllocationDecision(
             StrategyId: StrategyId,

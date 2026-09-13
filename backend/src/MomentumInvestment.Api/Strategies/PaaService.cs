@@ -169,27 +169,27 @@ public sealed class PaaService : IAllocationStrategy<PaaUniverse>
         {
             modeLabel = "Offensive";
             reasoning =
-                $"All {N} risky assets have positive SMA12 momentum. " +
-                $"Offensive mode: top {T} at {1m / T:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))}.";
+                $"All {N} risky assets are above their 12-month average, so the strategy " +
+                $"holds the {T} strongest at {1m / T:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))}.";
         }
         else if (bf >= 1m)
         {
             modeLabel = "Defensive";
             int threshold = N - (int)n1;
             reasoning =
-                $"Only {n} of {N} risky assets have positive momentum " +
-                $"(≤ {threshold}, the PAA{a} protection threshold). " +
-                $"Defensive mode: 100% in top cash {topCash!.Ticker} ({topCash.Score:F4}).";
+                $"Only {n} of {N} risky assets are above their 12-month average — at or below " +
+                $"the {threshold} this protection level allows — so the strategy has moved " +
+                $"fully into {topCash!.Ticker}.";
         }
         else
         {
             modeLabel = "Hybrid";
             reasoning =
-                $"{n} of {N} risky assets have positive SMA12 momentum. " +
-                $"Hybrid mode: top {t} risky at {riskyWeight:P2} each — " +
-                $"{string.Join(", ", topRisky.Select(r => $"{r.Ticker} ({r.Score:F4})"))} — " +
-                $"plus {cashFraction:P0} in top cash {topCash!.Ticker} ({topCash.Score:F4}).";
+                $"{n} of {N} risky assets are above their 12-month average, so the strategy is " +
+                $"partly invested: the {t} strongest at {riskyWeight:P2} each — " +
+                $"{string.Join(", ", topRisky.Select(r => r.Ticker))} — with {cashFraction:P0} " +
+                $"in {topCash!.Ticker}.";
         }
 
         return new AllocationDecision(
