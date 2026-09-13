@@ -213,29 +213,26 @@ export const STRATEGIES: readonly Strategy[] = [
       deRisks: 'all at once',
     },
     longDescription: [
-      "BAA tightens DAA's canary gate into a 'unanimous AND' rule: all three canaries (TIP, IEF, BIL) must show positive 13612W momentum to enter offensive mode. A single bearish canary forces the strategy to 100% in the single best-scoring cash asset, ranked by SMA12 momentum across BIL, IEF, TLT, BND, and LQD.",
-      'When all three canaries are bullish, BAA holds the top six of twelve risky assets at 1/6 each — same risky universe as DAA-G12. The dual-signal design (13612W for canary/risky, SMA12 for cash) and the strict canary gate combine to produce more defensive activations than DAA, which is the whole point: aggressive in clear uptrends, decisively defensive at the first hint of macro stress.',
+      "BAA tightens DAA's canary gate into a 'unanimous AND' rule: all four canaries (SPY, VWO, VEA, BND) must show positive 13612W momentum to enter offensive mode. A single bearish canary sends the whole portfolio into the defensive sleeve — the top three of seven bond-and-hedge assets by SMA12, equally weighted, with any pick trailing BIL replaced by BIL itself.",
+      'When all four canaries are bullish, BAA holds the top six of twelve risky assets at 1/6 each. The dual-signal design is the point: a fast 13612W filter on the canary so the gate reacts quickly, and a slow SMA12 ranking on both sleeves so the holdings themselves turn over less. Unlike HAA, a falling asset that still ranks in the top six is held — the paper applies no absolute-momentum filter to the offensive selection.',
     ],
     paperTitle: 'Bold Asset Allocation: A Tactical Asset Allocation Strategy with Aggressive Crash Protection',
     paperUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4166845',
     paperYear: 2022,
     defaultUniverse: {
       kind: 'baa',
-      canary: ['TIP', 'IEF', 'BIL'],
-      risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
-      cash: ['BIL', 'IEF', 'TLT', 'BND', 'LQD'],
+      canary: ['SPY', 'VWO', 'VEA', 'BND'],
+      risky: ['SPY', 'QQQ', 'IWM', 'VGK', 'EWJ', 'VWO', 'VNQ', 'DBC', 'GLD', 'TLT', 'HYG', 'LQD'],
+      cash: ['TIP', 'DBC', 'BIL', 'IEF', 'TLT', 'LQD', 'BND'],
     },
-    // No backtest row: BaaService's canary/ranking/breadth diverge from
-    // Fig 3's BAA-G12, and the canary universe is the crash-protection
-    // mechanism, so the paper's figure doesn't describe what this site
-    // computes.
-    //   - Canary: paper uses SPY/VWO/VEA/BND (NP=4); site uses TIP/IEF/BIL.
-    //   - Ranking: paper ranks risky assets by SMA12 (LO=12); site uses
-    //     13612W.
-    //   - Defensive breadth: paper takes top-3 of a 7-asset defensive set
-    //     (ND=7, TD=3); site takes top-1 of 5.
-    // Restore the paper's Fig 3 figures (R 14.6%, D 8.7%, Dec 1970 – Jun
-    // 2022) only once BaaService is reconciled with these three.
+    backtest: {
+      variant: 'BAA-G12',
+      periodStart: '1970-12',
+      periodEnd: '2022-06',
+      cagrPct: 14.6,
+      maxDrawdownPct: 8.7,
+      sourceLabel: 'Fig 3',
+    },
   },
   {
     id: 'laa',

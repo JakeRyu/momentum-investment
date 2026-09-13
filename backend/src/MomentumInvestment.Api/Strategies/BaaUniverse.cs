@@ -32,11 +32,16 @@ public sealed record BaaUniverse(
     /// Original Keller 2022 universe — US-listed ETFs.
     /// </summary>
     public static readonly BaaUniverse Us = new(
-        Canary: new[] { "TIP", "IEF", "BIL" },
+        // SelP in the paper's fig 3 — four risk assets, not bonds. The
+        // canary is what detects the crash, so its composition is the
+        // strategy's crash-protection mechanism.
+        Canary: new[] { "SPY", "VWO", "VEA", "BND" },
         Risky:  new[]
         {
-            "SPY", "IWM", "QQQ", "VGK", "EWJ", "EEM",
-            "VNQ", "GSG", "GLD", "TLT", "HYG", "LQD",
+            "SPY", "QQQ", "IWM", "VGK", "EWJ", "VWO",
+            "VNQ", "DBC", "GLD", "TLT", "HYG", "LQD",
         },
-        Cash:   new[] { "BIL", "IEF", "TLT", "BND", "LQD" });
+        // ND=7: every bond except risky HYG, plus TIP and DBC as hedges
+        // for rising yields and inflation.
+        Cash:   new[] { "TIP", "DBC", "BIL", "IEF", "TLT", "LQD", "BND" });
 }

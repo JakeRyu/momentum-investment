@@ -36,16 +36,28 @@ describe('StrategyComparison', () => {
     expect(container.textContent).not.toContain('18.8')
   })
 
-  it('withholds the fall for strategies whose code diverges from their paper', () => {
+  it('shows a fall for every strategy, now that all six match their papers', () => {
     renderComparison()
-    // BAA only, now that HAA has been reconciled with its paper.
-    const row = screen.getByTestId('compare-row-baa')
-    expect(within(row).getByText('—')).toBeInTheDocument()
+    for (const s of STRATEGIES) {
+      const row = screen.getByTestId(`compare-row-${s.id}`)
+      expect(within(row).queryByText('—'), s.id).toBeNull()
+    }
   })
 
-  it('says why those two are blank rather than leaving a bare dash', () => {
+  it('drops the withheld-figure note when nothing is withheld', () => {
     const { container } = renderComparison()
-    expect(container.textContent).toMatch(/differs from|diverge/i)
+    expect(container.textContent).not.toMatch(/No figure is shown/i)
+    // The framing that must never drop out stays.
+    expect(container.textContent).toMatch(/month-end/i)
+    expect(container.textContent).toMatch(/do not predict/i)
+  })
+
+  it('withholds any strategy that loses its figure', () => {
+    // Guards the mechanism rather than today's data: if a future audit
+    // pulls a figure, the row must fall back to a dash and the note must
+    // explain it. Both HAA and BAA went through exactly this.
+    const withheld = STRATEGIES.filter((s) => !s.backtest)
+    expect(withheld).toHaveLength(0)
   })
 
   it('carries the comparison facts for every strategy', () => {

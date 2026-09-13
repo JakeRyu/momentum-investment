@@ -30,6 +30,15 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
     /// <summary>Top-risky selection parameter when offensive. T=6 of 12.</summary>
     public const int T = 6;
 
+    /// <summary>Defensive selection size (paper: TD=3).</summary>
+    public const int TD = 3;
+
+    /// <summary>
+    /// A defensive pick scoring below this asset is replaced by it —
+    /// the absolute-momentum floor on the Top-3 (paper, step 3).
+    /// </summary>
+    public const string CashFloorTicker = "BIL";
+
     private readonly ILogger<BaaService> _logger;
 
     public BaaService(ILogger<BaaService>? logger = null)
@@ -49,13 +58,15 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
         var thirteen612WByTicker = new Dictionary<string, decimal>();
         var sma12ByTicker = new Dictionary<string, decimal>();
 
-        // 13612W is needed for canary + risky.
-        foreach (var ticker in universe.Canary.Concat(universe.Risky).Distinct())
+        // 13612W is the fast filter, and the paper uses it for the
+        // canary only (LP=0). Ranking both sleeves is the slow SMA12
+        // (LO=LD=12) — "slow relative momentum with fast absolute
+        // momentum" is the whole design.
+        foreach (var ticker in universe.Canary)
         {
             thirteen612WByTicker[ticker] = MomentumScorer.Score13612W(ticker, asOf, dailyByTicker, _logger);
         }
-        // SMA12 is needed for cash only.
-        foreach (var ticker in universe.Cash)
+        foreach (var ticker in universe.Risky.Concat(universe.Cash).Distinct())
         {
             sma12ByTicker[ticker] = MomentumScorer.ScoreSMA12(ticker, asOf, dailyByTicker, _logger);
         }
@@ -64,7 +75,7 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
             .Select(t => new AssetMomentum(t, thirteen612WByTicker[t], Bucket: "Canary"))
             .ToList();
         var riskyScores = universe.Risky
-            .Select(t => new AssetMomentum(t, thirteen612WByTicker[t], Bucket: "Risky"))
+            .Select(t => new AssetMomentum(t, sma12ByTicker[t], Bucket: "Risky"))
             .ToList();
         var cashScores = universe.Cash
             .Select(t => new AssetMomentum(t, sma12ByTicker[t], Bucket: "Cash"))
@@ -103,18 +114,47 @@ public sealed class BaaService : IAllocationStrategy<BaaUniverse>
         }
         else
         {
-            var topCash = cashScores.OrderByDescending(s => s.Score).First();
-            allocations = new List<Allocation>
+            // TD=3 by SMA12, then absolute momentum: a pick whose score
+            // is below BIL's own is not worth holding over cash, so it
+            // becomes BIL. Several slots can collapse onto BIL, so the
+            // weights are summed per ticker rather than listed twice.
+            var topCash = cashScores
+                .OrderByDescending(s => s.Score)
+                .Take(TD)
+                .ToList();
+
+            var bilScore = cashScores.FirstOrDefault(s =>
+                string.Equals(s.Ticker, CashFloorTicker, StringComparison.OrdinalIgnoreCase));
+
+            decimal cashWeight = 1m / TD;
+            var byTicker = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+            int replaced = 0;
+            foreach (var pick in topCash)
             {
-                new Allocation(topCash.Ticker, 1m),
-            };
+                var ticker = pick.Ticker;
+                if (bilScore is not null && pick.Score < bilScore.Score)
+                {
+                    ticker = bilScore.Ticker;
+                    replaced++;
+                }
+                byTicker[ticker] = byTicker.TryGetValue(ticker, out var w) ? w + cashWeight : cashWeight;
+            }
+
+            allocations = byTicker
+                .Select(kv => new Allocation(kv.Key, kv.Value))
+                .ToList();
             modeLabel = "Defensive";
 
             var bad = canaryScores.Where(c => c.Score <= 0m).ToList();
             reasoning =
                 $"{bad.Count} of {canaryScores.Count} canary assets have turned down " +
                 $"({string.Join(", ", bad.Select(c => c.Ticker))}) — this strategy needs every " +
-                $"one of them positive — so it has moved fully into {topCash.Ticker}.";
+                $"one of them rising — so it has moved fully into the defensive sleeve: " +
+                $"{string.Join(", ", allocations.Select(a => a.Ticker))}" +
+                (replaced > 0
+                    ? $", with {replaced} of the {TD} slots falling back to {CashFloorTicker} for " +
+                      $"trailing {CashFloorTicker} itself."
+                    : ".");
         }
 
         return new AllocationDecision(

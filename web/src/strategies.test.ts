@@ -9,21 +9,13 @@ describe('backtest figures', () => {
       daa: { variant: 'DAA-G12 (T=6, B=2)', periodStart: '1970-12', periodEnd: '2018-03', cagrPct: 16.0, maxDrawdownPct: 10.6, sourceLabel: 'Fig. 8' },
       paa: { variant: 'PAA2 (a=2, Top6, L=12); site adds SHY and LQD to the cash sleeve', periodStart: '1970-12', periodEnd: '2015-12', cagrPct: 13.7, maxDrawdownPct: 10.4, sourceLabel: 'Fig. 6' },
       haa: { variant: 'HAA-Balanced (G8/T4, L=1)', periodStart: '1970-12', periodEnd: '2022-12', cagrPct: 15.9, maxDrawdownPct: 9.7, sourceLabel: 'Fig 6' },
+      baa: { variant: 'BAA-G12', periodStart: '1970-12', periodEnd: '2022-06', cagrPct: 14.6, maxDrawdownPct: 8.7, sourceLabel: 'Fig 3' },
       laa: { variant: 'LAA (QQQ↔SHY); site times SPY with a 200-day SMA, the paper with a 10-month SMA', periodStart: '1949-02', periodEnd: '2019-10', cagrPct: 10.5, maxDrawdownPct: 15.0, sourceLabel: 'Fig. 12' },
     }
 
     for (const [id, figures] of Object.entries(expected)) {
       expect(findStrategy(id)?.backtest, id).toEqual(figures)
     }
-  })
-
-  it('withholds BAA until its canary/ranking/breadth match the paper', () => {
-    // BaaService's canary (TIP/IEF/BIL vs paper's SPY/VWO/VEA/BND), risky
-    // ranking (13612W vs paper's SMA12) and defensive breadth (top-1 of 5
-    // vs paper's top-3 of 7) all diverge from Fig 3's BAA-G12, and the
-    // canary universe is the crash-protection mechanism. Restore this row
-    // only once BaaService is reconciled with the paper.
-    expect(findStrategy('baa')?.backtest).toBeUndefined()
   })
 
   it('reports every drawdown as a positive magnitude', () => {
@@ -83,7 +75,7 @@ describe('fundsNeeded', () => {
       daa: 14, // 12 risky + SHY, IEF
       paa: 14, // 12 risky + IEF, SHY
       haa: 9, // 8 risky + BIL (IEF is already in the risky sleeve)
-      baa: 15, // 12 risky + BIL, IEF, BND
+      baa: 16, // 12 risky + TIP, BIL, IEF, BND
       laa: 5, // IWD, GLD, IEF + QQQ, SHY
     }
 
