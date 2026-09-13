@@ -195,60 +195,144 @@ hr {
   padding-top: 28px;
 }
 
-/* ─── Strategy grid (Home) ────────────────────────────────────────── */
+/* ─── Strategy comparison (Home) ──────────────────────────────────── */
 
-.grid {
-  display: grid;
-  gap: 0;
+/* Rule weight carries the hierarchy: the heavy rule marks the section
+   boundary (see DESIGN.md) and rows are separated by hairlines, so six
+   rows read as one table rather than six stacked sections. */
+
+.strategies-section__title {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: clamp(32px, 5vw, 52px);
+  letter-spacing: -1px;
+  margin: 0 0 14px;
 }
-.strategy-grid {
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+
+.compare__lede {
+  font-size: 19px;
+  line-height: 1.45;
+  font-style: italic;
+  max-width: 58ch;
+  margin: 0 0 26px;
+}
+
+.compare__list {
   border-top: var(--rule-thin);
-  border-left: var(--rule-thin);
 }
 
-.card {
-  display: block;
-  padding: 22px 20px;
-  background: var(--bg);
-  border-right: var(--rule-thin);
+.compare__head,
+.compare__row {
+  display: grid;
+  grid-template-columns: minmax(210px, 1.6fr) 0.9fr 0.7fr 1fr 0.5fr;
+  gap: 20px;
+  align-items: baseline;
+}
+
+.compare__head {
+  padding: 10px 0 8px;
   border-bottom: var(--rule-thin);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.compare__row {
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.15);
   color: inherit;
   text-decoration: none;
   transition: background 100ms ease;
 }
-.card:hover {
+.compare__row:hover {
   background: var(--red-tint);
-  color: var(--ink);
 }
-.card:hover .strategy-card__short {
+.compare__row:hover .compare__short {
   color: var(--red);
 }
 
-.strategy-card__head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-bottom: 10px;
+.compare__name {
+  display: block;
 }
-.strategy-card__short {
-  font-family: var(--mono);
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: 1px;
-  color: var(--ink);
-}
-.strategy-card__full {
+.compare__short {
+  display: block;
   font-family: var(--display);
   font-style: italic;
-  font-size: 15px;
-  color: var(--ink-soft);
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  color: var(--ink);
 }
-.strategy-card__tagline {
+.compare__full {
+  display: block;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 3px 0 6px;
+}
+.compare__tagline {
+  display: block;
   font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
+  line-height: 1.45;
   color: var(--ink-soft);
+  max-width: 34ch;
+}
+
+.compare__fact {
+  display: block;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+/* The per-row label only appears at narrow widths, where the header row
+   is hidden. */
+.compare__fact-label {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.compare__fact-value {
+  display: block;
+}
+.compare__fact--lead .compare__fact-value {
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--red);
+}
+
+.compare__note {
+  margin: 18px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 72ch;
+}
+
+@media (max-width: 760px) {
+  .compare__head {
+    display: none;
+  }
+  .compare__row {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    padding: 22px 0;
+  }
+  .compare__name {
+    grid-column: 1 / -1;
+  }
+  .compare__fact-label {
+    display: block;
+    margin-bottom: 2px;
+  }
 }
 
 /* ─── Strategy page ──────────────────────────────────────────────── */

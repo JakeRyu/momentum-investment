@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
-import StrategyGrid from '../components/StrategyGrid'
+import StrategyComparison from '../components/StrategyComparison'
 
 export default function Home() {
   return (
@@ -18,7 +18,8 @@ export default function Home() {
       </section>
 
       <section id="strategies" className="strategies-section">
-        <StrategyGrid />
+        <h2 className="strategies-section__title">Compare The Six</h2>
+        <StrategyComparison />
       </section>
 
       <section className="app-section">
