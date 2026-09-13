@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 
 import AppPromo from '../components/AppPromo'
+import BacktestFigure from '../components/BacktestFigure'
 import DecisionTool from '../components/DecisionTool'
 import { findStrategy, type Strategy } from '../strategies'
 
@@ -38,6 +39,8 @@ export default function StrategyPage() {
         </em>{' '}
         — {strategy.paperYear}
       </p>
+
+      {strategy.backtest && <BacktestFigure backtest={strategy.backtest} />}
 
       <div className="strategy-page__rule-heavy" />
 
