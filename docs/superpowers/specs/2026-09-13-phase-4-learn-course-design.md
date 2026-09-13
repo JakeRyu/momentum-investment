@@ -164,9 +164,13 @@ implementation plan.
 6. **Drawdown — why these strategies exist.** The three-layer
    structure above: design intent (Keller's own target), verified
    figures, then the honest limits.
-7. **Choosing one.** The phase 3 comparison table, reached after the
-   reader can parse its axes. Keeps the "start with VAA for
-   simplicity" recommendation and its non-performance rationale.
+7. **Choosing one.** A comparison of the six, reached after the reader
+   can parse its axes. Reuses phase 3's comparison **data** (`holds`,
+   `deRisks`, `fundsNeeded`) and its "start with VAA for simplicity"
+   recommendation with the non-performance rationale intact — but
+   needs a **new presentation**: phase 3's row layout is the rejected
+   design. Gains a fourth axis once available, the backtest drawdown,
+   which is the axis a beginner actually came for.
 8. **Running it.** Hands off to the live decision tool and the app.
 
 Lessons 2–4 and 6 are teaching pages. Lessons 1, 5, 7, 8 are
@@ -246,12 +250,25 @@ correction.
 
 ## Open questions
 
-1. **Branching.** Phase 3 sits unpushed on `feat/web-funnel`. Phase 4
-   builds on phase 3's content (the comparison table, the plain-language
-   reasoning) and partly supersedes it (About gets reduced, Home gets
-   restructured). Stacking Phase 4 on an unmerged branch reproduces the
-   `#11 → #12` conflict recorded in project memory. Recommend merging
-   phase 3 first, then branching phase 4 from `main`.
+1. **Branching — decided (2026-09-13).** Phase 3's *design* is
+   rejected and will not ship. Phase 4 branches fresh from `main`;
+   `feat/web-funnel` is abandoned rather than merged.
+
+   Phase 3's **language** is not rejected, and is carried across
+   deliberately rather than rewritten:
+
+   | Phase 3 commit | Disposition |
+   |---|---|
+   | `cd7c10c` plain-language reasoning, 6 services | **Cherry-pick whole** — backend only, no design |
+   | `b5dabad` review fixes (backend portion) | **Cherry-pick** the 4 service files |
+   | `0441cb6` taglines + comparison facts in `strategies.ts` | **Carry the data**, drop the card wiring |
+   | `b406612`, `3b5829c`, `c5af564` About concept copy | **Carry the prose** into lessons 2–3 |
+   | `5610d33` "One Signal a Month" prose | **Carry the prose** into lesson 4 |
+   | `2773531` `StrategyComparison.tsx` + 89 CSS lines + Home wiring | **Drop** — this is the rejected design |
+   | CSS fragments in `5610d33`, `b5dabad` | **Drop** |
+
+   The separation is clean: the rejected design is essentially one
+   commit, and the backend work contains no presentation code.
 2. **HAA implements a different momentum filter than its paper.**
    Blocking for the HAA backtest row, and a correctness issue beyond
    this phase.
@@ -275,13 +292,14 @@ correction.
    to make honest. It also undercuts the site's core promise,
    "computed from the published rules on live market data."
 
-   Deliberately **not** fixed in this phase: it changes live output
-   for HAA, including in the shipped app, so it needs its own decision
-   and its own regression tests (`HaaServiceTests.cs` currently pins
-   the 13612W behaviour). Options are (a) fix the filter and publish
-   the paper figure, (b) leave the filter and omit HAA's figure with a
-   stated reason, or (c) fix the filter first as a separate change and
-   let phase 4 follow.
+   **Decided (2026-09-13): handled as a separate change, before or
+   alongside phase 4 — not inside it.** It changes live output for
+   HAA, including in the shipped app, so it carries its own decision,
+   its own regression tests (`HaaServiceTests.cs` currently pins the
+   13612W behaviour), and its own release. Phase 4 must not publish
+   HAA's backtest row until that change has landed; until then the HAA
+   row is withheld with a stated reason rather than printed against a
+   divergent implementation.
 
    Separately, the paper's Fig. 6 defensive universe is `BIL, IEF`
    (`ND=2, TD=1`) while the site uses `BIL` only. This one is
