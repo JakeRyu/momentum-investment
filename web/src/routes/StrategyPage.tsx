@@ -22,7 +22,7 @@ export default function StrategyPage() {
 
       <div className="strategy-page__rule-thin" />
 
-      <p className="strategy-page__lede">{strategy.blurb}</p>
+      <p className="strategy-page__lede">{strategy.tagline}</p>
 
       <div className="strategy-page__body">
         {strategy.longDescription.map((para, i) => (

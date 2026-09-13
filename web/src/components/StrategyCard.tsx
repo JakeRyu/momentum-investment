@@ -9,7 +9,7 @@ export default function StrategyCard({ strategy }: { strategy: Strategy }) {
         <span className="strategy-card__short">{strategy.shortName}</span>
         <span className="strategy-card__full">{strategy.fullName}</span>
       </div>
-      <p className="strategy-card__blurb">{strategy.blurb}</p>
+      <p className="strategy-card__tagline">{strategy.tagline}</p>
     </Link>
   )
 }
