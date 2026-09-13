@@ -76,13 +76,17 @@ export const STRATEGIES: readonly Strategy[] = [
       offensive: ['SPY', 'EFA', 'EEM', 'AGG'],
       defensive: ['LQD', 'IEF', 'SHY'],
     },
+    // Table 8's 18.9%/13.0% is the paper's backtest on VEA/VWO/BND, not
+    // this site's ticker set (note 13). Note 16 reruns VAA-G4 on
+    // SPY/EFA/EEM/AGG — the universe this site runs — giving the figures
+    // below.
     backtest: {
-      variant: 'VAA-G4 (T/B=1/1)',
+      variant: 'VAA-G4 on SPY/EFA/EEM/AGG',
       periodStart: '1970-12',
       periodEnd: '2016-12',
-      cagrPct: 18.9,
-      maxDrawdownPct: 13.0,
-      sourceLabel: 'Table 8',
+      cagrPct: 18.8,
+      maxDrawdownPct: 16.4,
+      sourceLabel: 'note 16',
     },
   },
   {
@@ -132,7 +136,7 @@ export const STRATEGIES: readonly Strategy[] = [
       cash: ['IEF', 'SHY', 'LQD'],
     },
     backtest: {
-      variant: 'PAA2 (a=2, Top6, L=12)',
+      variant: 'PAA2 (a=2, Top6, L=12); site adds SHY and LQD to the cash sleeve',
       periodStart: '1970-12',
       periodEnd: '2015-12',
       cagrPct: 13.7,
@@ -184,14 +188,17 @@ export const STRATEGIES: readonly Strategy[] = [
       risky: ['SPY', 'IWM', 'QQQ', 'VGK', 'EWJ', 'EEM', 'VNQ', 'GSG', 'GLD', 'TLT', 'HYG', 'LQD'],
       cash: ['BIL', 'IEF', 'TLT', 'BND', 'LQD'],
     },
-    backtest: {
-      variant: 'BAA-G12',
-      periodStart: '1970-12',
-      periodEnd: '2022-06',
-      cagrPct: 14.6,
-      maxDrawdownPct: 8.7,
-      sourceLabel: 'Fig. 3',
-    },
+    // No backtest row: BaaService's canary/ranking/breadth diverge from
+    // Fig 3's BAA-G12, and the canary universe is the crash-protection
+    // mechanism, so the paper's figure doesn't describe what this site
+    // computes.
+    //   - Canary: paper uses SPY/VWO/VEA/BND (NP=4); site uses TIP/IEF/BIL.
+    //   - Ranking: paper ranks risky assets by SMA12 (LO=12); site uses
+    //     13612W.
+    //   - Defensive breadth: paper takes top-3 of a 7-asset defensive set
+    //     (ND=7, TD=3); site takes top-1 of 5.
+    // Restore the paper's Fig 3 figures (R 14.6%, D 8.7%, Dec 1970 – Jun
+    // 2022) only once BaaService is reconciled with these three.
   },
   {
     id: 'laa',
@@ -215,7 +222,7 @@ export const STRATEGIES: readonly Strategy[] = [
       unemploymentSeriesId: 'UNRATE',
     },
     backtest: {
-      variant: 'LAA (QQQ↔SHY)',
+      variant: 'LAA (QQQ↔SHY); site times SPY with a 200-day SMA, the paper with a 10-month SMA',
       periodStart: '1949-02',
       periodEnd: '2019-10',
       cagrPct: 10.5,

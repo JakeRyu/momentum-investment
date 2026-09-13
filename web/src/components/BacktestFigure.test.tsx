@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import type { Backtest } from '../strategies'
+import { STRATEGIES, type Backtest } from '../strategies'
 
 import BacktestFigure from './BacktestFigure'
 
@@ -51,3 +51,29 @@ describe('BacktestFigure', () => {
     expect(screen.getByText('−13.0%')).toBeInTheDocument()
   })
 })
+
+const strategiesWithBacktest = STRATEGIES.filter((s) => s.backtest)
+
+describe.each(strategiesWithBacktest)('BacktestFigure ($id)', (strategy) => {
+  const backtest = strategy.backtest as Backtest
+
+  it('carries the period, the word "backtest", the month-end qualifier and the no-prediction line', () => {
+    const { container } = render(<BacktestFigure backtest={backtest} />)
+    expect(container.textContent).toMatch(/backtest/i)
+    expect(container.textContent).toMatch(/month-end/i)
+    expect(container.textContent).toMatch(/do not predict/i)
+    expect(
+      screen.getByText(new RegExp(`${formatMonth(backtest.periodStart)} – ${formatMonth(backtest.periodEnd)}`))
+    ).toBeInTheDocument()
+  })
+})
+
+/** "1970-12" → "Dec 1970". Mirrors BacktestFigure's own formatter. */
+function formatMonth(ym: string): string {
+  const MONTHS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  ]
+  const [year, month] = ym.split('-')
+  return `${MONTHS[Number(month) - 1]} ${year}`
+}

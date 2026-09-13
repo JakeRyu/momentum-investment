@@ -17,7 +17,7 @@ function renderAt(path: string) {
 describe('StrategyPage backtest block', () => {
   it('shows the drawdown for a strategy that matches its paper', () => {
     renderAt('/strategies/vaa')
-    expect(screen.getByText('−13.0%')).toBeInTheDocument()
+    expect(screen.getByText('−16.4%')).toBeInTheDocument()
   })
 
   it('omits the block for HAA, whose filter diverges from the paper', () => {

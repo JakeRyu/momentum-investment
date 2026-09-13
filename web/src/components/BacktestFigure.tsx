@@ -36,11 +36,14 @@ export default function BacktestFigure({ backtest }: { backtest: Backtest }) {
         </div>
       </div>
 
+      <p className="backtest__predict">
+        Backtested results do not predict future returns.
+      </p>
+
       <p className="backtest__note">
         {backtest.variant}, as reported in the source paper (
         {backtest.sourceLabel}). The fall is measured at month-end — within
-        a month it ran deeper. Backtested results do not predict future
-        returns.
+        a month it ran deeper.
       </p>
     </figure>
   )

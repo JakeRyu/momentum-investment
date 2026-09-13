@@ -866,8 +866,14 @@ hr {
 .backtest__value--fall {
   color: var(--red);
 }
-.backtest__note {
+.backtest__predict {
   margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.backtest__note {
+  margin: 8px 0 0;
   font-size: 13px;
   line-height: 1.5;
   font-style: italic;

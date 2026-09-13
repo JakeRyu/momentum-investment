@@ -58,12 +58,25 @@ this site actually implements, on the paper's full-sample period.
 
 | Strategy | Paper variant | Period | CAGR | MaxDD | Source |
 |---|---|---|---|---|---|
-| VAA | VAA-G4 (T/B=1/1) | Dec 1970 – Dec 2016 | 18.9% | 13.0% | Table 8 |
+| VAA | VAA-G4 on SPY/EFA/EEM/AGG | Dec 1970 – Dec 2016 | 18.8% | 16.4% | note 16 |
 | DAA | DAA-G12 (T=6, B=2) | Dec 1970 – Mar 2018 | 16.0% | 10.6% | Fig. 8 |
 | PAA | PAA2 (a=2, Top6, L=12) | Dec 1970 – Dec 2015 | 13.7% | 10.4% | Fig. 6 |
 | HAA | HAA-Balanced (G8/T4) | Dec 1970 – Dec 2022 | 15.9% | 9.7% | Fig. 6 |
-| BAA | BAA-G12 | Dec 1970 – Jun 2022 | 14.6% | 8.7% | Fig. 3 |
+| BAA | *(withheld)* | — | — | — | — |
 | LAA | LAA (QQQ↔SHY) | Feb 1949 – Oct 2019 | 10.5% | 15.0% | Fig. 12 |
+
+VAA's Table 8 (18.9%/13.0%) is the paper's backtest on VEA/VWO/BND
+(note 13), not this site's ticker set. Note 16 reruns VAA-G4 on
+SPY/EFA/EEM/AGG — the universe this site runs — giving the figures
+above.
+
+BAA is withheld: the paper's Fig 3 canary (SPY/VWO/VEA/BND, NP=4),
+risky ranking (SMA12, LO=12) and defensive breadth (top-3 of a
+7-asset set) all diverge from `BaaService` (TIP/IEF/BIL canary,
+13612W ranking, top-1 of 5), and the canary universe is the
+crash-protection mechanism — so Fig 3's 14.6%/8.7% doesn't describe
+what the site computes. Restore it only once `BaaService` is
+reconciled with the paper.
 
 Benchmarks over comparable spans: S&P 500 buy-and-hold `D = 50.8%`,
 60/40 `D = 29.4–29.5%`.
@@ -100,7 +113,7 @@ believes "here is when it broke" more readily than "under 20%."
 
 Allowed: "The papers set out to keep the worst fall under 20%. In the
 published backtests of the variants this site runs, the worst
-month-end fall ranged 8.7% to 15.0%, against 50.8% for holding the
+month-end fall ranged 10.4% to 16.4%, against 50.8% for holding the
 S&P 500 over the same decades."
 
 Forbidden: any sentence where the site — rather than a cited paper —
