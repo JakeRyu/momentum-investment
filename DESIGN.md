@@ -44,6 +44,22 @@ Three faces. Mix aggressively.
 IBM Plex Mono is loaded via Google Fonts in `web/index.html`. The serif
 faces fall back to system Times/Georgia — close enough at our sizes.
 
+### Heading tiers
+
+Three, kept deliberately apart. Collapsing them is what flattens a page:
+if every section shouts in the same face at the same size, none of them
+leads.
+
+| Tier | Treatment | Where |
+|---|---|---|
+| **Section title** (`.section-title`) | display serif, italic, 700, `clamp(32px, 5vw, 52px)` | Editorial sections — "Compare The Six", "Take It With You" |
+| **Decision header** | mono caps, 700, `clamp(40px, 7vw, 72px)`, `--red` | Reserved for the live decision, the one place data takes over from prose |
+| **Micro-label** | mono caps, 10-11px, letter-spacing +2-3px, `--muted` | Table headers, bucket labels, tags |
+
+The giant mono caps are the site's loudest element, so they are spent on
+one thing only: the moment the page stops explaining and starts telling
+you what the rule says today.
+
 Key sizes:
 
 - **Hero (display, italic)**: 110-120px desktop, scales down via clamp.
@@ -62,7 +78,11 @@ Key sizes:
 - Asymmetric grids: prefer 2/3 + 1/3 splits over 50/50. 3-column body
   for long-form description (`column-count: 3` with 24-28px gap).
 - **Heavy rule**: 5px solid `--ink`. Used between major sections (above
-  hero, above decision, above footer).
+  hero, above decision, above footer) — **and nowhere else**. A 5px line
+  is the signal "a major boundary starts here"; repeat it per row and the
+  signal dies. The phase 3 home page put one between every comparison
+  row, stacking seven on one screen, and the page read as a ladder. Rows
+  inside a block take a hairline (`1px rgba(10,10,10,0.15)`), not this.
 - **Thin rule**: 1px solid `--ink`. Used inside dense blocks (under
   micro-header, between sub-sections).
 - No rounded corners anywhere. Sharp 90° only.

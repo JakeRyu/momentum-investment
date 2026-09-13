@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { STRATEGIES, findStrategy } from './strategies'
+import { STRATEGIES, findStrategy, fundsNeeded } from './strategies'
 
 describe('backtest figures', () => {
   it('matches the figures verified against the source papers', () => {
@@ -37,5 +37,75 @@ describe('backtest figures', () => {
       if (!s.backtest) continue
       expect(s.backtest.maxDrawdownPct, s.id).toBeGreaterThan(0)
     }
+  })
+})
+
+describe('taglines', () => {
+  it('gives every strategy one', () => {
+    for (const s of STRATEGIES) {
+      expect(s.tagline, s.id).toBeTruthy()
+    }
+  })
+
+  it('says what the strategy does, not who published it', () => {
+    // The old copy was a paper citation ("Aggressive dual-momentum with
+    // crash protection (Keller & Keuning, 2017)"), which tells a beginner
+    // nothing they can act on. Attribution belongs on the paper line.
+    for (const s of STRATEGIES) {
+      expect(s.tagline, s.id).not.toMatch(/Keller|Keuning|van Putten|\b(19|20)\d{2}\b/)
+    }
+  })
+
+  it('avoids the vocabulary of the papers', () => {
+    for (const s of STRATEGIES) {
+      expect(s.tagline, s.id).not.toMatch(/13612|SMA12|dual-momentum|breadth|G4|B3|canary/i)
+    }
+  })
+})
+
+describe('comparison facts', () => {
+  it('describes what each strategy holds and how it de-risks', () => {
+    for (const s of STRATEGIES) {
+      expect(s.comparison.holds, s.id).toBeTruthy()
+      expect(s.comparison.deRisks, s.id).toBeTruthy()
+    }
+  })
+
+  it('states facts rather than ratings', () => {
+    // The site must not rank the six by expected return: it is published
+    // by a UK company and a comparison that reads as a recommendation is
+    // a financial promotion. Facts let the reader draw the conclusion.
+    for (const s of STRATEGIES) {
+      const text = `${s.comparison.holds} ${s.comparison.deRisks}`
+      expect(text, s.id).not.toMatch(/best|worst|better|safest|aggressive|recommended|\bbest\b|★|\d+\s*\/\s*\d+/i)
+    }
+  })
+})
+
+describe('fundsNeeded', () => {
+  it('counts the distinct ETFs a broker has to support', () => {
+    const expected: Record<string, number> = {
+      vaa: 7, // 4 offensive + 3 defensive
+      daa: 14, // 12 risky + SHY, IEF
+      paa: 14, // 12 risky + IEF, SHY
+      haa: 9, // 8 risky + BIL
+      baa: 15, // 12 risky + BIL, IEF, BND
+      laa: 5, // IWD, GLD, IEF + QQQ, SHY
+    }
+
+    for (const s of STRATEGIES) {
+      expect(fundsNeeded(s.defaultUniverse), s.id).toBe(expected[s.id])
+    }
+  })
+
+  it('excludes assets the strategy only reads', () => {
+    // Canaries and trend signals are watched, never bought — a broker
+    // does not need to carry them. LAA reads SPY and never holds it; DAA
+    // reads BND, HAA reads TIP, BAA reads TIP.
+    const laa = findStrategy('laa')!
+    expect(fundsNeeded(laa.defaultUniverse)).toBe(5)
+
+    const haa = findStrategy('haa')!
+    expect(fundsNeeded(haa.defaultUniverse)).toBe(9)
   })
 })
