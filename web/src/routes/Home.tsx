@@ -18,12 +18,12 @@ export default function Home() {
       </section>
 
       <section id="strategies" className="strategies-section">
-        <h2 className="strategies-section__title">Compare The Six</h2>
+        <h2 className="section-title">Compare The Six</h2>
         <StrategyComparison />
       </section>
 
       <section className="app-section">
-        <h2 className="app-section__title">Take It With You</h2>
+        <h2 className="section-title">Take It With You</h2>
         <div className="app-compare">
           <div className="app-compare__col">
             <p className="app-compare__label">This Site</p>

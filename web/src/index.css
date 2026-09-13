@@ -201,11 +201,18 @@ hr {
    boundary (see DESIGN.md) and rows are separated by hairlines, so six
    rows read as one table rather than six stacked sections. */
 
-.strategies-section__title {
+/* Tier 1 of three. Editorial sections take the display serif; the giant
+   mono caps are reserved for the decision banner, where live data takes
+   over from prose; the 10px mono caps are for micro-labels. Keeping all
+   three apart is what gives a page shape — phase 3 shouted every section
+   in the same face at the same size and the page flattened. */
+.section-title {
   font-family: var(--display);
   font-style: italic;
+  font-weight: 700;
   font-size: clamp(32px, 5vw, 52px);
   letter-spacing: -1px;
+  line-height: 1.05;
   margin: 0 0 14px;
 }
 
@@ -1039,13 +1046,8 @@ hr {
   margin-top: 48px;
   padding-top: 24px;
 }
-.app-section__title {
-  font-family: var(--mono);
-  font-weight: 800;
-  font-size: clamp(28px, 5vw, 48px);
-  letter-spacing: -1px;
-  text-transform: uppercase;
-  margin: 0 0 24px;
+.app-section .section-title {
+  margin-bottom: 24px;
 }
 .app-compare {
   display: grid;
