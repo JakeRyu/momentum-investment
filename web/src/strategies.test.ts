@@ -1,6 +1,55 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { describe, expect, it } from 'vitest'
 
 import { STRATEGIES, drawdownRange, findStrategy, fundsNeeded } from './strategies'
+
+describe('the shared universe fixture', () => {
+  const fixture = JSON.parse(
+    readFileSync(join(__dirname, '../../shared/universes.json'), 'utf8'),
+  )
+
+  it('matches every strategy’s displayed universe', () => {
+    // defaultUniverse no longer drives the request — it drives the ETF
+    // count in the comparison. This keeps that count honest without a
+    // network call on the landing page.
+    for (const s of STRATEGIES) {
+      const buckets: Record<string, string[]> = fixture[s.id].buckets
+      const u = s.defaultUniverse
+      switch (u.kind) {
+        case 'vaa':
+          expect(u.offensive, s.id).toEqual(buckets.offensive)
+          expect(u.defensive, s.id).toEqual(buckets.defensive)
+          break
+        case 'daa':
+        case 'baa':
+          expect(u.canary, s.id).toEqual(buckets.canary)
+          expect(u.risky, s.id).toEqual(buckets.risky)
+          expect(u.cash, s.id).toEqual(buckets.cash)
+          break
+        case 'paa':
+          expect(u.risky, s.id).toEqual(buckets.risky)
+          expect(u.cash, s.id).toEqual(buckets.cash)
+          break
+        case 'haa':
+          expect(u.risky, s.id).toEqual(buckets.risky)
+          expect([u.canary], s.id).toEqual(buckets.canary)
+          expect(u.cash, s.id).toEqual(buckets.cash)
+          break
+        case 'laa':
+          expect(u.permanent, s.id).toEqual(buckets.permanent)
+          expect([u.risky], s.id).toEqual(buckets.risky)
+          expect([u.cash], s.id).toEqual(buckets.cash)
+          expect(u.signalEquity, s.id).toEqual(fixture.laa.signalEquity)
+          expect(u.unemploymentSeriesId, s.id).toEqual(
+            fixture.laa.unemploymentSeriesId,
+          )
+          break
+      }
+    }
+  })
+})
 
 describe('backtest figures', () => {
   it('matches the figures verified against the source papers', () => {

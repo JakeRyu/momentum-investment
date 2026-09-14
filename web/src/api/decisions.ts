@@ -1,9 +1,13 @@
 /**
  * Unified decision client. One `fetchDecision` covers all six Keller
- * strategies; the per-strategy endpoint + query shape is derived from
- * `strategy.defaultUniverse.kind`. Mirrors `backend/src/MomentumInvestment.Api/Program.cs`.
+ * strategies.
+ *
+ * The universe is the server's — it reads its own canonical records, so
+ * nothing here sends tickers. This site runs the papers' US universe as
+ * published and has no substitutions to make; the iPhone app is what
+ * sends `substitute` pairs for a holder's local UCITS alternatives.
  */
-import type { Strategy } from '../strategies'
+import type { Strategy, StrategyId } from '../strategies'
 
 const API_BASE =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
@@ -27,51 +31,19 @@ export async function fetchDecision(
   asOf: string,
   paaA: PaaProtectionFactor = 2,
 ): Promise<AllocationDecision> {
-  const u = strategy.defaultUniverse
   const params = new URLSearchParams({ asOf })
-  let path: string
+  if (strategy.defaultUniverse.kind === 'paa') params.append('a', String(paaA))
 
-  switch (u.kind) {
-    case 'vaa':
-      path = '/api/vaa-g4b3/decision'
-      u.offensive.forEach((t) => params.append('offensive', t))
-      u.defensive.forEach((t) => params.append('defensive', t))
-      break
-    case 'daa':
-      path = '/api/daa-g12/decision'
-      u.canary.forEach((t) => params.append('canary', t))
-      u.risky.forEach((t) => params.append('risky', t))
-      u.cash.forEach((t) => params.append('cash', t))
-      break
-    case 'paa':
-      path = '/api/paa/decision'
-      params.append('a', String(paaA))
-      u.risky.forEach((t) => params.append('risky', t))
-      u.cash.forEach((t) => params.append('cash', t))
-      break
-    case 'haa':
-      path = '/api/haa/decision'
-      u.risky.forEach((t) => params.append('risky', t))
-      params.append('canary', u.canary)
-      u.cash.forEach((t) => params.append('cash', t))
-      break
-    case 'baa':
-      path = '/api/baa/decision'
-      u.canary.forEach((t) => params.append('canary', t))
-      u.risky.forEach((t) => params.append('risky', t))
-      u.cash.forEach((t) => params.append('cash', t))
-      break
-    case 'laa':
-      path = '/api/laa/decision'
-      u.permanent.forEach((t) => params.append('permanent', t))
-      params.append('risky', u.risky)
-      params.append('cash', u.cash)
-      params.append('signalEquity', u.signalEquity)
-      params.append('unemploymentSeriesId', u.unemploymentSeriesId)
-      break
-  }
-
-  const res = await fetch(`${API_BASE}${path}?${params}`)
+  const res = await fetch(`${API_BASE}${PATHS[strategy.id]}?${params}`)
   if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`)
   return (await res.json()) as AllocationDecision
+}
+
+const PATHS: Record<StrategyId, string> = {
+  vaa: '/api/vaa-g4b3/decision',
+  daa: '/api/daa-g12/decision',
+  paa: '/api/paa/decision',
+  haa: '/api/haa/decision',
+  baa: '/api/baa/decision',
+  laa: '/api/laa/decision',
 }

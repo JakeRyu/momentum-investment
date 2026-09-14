@@ -70,6 +70,12 @@ export type Strategy = {
   paperTitle: string;
   paperUrl: string;
   paperYear: number;
+  /**
+   * The strategy's composition, for display only — it drives
+   * `fundsNeeded()` in the comparison table. The server owns the
+   * universe it computes on; `strategies.test.ts` pins this against
+   * `shared/universes.json` so the count cannot drift from it.
+   */
   defaultUniverse: StrategyKind;
   backtest?: Backtest;
 };
