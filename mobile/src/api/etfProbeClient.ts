@@ -3,7 +3,7 @@
  * ticker against Yahoo Finance and fetch its meta block (name, currency,
  * exchange, first-trade date).
  */
-import { getApiBaseUrl } from './vaaClient';
+import { getApiBaseUrl } from './apiBase';
 
 export type EtfMetadata = {
   ticker: string;

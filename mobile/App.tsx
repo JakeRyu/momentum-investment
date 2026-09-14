@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 
 import type { AllocationDecision, Region } from './src/api/apiBase';
-import type { PaaProtectionFactor } from './src/api/paaClient';
+import type { PaaProtectionFactor } from './src/api/paaTypes';
 import { buildDecisionRequest, fetchDecisionFor } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
 import { inForceAsOf, inForceMonthKey } from './src/rebalance';

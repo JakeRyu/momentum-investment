@@ -120,37 +120,44 @@ async Task<Dictionary<string, IReadOnlyList<DailyClose>>?> FetchHistoriesAsync(
     return prices;
 }
 
+// A fetch failure used to be indistinguishable from a bad substitution,
+// because every ticker came from the caller. Now the server knows which
+// ones the holder replaced, so it can point at the setting to check —
+// what someone holding a delisted substitute (IUSV.L, delisted 2026-06)
+// needs in order to know where to look.
+static string FetchFailure(IReadOnlyDictionary<string, string> substitutions)
+    => substitutions.Count == 0
+        ? "Failed to fetch one or more price histories."
+        : "Failed to fetch one or more price histories. Substituted tickers in this request: "
+          + string.Join(", ", substitutions.Select(kv => $"{kv.Key}→{kv.Value}"))
+          + ". Check those substitutions are still listed.";
+
 // VAA-G4/B3 decision.
 //
-// Ticker universe is supplied explicitly by the caller (offensive[] +
-// defensive[]). Region selection lives entirely on the mobile side, so the
-// backend stays agnostic about US vs UK and any per-user overrides.
+// The universe is the server's: VaaUniverse.Us, guarded by
+// PaperFingerprintTests. A caller may substitute tickers it holds
+// locally — a UK holder of CSPX.L rather than SPY — and nothing else.
+// The server stays region-agnostic: a substitution is an opaque pair of
+// strings and US-vs-UK remains entirely the client's concept.
 //
 // Example:
-//   /api/vaa-g4b3/decision?asOf=2026-05-05
-//     &offensive=SPY&offensive=EFA&offensive=EEM&offensive=AGG
-//     &defensive=LQD&defensive=IEF&defensive=SHY
+//   /api/vaa-g4b3/decision?asOf=2026-09-14
+//     &substitute=SPY:CSPX.L&substitute=IEF:IDTM.L
 app.MapGet("/api/vaa-g4b3/decision", async (
     DateOnly asOf,
-    string[] offensive,
-    string[] defensive,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     VaaG4B3Service vaa,
     IMemoryCache cache,
     CancellationToken ct) =>
 {
-    if (offensive is null || offensive.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'offensive' must contain at least one ticker.");
-    }
-    if (defensive is null || defensive.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'defensive' must contain at least one ticker.");
-    }
+    var canonical = VaaUniverse.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
-    var universe = new VaaUniverse(offensive, defensive);
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cache, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = vaa.Decide(asOf, universe, prices);
     return Results.Ok(decision);
@@ -158,42 +165,27 @@ app.MapGet("/api/vaa-g4b3/decision", async (
 
 // DAA-G12 decision (Keller & Keuning, 2018).
 //
-// Three ticker buckets supplied by the caller — canary, risky, cash. Same
-// region-agnostic contract as VAA: mobile resolves which tickers to send
-// and the backend just executes the strategy.
+// The universe is the server's: DaaG12Universe.Us. As with VAA, the only
+// thing a caller may change is which tickers it holds in place of the
+// canonical ones.
 //
 // Example:
-//   /api/daa-g12/decision?asOf=2026-05-05
-//     &canary=VWO&canary=BND
-//     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=VWO
-//     &risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD
-//     &cash=SHY&cash=IEF&cash=LQD
+//   /api/daa-g12/decision?asOf=2026-09-14&substitute=SPY:CSPX.L
 app.MapGet("/api/daa-g12/decision", async (
     DateOnly asOf,
-    string[] canary,
-    string[] risky,
-    string[] cash,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     DaaG12Service daa,
     IMemoryCache cacheStore,
     CancellationToken ct) =>
 {
-    if (canary is null || canary.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'canary' must contain at least one ticker.");
-    }
-    if (risky is null || risky.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
-    }
-    if (cash is null || cash.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
-    }
+    var canonical = DaaG12Universe.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
-    var universe = new DaaG12Universe(canary, risky, cash);
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = daa.Decide(asOf, universe, prices);
     return Results.Ok(decision);
@@ -201,13 +193,12 @@ app.MapGet("/api/daa-g12/decision", async (
 
 // PAA-G12 decision (Keller & van Putten, 2016).
 //
-// Two ticker buckets supplied by the caller — risky and cash. Same
-// region-agnostic contract as VAA/DAA: mobile resolves which tickers to
-// send and the backend just executes the strategy. The momentum signal
-// here is SMA(12) on monthly closes (not 13612W).
+// The universe is the server's: PaaUniverse.Us. The momentum signal here
+// is SMA(12) on monthly closes (not 13612W).
 //
-// Optional `a` query parameter (0|1|2) selects the protection factor
-// per Keller's PAA paper:
+// `a` survives the move to a server-owned universe because a protection
+// factor is a user's choice about how defensive to be, not a statement
+// about which assets they hold:
 //   a = 0 (Aggressive) → defensive only when zero risky assets are good
 //   a = 1 (Moderate)   → defensive at n ≤ 3 good
 //   a = 2 (Vigilant)   → defensive at n ≤ 6 good (default; Keller's baseline)
@@ -215,28 +206,19 @@ app.MapGet("/api/daa-g12/decision", async (
 // The response's StrategyId carries the variant ("paa-g12-a0|a1|a2").
 //
 // Example:
-//   /api/paa/decision?asOf=2026-05-05&a=2
-//     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM
-//     &risky=VNQ&risky=GSG&risky=GLD&risky=HYG&risky=LQD&risky=TLT
-//     &cash=IEF&cash=SHY&cash=LQD
+//   /api/paa/decision?asOf=2026-09-14&a=2&substitute=SPY:CSPX.L
 app.MapGet("/api/paa/decision", async (
     DateOnly asOf,
-    string[] risky,
-    string[] cash,
     int? a,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     PaaService paa,
     IMemoryCache cacheStore,
     CancellationToken ct) =>
 {
-    if (risky is null || risky.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
-    }
-    if (cash is null || cash.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
-    }
+    var canonical = PaaUniverse.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
     int protectionFactor = a ?? PaaService.DefaultA;
     if (protectionFactor is < 0 or > 2)
@@ -245,9 +227,9 @@ app.MapGet("/api/paa/decision", async (
             "Query parameter 'a' must be 0 (Aggressive), 1 (Moderate), or 2 (Vigilant).");
     }
 
-    var universe = new PaaUniverse(risky, cash);
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = paa.Decide(asOf, universe, prices, protectionFactor);
     return Results.Ok(decision);
@@ -255,46 +237,28 @@ app.MapGet("/api/paa/decision", async (
 
 // HAA decision (Keller & Keuning, 2023) — Hybrid Asset Allocation.
 //
-// Three roles supplied by the caller — risky[] (8 by default), canary
-// (single ticker, default TIP), cash (single ticker, default BIL). The
-// canary's 13612W gates the offensive/defensive switch:
+// The universe is the server's: HaaUniverse.Us. The canary's 13612W
+// gates the offensive/defensive switch:
 //   - canary 13612W ≤ 0 → 100% in cash
 //   - canary 13612W > 0 → top T=4 risky by 13612W at 1/T each
 //
-// Same region-agnostic contract as VAA/DAA/PAA: mobile resolves which
-// tickers to send and the backend just executes the strategy.
-//
 // Example:
-//   /api/haa/decision?asOf=2026-05-08
-//     &risky=SPY&risky=IWM&risky=VEA&risky=VWO
-//     &risky=VNQ&risky=DBC&risky=IEF&risky=TLT
-//     &canary=TIP&cash=BIL
+//   /api/haa/decision?asOf=2026-09-14&substitute=SPY:CSPX.L
 app.MapGet("/api/haa/decision", async (
     DateOnly asOf,
-    string[] risky,
-    string? canary,
-    string[] cash,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     HaaService haa,
     IMemoryCache cacheStore,
     CancellationToken ct) =>
 {
-    if (risky is null || risky.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
-    }
-    if (string.IsNullOrWhiteSpace(canary))
-    {
-        return Results.BadRequest("Query parameter 'canary' is required.");
-    }
-    if (cash is null || cash.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
-    }
+    var canonical = HaaUniverse.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
-    var universe = new HaaUniverse(risky, canary.Trim(), cash);
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = haa.Decide(asOf, universe, prices);
     return Results.Ok(decision);
@@ -302,46 +266,31 @@ app.MapGet("/api/haa/decision", async (
 
 // BAA-G12 decision (Keller, 2022) — Bold Asset Allocation.
 //
-// Three roles supplied by the caller — canary[] (3 by default: TIP, IEF,
-// BIL), risky[] (12 by default), cash[] (5 by default). Same
-// region-agnostic contract as VAA/DAA/PAA/HAA.
+// The universe is the server's: BaaUniverse.Us. This endpoint is why the
+// whole contract changed — the app was sending a canary of TIP/IEF/BIL
+// while the paper and the web used SPY/VWO/VEA/BND, and both were green.
 //
 // Bold canary gate: ALL canaries must have positive 13612W to enter
 // offensive (unanimous AND, not breadth count). Otherwise defensive
 // holds 100% in the single top-SMA12 cash asset.
 //
 // Example:
-//   /api/baa/decision?asOf=2026-05-08
-//     &canary=TIP&canary=IEF&canary=BIL
-//     &risky=SPY&risky=IWM&risky=QQQ&risky=VGK&risky=EWJ&risky=EEM
-//     &risky=VNQ&risky=GSG&risky=GLD&risky=TLT&risky=HYG&risky=LQD
-//     &cash=BIL&cash=IEF&cash=TLT&cash=BND&cash=LQD
+//   /api/baa/decision?asOf=2026-09-14&substitute=SPY:CSPX.L
 app.MapGet("/api/baa/decision", async (
     DateOnly asOf,
-    string[] canary,
-    string[] risky,
-    string[] cash,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     BaaService baa,
     IMemoryCache cacheStore,
     CancellationToken ct) =>
 {
-    if (canary is null || canary.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'canary' must contain at least one ticker.");
-    }
-    if (risky is null || risky.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'risky' must contain at least one ticker.");
-    }
-    if (cash is null || cash.Length == 0)
-    {
-        return Results.BadRequest("Query parameter 'cash' must contain at least one ticker.");
-    }
+    var canonical = BaaUniverse.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
-    var universe = new BaaUniverse(canary, risky, cash);
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllTickers(), yahoo, cacheStore, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = baa.Decide(asOf, universe, prices);
     return Results.Ok(decision);
@@ -350,55 +299,33 @@ app.MapGet("/api/baa/decision", async (
 // LAA decision (Keller, 2019) — Lethargic Asset Allocation.
 //
 // Unlike VAA/DAA/PAA, LAA needs macro data: the US unemployment rate
-// (FRED UNRATE) and a daily equity-trend signal (default SPY 200d SMA).
-// The endpoint takes the asset universe as query params and fetches
-// the FRED series automatically (cached daily — UNRATE only updates
-// monthly, so caching for 24h is plenty).
+// (FRED UNRATE) and a daily equity-trend signal (SPY 200d SMA). The
+// universe is the server's — LaaUniverse.Us — and the FRED series is
+// fetched automatically (cached daily; UNRATE only updates monthly, so
+// caching for 24h is plenty).
 //
-// Three asset slots: 3 permanent + 1 risky (default QQQ) + 1 cash
-// (default SHY). Plus a signal equity (default SPY) and FRED series
-// id (default UNRATE) which the mobile caller can override per region.
+// SPY is NOT substitutable here. It appears only as the Growth-Trend
+// signal, a US business-cycle indicator, not as something the holder
+// owns — see LaaUniverse.SubstitutableTickers.
 //
 // Example:
-//   /api/laa/decision?asOf=2026-05-05
-//     &permanent=IWD&permanent=GLD&permanent=IEF
-//     &risky=QQQ&cash=SHY
-//     &signalEquity=SPY&unemploymentSeriesId=UNRATE
+//   /api/laa/decision?asOf=2026-09-14&substitute=QQQ:EQQQ.L
 app.MapGet("/api/laa/decision", async (
     DateOnly asOf,
-    string[] permanent,
-    string? risky,
-    string? cash,
-    string? signalEquity,
-    string? unemploymentSeriesId,
+    string[]? substitute,
     YahooFinanceClient yahoo,
     FredClient fred,
     LaaService laa,
     IMemoryCache cacheStore,
     CancellationToken ct) =>
 {
-    if (permanent is null || permanent.Length != 3)
-    {
-        return Results.BadRequest("Query parameter 'permanent' must contain exactly 3 tickers.");
-    }
-    if (string.IsNullOrWhiteSpace(risky))
-    {
-        return Results.BadRequest("Query parameter 'risky' is required.");
-    }
-    if (string.IsNullOrWhiteSpace(cash))
-    {
-        return Results.BadRequest("Query parameter 'cash' is required.");
-    }
+    var canonical = LaaUniverse.Us;
+    var (map, error) = TickerSubstitution.Parse(substitute, canonical.SubstitutableTickers());
+    if (error is not null) return Results.BadRequest(error);
 
-    var universe = new LaaUniverse(
-        Permanent:            permanent,
-        Risky:                risky.Trim(),
-        Cash:                 cash.Trim(),
-        SignalEquity:         string.IsNullOrWhiteSpace(signalEquity) ? "SPY" : signalEquity.Trim(),
-        UnemploymentSeriesId: string.IsNullOrWhiteSpace(unemploymentSeriesId) ? "UNRATE" : unemploymentSeriesId.Trim());
-
+    var universe = canonical.WithSubstitutions(map!);
     var prices = await FetchHistoriesAsync(universe.AllDailyTickers(), yahoo, cacheStore, ct);
-    if (prices is null) return Results.Problem("Failed to fetch one or more price histories.");
+    if (prices is null) return Results.Problem(FetchFailure(map!));
 
     // FRED monthly series — cache per series id with a 24h TTL. UNRATE
     // releases on the first Friday of each month, so caching this long
@@ -458,12 +385,12 @@ app.MapGet("/", () => Results.Ok(new
     status = "ok",
     endpoints = new[]
     {
-        "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD&offensive=A&offensive=B&...&defensive=X&defensive=Y&...",
-        "/api/daa-g12/decision?asOf=YYYY-MM-DD&canary=A&canary=B&risky=...&cash=...",
-        "/api/paa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&cash=X&cash=Y&...&a=0|1|2",
-        "/api/haa/decision?asOf=YYYY-MM-DD&risky=A&risky=B&...&canary=TIP&cash=BIL",
-        "/api/baa/decision?asOf=YYYY-MM-DD&canary=A&canary=B&canary=C&risky=...&cash=...",
-        "/api/laa/decision?asOf=YYYY-MM-DD&permanent=A&permanent=B&permanent=C&risky=X&cash=Y&signalEquity=SPY&unemploymentSeriesId=UNRATE",
+        "/api/vaa-g4b3/decision?asOf=YYYY-MM-DD[&substitute=ORIGINAL:REPLACEMENT]",
+        "/api/daa-g12/decision?asOf=YYYY-MM-DD[&substitute=ORIGINAL:REPLACEMENT]",
+        "/api/paa/decision?asOf=YYYY-MM-DD[&a=0|1|2][&substitute=ORIGINAL:REPLACEMENT]",
+        "/api/haa/decision?asOf=YYYY-MM-DD[&substitute=ORIGINAL:REPLACEMENT]",
+        "/api/baa/decision?asOf=YYYY-MM-DD[&substitute=ORIGINAL:REPLACEMENT]",
+        "/api/laa/decision?asOf=YYYY-MM-DD[&substitute=ORIGINAL:REPLACEMENT]",
         "/api/etf/probe?ticker=EMIM.L",
     },
 }));
