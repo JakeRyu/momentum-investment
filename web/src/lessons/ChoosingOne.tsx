@@ -58,12 +58,13 @@ export default function ChoosingOne() {
       <h2>If you want a starting point</h2>
 
       <p>
-        Start with VAA. Not because the figures favour it — its published
-        fall is the deepest of the six — but because its rule is the one
-        you can hold in your head: score four assets, and if any of them is
-        negative, go defensive. You can tell at a glance whether the site
-        is doing what it says. That is worth more in the first year than a
-        better-looking backtest.
+        The table says it in one line — start with VAA — and now the
+        reasoning can go with it. It is not that the figures favour VAA:
+        its published fall is the deepest of the six. It is that its rule
+        is the one you can hold in your head, score four assets and go
+        defensive if any is negative, so you can tell at a glance whether
+        the site is doing what it says. That is worth more in the first
+        year than a better-looking backtest.
       </p>
 
       <p>
