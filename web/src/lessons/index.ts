@@ -4,6 +4,7 @@ import OneSignalAMonth from './OneSignalAMonth';
 import WhatBreadthAdds from './WhatBreadthAdds';
 import WhatMomentumIs from './WhatMomentumIs';
 import WhatYouWouldBuy from './WhatYouWouldBuy';
+import WhyDrawdown from './WhyDrawdown';
 import WhyNotBuyAndHold from './WhyNotBuyAndHold';
 
 /**
@@ -64,6 +65,14 @@ export const LESSONS: readonly Lesson[] = [
     summary:
       'The ticker, the fund behind it, what it costs, and what UK readers buy instead.',
     Body: WhatYouWouldBuy,
+  },
+  {
+    slug: 'why-drawdown',
+    number: 6,
+    title: 'Drawdown — why these strategies exist',
+    summary:
+      'The target the authors set, the figures they published, and the cases where it did not hold.',
+    Body: WhyDrawdown,
   },
 ];
 

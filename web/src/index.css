@@ -1173,6 +1173,20 @@ hr {
   color: var(--red);
 }
 
+/* Pull quote. Used for the papers' own words, where the distinction
+   between what an author claimed and what this site claims has to be
+   visible at a glance. */
+.lesson__quote {
+  margin: 24px 0;
+  padding-left: 20px;
+  border-left: var(--rule-thin);
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 21px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
 .lesson__pager {
   display: flex;
   justify-content: space-between;

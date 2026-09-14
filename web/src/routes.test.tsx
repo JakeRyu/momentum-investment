@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import AppPromo from './components/AppPromo'
 import { LESSONS } from './lessons'
-import { STRATEGIES } from './strategies'
+import { STRATEGIES, drawdownRange } from './strategies'
 import About from './routes/About'
 import Learn from './routes/Learn'
 import Lesson from './routes/Lesson'
@@ -117,6 +117,26 @@ describe('the course', () => {
     const { container } = renderAt('/learn/what-you-would-buy')
     expect(container.textContent).toMatch(/UCITS/)
     expect(container.textContent).toMatch(/CSPX\.L/)
+  })
+
+  it('quotes the drawdown range from the data, not from memory', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    const { min, max } = drawdownRange()
+    expect(container.textContent).toMatch(
+      new RegExp(`${min.toFixed(1)}% to ${max.toFixed(1)}%`),
+    )
+  })
+
+  it('states the cases where the drawdown claim did not hold', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    expect(container.textContent).toMatch(/25\.2%/)
+    expect(container.textContent).toMatch(/AllocateSmartly/)
+  })
+
+  it('renders its figure through BacktestFigure, with the month-end caveat', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    expect(container.querySelector('.backtest')).not.toBeNull()
+    expect(container.textContent).toMatch(/measured at month-end/)
   })
 
   it('makes no forward-looking claim in any lesson body', () => {

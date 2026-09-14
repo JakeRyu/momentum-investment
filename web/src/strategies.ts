@@ -305,3 +305,17 @@ export function fundsNeeded(universe: StrategyKind): number {
 
   return new Set(held).size;
 }
+
+/**
+ * The span of published maximum drawdowns across the six, as positive
+ * magnitudes. Lesson 6's headline sentence quotes this range, so it is
+ * derived from the same data `BacktestFigure` renders rather than typed
+ * into the prose — a hand-copied bound survives a figure correction and
+ * turns into a false citation.
+ */
+export function drawdownRange(): { min: number; max: number } {
+  const falls = STRATEGIES.flatMap((s) =>
+    s.backtest ? [s.backtest.maxDrawdownPct] : [],
+  );
+  return { min: Math.min(...falls), max: Math.max(...falls) };
+}
