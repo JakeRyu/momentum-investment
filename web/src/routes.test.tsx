@@ -62,6 +62,43 @@ describe('AppPromo', () => {
   })
 })
 
+describe('About', () => {
+  it('leaves the teaching to the course', () => {
+    // Lesson 3 owns breadth and the canary universe. Two definitions of
+    // one term on one site is what the course exists to stop.
+    const { container } = renderAt('/about')
+    expect(container.textContent).not.toMatch(/coal miners|early-warning basket/i)
+    expect(container.textContent).not.toMatch(
+      /instead of only ranking assets by their\s+momentum scores/i,
+    )
+  })
+
+  it('points a reader who wants the concepts at the course', () => {
+    renderAt('/about')
+    expect(screen.getByRole('link', { name: /course/i })).toHaveAttribute(
+      'href',
+      '/learn',
+    )
+  })
+
+  it('does not compete with the label the app links to', () => {
+    // HomeScreen.tsx's link reads "How these strategies work →" and goes
+    // to /. An About heading with the same words sends a reader who
+    // followed it to the wrong page.
+    const { container } = renderAt('/about')
+    expect(container.textContent).not.toMatch(/How the strategies work/i)
+  })
+
+  it('keeps what only About can say', () => {
+    const { container } = renderAt('/about')
+    expect(container.textContent).toMatch(/Wouter Keller/)
+    expect(container.textContent).toMatch(/not investment advice/)
+    expect(container.querySelectorAll('.paper-list li')).toHaveLength(
+      STRATEGIES.length,
+    )
+  })
+})
+
 describe('the course', () => {
   it('lists every lesson on /learn', () => {
     renderAt('/learn')

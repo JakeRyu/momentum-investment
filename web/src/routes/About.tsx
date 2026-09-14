@@ -20,15 +20,11 @@ export default function About() {
           between 2016 and 2023.
         </p>
         <p>
-          The unifying idea across his work is{' '}
-          <em>breadth momentum</em>: instead of only ranking assets by their
-          momentum scores, also count <em>how many</em> assets in a given
-          universe currently show positive momentum. When that count drops —
-          a signal that risk is broadly elevated — the strategy rotates
-          defensively into bonds or cash. The "canary universe" extension
-          (DAA, BAA, HAA) sharpens this further: a small bellwether basket
-          whose breadth alone gates the entire offensive/defensive switch,
-          independent of how the main risky universe scores.
+          The unifying idea across his work is <em>breadth momentum</em>:
+          counting how many assets in a universe are rising, and letting
+          that count rather than a forecast decide when to take cover. The
+          course works through what that means and why it is built the way
+          it is — <Link to="/learn">start the course →</Link>
         </p>
         <p>
           This site implements those papers as a runnable tool on live market
@@ -38,7 +34,7 @@ export default function About() {
       </section>
 
       <section>
-        <h2>How the strategies work, in 30 seconds</h2>
+        <h2>Method</h2>
         <p>
           Most of the strategies score assets with one of two signals:
         </p>
