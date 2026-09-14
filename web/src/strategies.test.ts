@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { STRATEGIES, findStrategy, fundsNeeded } from './strategies'
+import { STRATEGIES, drawdownRange, findStrategy, fundsNeeded } from './strategies'
 
 describe('backtest figures', () => {
   it('matches the figures verified against the source papers', () => {
@@ -16,6 +16,13 @@ describe('backtest figures', () => {
     for (const [id, figures] of Object.entries(expected)) {
       expect(findStrategy(id)?.backtest, id).toEqual(figures)
     }
+  })
+
+  it('reports the span of published drawdowns', () => {
+    // Derived rather than typed into the copy: the range sentence in
+    // lesson 6 is the site's headline claim, and a hand-copied bound
+    // drifts the moment a figure is corrected.
+    expect(drawdownRange()).toEqual({ min: 8.7, max: 16.4 })
   })
 
   it('reports every drawdown as a positive magnitude', () => {

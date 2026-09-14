@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 import AppPromo from './components/AppPromo'
 import { LESSONS } from './lessons'
-import { STRATEGIES } from './strategies'
+import { STRATEGIES, drawdownRange } from './strategies'
 import About from './routes/About'
 import Learn from './routes/Learn'
 import Lesson from './routes/Lesson'
@@ -62,6 +62,43 @@ describe('AppPromo', () => {
   })
 })
 
+describe('About', () => {
+  it('leaves the teaching to the course', () => {
+    // Lesson 3 owns breadth and the canary universe. Two definitions of
+    // one term on one site is what the course exists to stop.
+    const { container } = renderAt('/about')
+    expect(container.textContent).not.toMatch(/coal miners|early-warning basket/i)
+    expect(container.textContent).not.toMatch(
+      /instead of only ranking assets by their\s+momentum scores/i,
+    )
+  })
+
+  it('points a reader who wants the concepts at the course', () => {
+    renderAt('/about')
+    expect(screen.getByRole('link', { name: /course/i })).toHaveAttribute(
+      'href',
+      '/learn',
+    )
+  })
+
+  it('does not compete with the label the app links to', () => {
+    // HomeScreen.tsx's link reads "How these strategies work →" and goes
+    // to /. An About heading with the same words sends a reader who
+    // followed it to the wrong page.
+    const { container } = renderAt('/about')
+    expect(container.textContent).not.toMatch(/How the strategies work/i)
+  })
+
+  it('keeps what only About can say', () => {
+    const { container } = renderAt('/about')
+    expect(container.textContent).toMatch(/Wouter Keller/)
+    expect(container.textContent).toMatch(/not investment advice/)
+    expect(container.querySelectorAll('.paper-list li')).toHaveLength(
+      STRATEGIES.length,
+    )
+  })
+})
+
 describe('the course', () => {
   it('lists every lesson on /learn', () => {
     renderAt('/learn')
@@ -85,7 +122,92 @@ describe('the course', () => {
 
   it('says where the reader is in the sequence', () => {
     const { container } = renderAt('/learn/what-breadth-adds')
-    expect(container.textContent).toMatch(/Lesson 3 of 4/)
+    expect(container.textContent).toMatch(
+      new RegExp(`Lesson 3 of ${LESSONS.length}`),
+    )
+  })
+
+  it('does not hard-code how many lessons there are', () => {
+    const { container: learn } = renderAt('/learn')
+    expect(learn.textContent).not.toMatch(
+      /\b(one|two|three|four|five|six|seven|eight)\s+(short\s+)?lessons\b/i,
+    )
+
+    const { container: home } = renderAt('/')
+    expect(home.textContent).not.toMatch(
+      /\b(one|two|three|four|five|six|seven|eight)\s+(short\s+)?lessons\b/i,
+    )
+  })
+
+  it('states the lesson count from the catalog', () => {
+    renderAt('/learn')
+    expect(screen.getByText(`${LESSONS.length} lessons`)).toBeInTheDocument()
+  })
+
+  it('tells the reader what SHY is', () => {
+    const { container } = renderAt('/learn/what-you-would-buy')
+    expect(container.textContent).toMatch(/SHY/)
+    expect(container.textContent).toMatch(/1–3 year US Treasuries/)
+  })
+
+  it('names UCITS substitutes for UK readers', () => {
+    const { container } = renderAt('/learn/what-you-would-buy')
+    expect(container.textContent).toMatch(/UCITS/)
+    expect(container.textContent).toMatch(/CSPX\.L/)
+  })
+
+  it('quotes the drawdown range from the data, not from memory', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    const { min, max } = drawdownRange()
+    expect(container.textContent).toMatch(
+      new RegExp(`${min.toFixed(1)}% to ${max.toFixed(1)}%`),
+    )
+  })
+
+  it('states the cases where the drawdown claim did not hold', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    expect(container.textContent).toMatch(/25\.2%/)
+    expect(container.textContent).toMatch(/AllocateSmartly/)
+  })
+
+  it('renders its figure through BacktestFigure, with the month-end caveat', () => {
+    const { container } = renderAt('/learn/why-drawdown')
+    expect(container.querySelector('.backtest')).not.toBeNull()
+    expect(container.textContent).toMatch(/measured at month-end/)
+  })
+
+  it('shows the comparison inside lesson 7, not a second copy of it', () => {
+    const { container } = renderAt('/learn/choosing-one')
+    expect(container.querySelector('.compare')).not.toBeNull()
+    for (const s of STRATEGIES) {
+      expect(
+        container.querySelector(`[data-testid="compare-row-${s.id}"]`),
+        s.id,
+      ).not.toBeNull()
+    }
+  })
+
+  it('does not rank the six by return', () => {
+    const { container } = renderAt('/learn/choosing-one')
+    expect(container.textContent).not.toMatch(
+      /best performing|highest return|top performer/i,
+    )
+  })
+
+  it('hands the last lesson off to a strategy page', () => {
+    renderAt('/learn/running-it')
+    expect(screen.getByRole('link', { name: /VAA/i })).toHaveAttribute(
+      'href',
+      '/strategies/vaa',
+    )
+  })
+
+  it('reaches eight lessons, matching the copy on /learn', () => {
+    // The two pages state the count from LESSONS.length; this pins the
+    // course as finished so a ninth lesson is a deliberate decision.
+    expect(LESSONS).toHaveLength(8)
+    const { container } = renderAt('/learn/running-it')
+    expect(container.textContent).toMatch(/Lesson 8 of 8/)
   })
 
   it('makes no forward-looking claim in any lesson body', () => {
