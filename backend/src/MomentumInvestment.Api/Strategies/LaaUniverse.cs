@@ -52,6 +52,27 @@ public sealed record LaaUniverse(
             .Distinct(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
+    /// The tickers a holder may substitute: the permanent sleeve plus the
+    /// rotating pair. <see cref="SignalEquity"/> is deliberately absent —
+    /// Growth-Trend timing is a US business-cycle indicator and stays
+    /// US-anchored whatever the holder actually owns. Adding it here would
+    /// let a UK user's US_LARGE_CAP override move the gate, because the
+    /// app stores overrides globally by asset class rather than per
+    /// strategy.
+    /// </summary>
+    public IEnumerable<string> SubstitutableTickers()
+        => Permanent
+            .Concat(new[] { Risky, Cash })
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    public LaaUniverse WithSubstitutions(IReadOnlyDictionary<string, string> map) => new(
+        Permanent:            Permanent.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Risky:                TickerSubstitution.Apply(map, Risky),
+        Cash:                 TickerSubstitution.Apply(map, Cash),
+        SignalEquity:         SignalEquity,
+        UnemploymentSeriesId: UnemploymentSeriesId);
+
+    /// <summary>
     /// Original Keller 2019 universe — US-listed ETFs.
     /// Permanent: IWD, GLD, IEF · Risky: QQQ · Cash: SHY · Signal: SPY · Macro: UNRATE.
     /// </summary>

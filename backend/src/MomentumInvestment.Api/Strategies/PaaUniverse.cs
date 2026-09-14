@@ -27,6 +27,12 @@ public sealed record PaaUniverse(
 {
     public IEnumerable<string> AllTickers() => Risky.Concat(Cash).Distinct();
 
+    public IEnumerable<string> SubstitutableTickers() => AllTickers();
+
+    public PaaUniverse WithSubstitutions(IReadOnlyDictionary<string, string> map) => new(
+        Risky: Risky.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Cash:  Cash.Select(t => TickerSubstitution.Apply(map, t)).ToArray());
+
     /// <summary>
     /// Original Keller 2016 universe — US-listed ETFs.
     /// </summary>
