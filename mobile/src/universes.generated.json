@@ -1,0 +1,44 @@
+{
+  "vaa": {
+    "buckets": {
+      "offensive": ["SPY", "EFA", "EEM", "AGG"],
+      "defensive": ["LQD", "IEF", "SHY"]
+    }
+  },
+  "daa": {
+    "buckets": {
+      "canary": ["VWO", "BND"],
+      "risky": ["SPY", "IWM", "QQQ", "VGK", "EWJ", "VWO", "VNQ", "GSG", "GLD", "TLT", "HYG", "LQD"],
+      "cash": ["SHY", "IEF", "LQD"]
+    }
+  },
+  "paa": {
+    "buckets": {
+      "risky": ["SPY", "IWM", "QQQ", "VGK", "EWJ", "EEM", "VNQ", "GSG", "GLD", "HYG", "LQD", "TLT"],
+      "cash": ["IEF", "SHY", "LQD"]
+    }
+  },
+  "haa": {
+    "buckets": {
+      "risky": ["SPY", "IWM", "VEA", "VWO", "VNQ", "DBC", "IEF", "TLT"],
+      "canary": ["TIP"],
+      "cash": ["BIL", "IEF"]
+    }
+  },
+  "baa": {
+    "buckets": {
+      "canary": ["SPY", "VWO", "VEA", "BND"],
+      "risky": ["SPY", "QQQ", "IWM", "VGK", "EWJ", "VWO", "VNQ", "DBC", "GLD", "TLT", "HYG", "LQD"],
+      "cash": ["TIP", "DBC", "BIL", "IEF", "TLT", "LQD", "BND"]
+    }
+  },
+  "laa": {
+    "buckets": {
+      "permanent": ["IWD", "GLD", "IEF"],
+      "risky": ["QQQ"],
+      "cash": ["SHY"]
+    },
+    "signalEquity": "SPY",
+    "unemploymentSeriesId": "UNRATE"
+  }
+}
