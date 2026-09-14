@@ -19,7 +19,7 @@ import {
   TickerNotFoundError,
   type EtfMetadata,
 } from '../api/etfProbeClient';
-import type { Region } from '../api/vaaClient';
+import type { Region } from '../api/apiBase';
 import {
   ASSET_CLASSES,
   BAA_CANARY,

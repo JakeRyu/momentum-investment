@@ -17,8 +17,8 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import type { PaaProtectionFactor } from './api/paaClient';
-import type { Region } from './api/vaaClient';
+import type { Region } from './api/apiBase';
+import type { PaaProtectionFactor } from './api/paaTypes';
 import type { AssetClassCode } from './etfCatalog';
 import { STRATEGIES, type StrategyId } from './strategies';
 

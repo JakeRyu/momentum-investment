@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
-import { type PaaProtectionFactor } from '../api/paaClient';
+import { type PaaProtectionFactor } from '../api/paaTypes';
 import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
 import { holdingHint, inForceAsOf, previewHint } from '../rebalance';
 import type { Overrides } from '../storage';
@@ -123,29 +123,18 @@ export default function DecisionScreen({
   const asOf = view === 'holding' ? inForceAsOf() : formatYmd(new Date());
 
   // Stable string key over the request payload so useEffect re-fires only
-  // when the actual ticker lists change (not on every parent re-render).
+  // when the holder's substitutions change (not on every parent re-render).
   // For PAA, `paaA` is part of the key so toggling the segmented control
   // triggers a refetch — same universe so the backend hits its 6h ticker
   // cache and the response comes back instantly.
-  const paramsKey = (() => {
-    switch (request.kind) {
-      case 'vaa':
-        return `vaa:${request.offensive.join(',')}|${request.defensive.join(',')}`;
-      case 'daa-g12':
-        return `daa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
-      case 'paa':
-        return `paa:${request.risky.join(',')}|${request.cash.join(',')}|a=${paaA}`;
-      case 'haa':
-        return `haa:${request.risky.join(',')}|${request.canary}|${request.cash}`;
-      case 'baa-g12':
-        return `baa-g12:${request.canary.join(',')}|${request.risky.join(',')}|${request.cash.join(',')}`;
-      case 'laa':
-        return (
-          `laa:${request.permanent.join(',')}|${request.risky}|${request.cash}` +
-          `|${request.signalEquity}|${request.unemploymentSeriesId}`
-        );
-    }
-  })();
+  const paramsKey = [
+    request.id,
+    Object.entries(request.substitutions)
+      .map(([original, replacement]) => `${original}:${replacement}`)
+      .sort()
+      .join(','),
+    request.id === 'paa' ? `a=${paaA}` : '',
+  ].join('|');
   // `view` joins the key so switching segments re-fires the effect below.
   const requestKey = `${paramsKey}|${view}`;
 
@@ -215,7 +204,7 @@ export default function DecisionScreen({
 
         <ViewPicker value={view} onChange={setView} />
 
-        {request.kind === 'paa' && (
+        {request.id === 'paa' && (
           <ProtectionFactorPicker value={paaA} onChange={onPaaAChange} />
         )}
 
