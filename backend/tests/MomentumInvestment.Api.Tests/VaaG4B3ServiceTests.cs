@@ -103,6 +103,15 @@ public sealed class VaaG4B3ServiceTests
         Assert.Contains(defensiveScores, s => s.Ticker == "LQD" && s.Score == 0.76m);
     }
 
+    /// <summary>
+    /// LSE-listed UCITS substitutes, inline because this is a fixture for
+    /// "the service does not care what the tickers are", not a statement
+    /// about what UK holders should buy. That list belongs to the app.
+    /// </summary>
+    private static readonly VaaUniverse UkFixture = new(
+        Offensive: new[] { "CSPX.L", "IWDA.L", "EIMI.L", "AGGU.L" },
+        Defensive: new[] { "LQDA.L", "IDTM.L", "IBTS.L" });
+
     [Fact]
     public void Decide_UkUniverse_UsesUkTickers()
     {
@@ -120,7 +129,7 @@ public sealed class VaaG4B3ServiceTests
             ["IBTS.L"] = History(1.02m),
         };
 
-        var decision = new VaaG4B3Service().Decide(AsOf, VaaUniverse.Uk, prices);
+        var decision = new VaaG4B3Service().Decide(AsOf, UkFixture, prices);
 
         Assert.Equal("Offensive", decision.ModeLabel);
         Assert.Equal("CSPX.L", decision.Allocations[0].Ticker);
