@@ -19,6 +19,12 @@ public sealed record VaaUniverse(
 {
     public IEnumerable<string> AllTickers() => Offensive.Concat(Defensive).Distinct();
 
+    public IEnumerable<string> SubstitutableTickers() => AllTickers();
+
+    public VaaUniverse WithSubstitutions(IReadOnlyDictionary<string, string> map) => new(
+        Offensive: Offensive.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Defensive: Defensive.Select(t => TickerSubstitution.Apply(map, t)).ToArray());
+
     /// <summary>
     /// Original Keller universe — US-listed ETFs.
     /// </summary>

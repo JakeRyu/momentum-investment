@@ -41,6 +41,13 @@ public sealed record HaaUniverse(
         }
     }
 
+    public IEnumerable<string> SubstitutableTickers() => AllTickers();
+
+    public HaaUniverse WithSubstitutions(IReadOnlyDictionary<string, string> map) => new(
+        Risky:  Risky.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Canary: TickerSubstitution.Apply(map, Canary),
+        Cash:   Cash.Select(t => TickerSubstitution.Apply(map, t)).ToArray());
+
     /// <summary>
     /// Original Keller 2023 universe — US-listed ETFs. The 8 risky
     /// tickers are paired by category but the strategy treats them as

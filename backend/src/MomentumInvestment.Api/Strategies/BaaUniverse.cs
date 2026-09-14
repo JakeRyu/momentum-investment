@@ -28,6 +28,13 @@ public sealed record BaaUniverse(
     public IEnumerable<string> AllTickers() =>
         Canary.Concat(Risky).Concat(Cash).Distinct();
 
+    public IEnumerable<string> SubstitutableTickers() => AllTickers();
+
+    public BaaUniverse WithSubstitutions(IReadOnlyDictionary<string, string> map) => new(
+        Canary: Canary.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Risky:  Risky.Select(t => TickerSubstitution.Apply(map, t)).ToArray(),
+        Cash:   Cash.Select(t => TickerSubstitution.Apply(map, t)).ToArray());
+
     /// <summary>
     /// Original Keller 2022 universe — US-listed ETFs.
     /// </summary>
