@@ -25,9 +25,8 @@ export default function Home() {
       <section className="learn-entry">
         <h2 className="section-title">New To This?</h2>
         <p className="learn-entry__body">
-          Four short lessons on why these rules exist, what they measure,
-          and what you would actually buy — starting from no background at
-          all.
+          A short course on why these rules exist, what they measure, and
+          what you would actually buy — starting from no background at all.
         </p>
         <Link to="/learn" className="learn-entry__cta">
           Start the course →

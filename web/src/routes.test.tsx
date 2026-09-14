@@ -85,7 +85,26 @@ describe('the course', () => {
 
   it('says where the reader is in the sequence', () => {
     const { container } = renderAt('/learn/what-breadth-adds')
-    expect(container.textContent).toMatch(/Lesson 3 of 4/)
+    expect(container.textContent).toMatch(
+      new RegExp(`Lesson 3 of ${LESSONS.length}`),
+    )
+  })
+
+  it('does not hard-code how many lessons there are', () => {
+    const { container: learn } = renderAt('/learn')
+    expect(learn.textContent).not.toMatch(
+      /\b(one|two|three|four|five|six|seven|eight)\s+(short\s+)?lessons\b/i,
+    )
+
+    const { container: home } = renderAt('/')
+    expect(home.textContent).not.toMatch(
+      /\b(one|two|three|four|five|six|seven|eight)\s+(short\s+)?lessons\b/i,
+    )
+  })
+
+  it('states the lesson count from the catalog', () => {
+    renderAt('/learn')
+    expect(screen.getByText(`${LESSONS.length} lessons`)).toBeInTheDocument()
   })
 
   it('makes no forward-looking claim in any lesson body', () => {

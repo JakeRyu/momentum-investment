@@ -11,11 +11,12 @@ export default function Learn() {
   return (
     <article className="learn">
       <header>
-        <p className="learn__eyebrow">Start here</p>
+        <p className="learn__eyebrow">{LESSONS.length} lessons</p>
         <h1>Learn</h1>
         <p className="learn__lede">
-          Four short lessons. By the end you should be able to open any
-          strategy page and know what it is telling you to do, and why.
+          Start from no background at all. By the end you should be able to
+          open any strategy page and know what it is telling you to do, and
+          why.
         </p>
       </header>
 
