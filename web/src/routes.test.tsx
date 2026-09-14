@@ -157,6 +157,22 @@ describe('the course', () => {
     )
   })
 
+  it('hands the last lesson off to a strategy page', () => {
+    renderAt('/learn/running-it')
+    expect(screen.getByRole('link', { name: /VAA/i })).toHaveAttribute(
+      'href',
+      '/strategies/vaa',
+    )
+  })
+
+  it('reaches eight lessons, matching the copy on /learn', () => {
+    // The two pages state the count from LESSONS.length; this pins the
+    // course as finished so a ninth lesson is a deliberate decision.
+    expect(LESSONS).toHaveLength(8)
+    const { container } = renderAt('/learn/running-it')
+    expect(container.textContent).toMatch(/Lesson 8 of 8/)
+  })
+
   it('makes no forward-looking claim in any lesson body', () => {
     for (const l of LESSONS) {
       const { container, unmount } = renderAt(`/learn/${l.slug}`)

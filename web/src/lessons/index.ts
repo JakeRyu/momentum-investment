@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 
 import ChoosingOne from './ChoosingOne';
 import OneSignalAMonth from './OneSignalAMonth';
+import RunningIt from './RunningIt';
 import WhatBreadthAdds from './WhatBreadthAdds';
 import WhatMomentumIs from './WhatMomentumIs';
 import WhatYouWouldBuy from './WhatYouWouldBuy';
@@ -82,6 +83,14 @@ export const LESSONS: readonly Lesson[] = [
     summary:
       'The six side by side, on facts rather than ratings — and the question underneath the table.',
     Body: ChoosingOne,
+  },
+  {
+    slug: 'running-it',
+    number: 8,
+    title: 'Running it',
+    summary:
+      'What the first day looks like, what each month looks like, and where the site stops.',
+    Body: RunningIt,
   },
 ];
 
