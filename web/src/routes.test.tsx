@@ -107,6 +107,18 @@ describe('the course', () => {
     expect(screen.getByText(`${LESSONS.length} lessons`)).toBeInTheDocument()
   })
 
+  it('tells the reader what SHY is', () => {
+    const { container } = renderAt('/learn/what-you-would-buy')
+    expect(container.textContent).toMatch(/SHY/)
+    expect(container.textContent).toMatch(/1–3 year US Treasuries/)
+  })
+
+  it('names UCITS substitutes for UK readers', () => {
+    const { container } = renderAt('/learn/what-you-would-buy')
+    expect(container.textContent).toMatch(/UCITS/)
+    expect(container.textContent).toMatch(/CSPX\.L/)
+  })
+
   it('makes no forward-looking claim in any lesson body', () => {
     for (const l of LESSONS) {
       const { container, unmount } = renderAt(`/learn/${l.slug}`)

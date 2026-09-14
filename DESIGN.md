@@ -149,6 +149,26 @@ Heavy 5px rule above. Small caps centered, 9-10px, mono, letter-spacing
 +1.5px. Disclaimer + paper short-codes + API debug line, all on
 separate lines, all centered.
 
+## Teaching register
+
+The newspaper setting — three justified columns, dense rules, a drop-cap
+lede — is built for scanning a reference page. The course is built for
+reading in sequence, so `/learn` and `/learn/:slug` use a second register
+inside the same system. Same palette, same faces, nothing new.
+
+| Element | Treatment |
+|---|---|
+| **Reading column** | Single column, ~65ch. `column-count` and `text-align: justify` released. |
+| **Lesson title** (`h1`) | Display serif italic, one tier below the strategy hero. |
+| **Sub-head** (`.lesson__body h2`) | Display serif italic, 26px. Marks a turn in the argument inside the column. |
+| **Chapter marker** (`.lesson__marker`) | Mono micro-caps — "Lesson 5 of 8". |
+| **Progress rail** (`.lesson__rail`) | Left column, every lesson listed, current one in `--red`. Knowing how far along you are is most of what stops a beginner abandoning a sequence. |
+| **Definition block** (`.lesson__define`) | 3px `--red` left rule, term in mono caps above the sentence. For a word the reader has not met yet. |
+| **Pull quote** (`.lesson__quote`) | Thin left rule, display serif italic 21px. Reserved for a paper's own words, where the line between what an author claimed and what this site claims has to be visible at a glance. |
+
+The rail and the marker are the only furniture. No progress bars, no
+percentages, no badges.
+
 ## Out of scope (this design phase)
 
 - Dark mode (TBD; if added, invert ink/bg only, keep red).

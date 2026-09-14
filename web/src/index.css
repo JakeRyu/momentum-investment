@@ -1134,6 +1134,45 @@ hr {
   font-weight: 700;
 }
 
+/* Lesson sub-heads. A tier below .section-title: these sit inside a
+   reading column, so they mark a turn in the argument without competing
+   with the lesson's own h1. */
+.lesson__body h2 {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 26px;
+  letter-spacing: -0.5px;
+  margin: 38px 0 12px;
+}
+
+.lesson__body ul {
+  margin: 18px 0;
+  padding-left: 22px;
+}
+.lesson__body li {
+  margin-bottom: 8px;
+}
+
+/* Definition block. A term the reader has not met yet, set off by the
+   red rule rather than a new color or a box — DESIGN.md allows no
+   rounded corners and no shadows, so the accent does the work. */
+.lesson__define {
+  border-left: 3px solid var(--red);
+  padding-left: 16px;
+  margin: 22px 0;
+}
+.lesson__define strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
 .lesson__pager {
   display: flex;
   justify-content: space-between;

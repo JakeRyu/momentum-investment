@@ -3,6 +3,7 @@ import type { ComponentType } from 'react';
 import OneSignalAMonth from './OneSignalAMonth';
 import WhatBreadthAdds from './WhatBreadthAdds';
 import WhatMomentumIs from './WhatMomentumIs';
+import WhatYouWouldBuy from './WhatYouWouldBuy';
 import WhyNotBuyAndHold from './WhyNotBuyAndHold';
 
 /**
@@ -55,6 +56,14 @@ export const LESSONS: readonly Lesson[] = [
     summary:
       'When the decision happens, why it holds all month, and what to do if you are late.',
     Body: OneSignalAMonth,
+  },
+  {
+    slug: 'what-you-would-buy',
+    number: 5,
+    title: 'What you would actually buy',
+    summary:
+      'The ticker, the fund behind it, what it costs, and what UK readers buy instead.',
+    Body: WhatYouWouldBuy,
   },
 ];
 
