@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 
+import ChoosingOne from './ChoosingOne';
 import OneSignalAMonth from './OneSignalAMonth';
 import WhatBreadthAdds from './WhatBreadthAdds';
 import WhatMomentumIs from './WhatMomentumIs';
@@ -73,6 +74,14 @@ export const LESSONS: readonly Lesson[] = [
     summary:
       'The target the authors set, the figures they published, and the cases where it did not hold.',
     Body: WhyDrawdown,
+  },
+  {
+    slug: 'choosing-one',
+    number: 7,
+    title: 'Choosing one',
+    summary:
+      'The six side by side, on facts rather than ratings — and the question underneath the table.',
+    Body: ChoosingOne,
   },
 ];
 

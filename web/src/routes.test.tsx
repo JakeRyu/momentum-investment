@@ -139,6 +139,24 @@ describe('the course', () => {
     expect(container.textContent).toMatch(/measured at month-end/)
   })
 
+  it('shows the comparison inside lesson 7, not a second copy of it', () => {
+    const { container } = renderAt('/learn/choosing-one')
+    expect(container.querySelector('.compare')).not.toBeNull()
+    for (const s of STRATEGIES) {
+      expect(
+        container.querySelector(`[data-testid="compare-row-${s.id}"]`),
+        s.id,
+      ).not.toBeNull()
+    }
+  })
+
+  it('does not rank the six by return', () => {
+    const { container } = renderAt('/learn/choosing-one')
+    expect(container.textContent).not.toMatch(
+      /best performing|highest return|top performer/i,
+    )
+  })
+
   it('makes no forward-looking claim in any lesson body', () => {
     for (const l of LESSONS) {
       const { container, unmount } = renderAt(`/learn/${l.slug}`)

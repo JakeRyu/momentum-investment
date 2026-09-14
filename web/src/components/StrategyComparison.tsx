@@ -11,10 +11,11 @@ import { STRATEGIES, fundsNeeded } from '../strategies'
  * return column this becomes a ranking, and a ranked comparison
  * published by a UK company reads as a financial promotion.
  *
- * Two strategies show no figure. HAA and BAA compute something their
- * cited papers do not describe, so quoting those papers' drawdowns
- * beside them would be a false citation. The footnote says so rather
- * than leaving a bare dash that reads as missing data.
+ * The footnote names any strategy whose figure is withheld — a
+ * divergence from the cited paper makes quoting that paper's drawdown a
+ * false citation, and a bare dash would read as missing data instead.
+ * Since the HAA and BAA reconciliations all six publish a figure, so the
+ * footnote collapses to the period caveat alone.
  */
 export default function StrategyComparison() {
   const withheld = STRATEGIES.filter((s) => !s.backtest).map((s) => s.shortName)
