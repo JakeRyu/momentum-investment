@@ -1,7 +1,11 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { ASSET_CLASSES, type AssetClassCode } from '../etfCatalog';
+import {
+  ASSET_CLASSES,
+  codeForPaperTicker,
+  type AssetClassCode,
+} from '../etfCatalog';
 import UNIVERSES from '../universes.generated.json';
 
 /**
@@ -50,5 +54,19 @@ describe('the bundled universe fixture', () => {
       seen.set(def.usDefault, def.code);
     }
     expect(collisions).toEqual([]);
+  });
+});
+
+describe('codeForPaperTicker', () => {
+  it('maps a paper ticker back to its asset class', () => {
+    expect(codeForPaperTicker('SPY')).toBe('US_LARGE_CAP');
+    expect(codeForPaperTicker('VEA')).toBe('INTL_DEV_FTSE');
+    expect(codeForPaperTicker('DBC')).toBe('COMMODITIES_BCOM');
+  });
+
+  it('throws on a ticker with no asset class', () => {
+    // Better a crash in development than a config screen that silently
+    // omits an asset the server is scoring.
+    expect(() => codeForPaperTicker('NOPE')).toThrow(/NOPE/);
   });
 });

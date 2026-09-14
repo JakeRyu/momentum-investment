@@ -12,12 +12,13 @@
  *     momentum)
  *   - PRIIPs/UCITS availability on your specific platform
  *
- * Asset classes are strategy-agnostic building blocks. A strategy
- * composition (e.g. `VAA_OFFENSIVE`, `DAA_G12_CANARY`) is just an ordered
- * list of `AssetClassCode`s. When two strategies share an asset class
- * (e.g. VAA defensive's IG_CORP and DAA cash's IG_CORP both = LQD), a UK
- * override on that class applies to both — that's intentional, since a
- * user's "LQD → LQDA.L" preference is structural, not strategy-specific.
+ * Asset classes are strategy-agnostic building blocks. Which classes
+ * compose a strategy is the server's to say — the app reads it from
+ * `universes.generated.json` via `codeForPaperTicker`. When two
+ * strategies share an asset class (e.g. VAA defensive's IG_CORP and DAA
+ * cash's IG_CORP both = LQD), a UK override on that class applies to
+ * both — that's intentional, since a user's "LQD → LQDA.L" preference is
+ * structural, not strategy-specific.
  *
  * Tickers that *only* appear in one strategy (VWO and BND, used as DAA's
  * canary) get their own dedicated asset classes (`EM_FTSE`, `US_AGG_TOTAL`)
@@ -77,150 +78,6 @@ export type AssetClassDefinition = {
   usDefault: string;
   ukAlternatives: EtfOption[]; // first entry is the curated default
 };
-
-/** VAA-G4/B3 strategy composition. */
-export const VAA_OFFENSIVE: AssetClassCode[] = ['US_LARGE_CAP', 'INTL_DEV', 'EM', 'US_AGG'];
-export const VAA_DEFENSIVE: AssetClassCode[] = ['IG_CORP', 'TREASURY_7_10', 'TREASURY_SHORT'];
-
-/**
- * DAA-G12 strategy composition (Keller & Keuning, 2018).
- *
- * Same building-block contract as VAA: each entry is an `AssetClassCode`,
- * the resolver picks the actual ticker via `ASSET_CLASSES[code].usDefault`
- * (US) or the user's override / curated UK default (UK).
- *
- * Note that `EM_FTSE` (VWO) appears in both canary and risky — the
- * shared asset class means a UK user's VWO override (e.g. → VFEM.L)
- * applies in both slots, which matches Keller's original intent of
- * scoring the same EM exposure twice. Likewise `IG_CORP` (LQD) appears
- * in both risky and cash.
- */
-export const DAA_G12_CANARY: AssetClassCode[] = ['EM_FTSE', 'US_AGG_TOTAL'];
-export const DAA_G12_RISKY: AssetClassCode[] = [
-  'US_LARGE_CAP', 'US_SMALL_CAP', 'US_NASDAQ',
-  'EU_DEV', 'JAPAN', 'EM_FTSE',
-  'US_REIT', 'COMMODITIES', 'GOLD',
-  'TREASURY_LONG', 'HIGH_YIELD', 'IG_CORP',
-];
-export const DAA_G12_CASH: AssetClassCode[] = ['TREASURY_SHORT', 'TREASURY_7_10', 'IG_CORP'];
-
-/**
- * PAA-G12 strategy composition (Keller & van Putten, 2016) — the PAA2
- * variant (a = 2, T = 6).
- *
- * Reuses asset classes already in the catalog (no new entries needed).
- * Note that PAA's EM exposure is `EM` (MSCI EEM, shared with VAA), not
- * `EM_FTSE` (VWO, DAA-only) — Keller's PAA paper uses EEM, so the UK
- * override on `EM` (e.g. EMIM.L) applies symmetrically to VAA and PAA
- * but not to DAA's canary/risky.
- */
-export const PAA_RISKY: AssetClassCode[] = [
-  'US_LARGE_CAP',  // SPY
-  'US_SMALL_CAP',  // IWM
-  'US_NASDAQ',     // QQQ
-  'EU_DEV',        // VGK
-  'JAPAN',         // EWJ
-  'EM',            // EEM
-  'US_REIT',       // VNQ
-  'COMMODITIES',   // GSG
-  'GOLD',          // GLD
-  'HIGH_YIELD',    // HYG
-  'IG_CORP',       // LQD
-  'TREASURY_LONG', // TLT
-];
-export const PAA_CASH: AssetClassCode[] = [
-  'TREASURY_7_10',  // IEF (Keller's canonical single cash asset)
-  'TREASURY_SHORT', // SHY
-  'IG_CORP',        // LQD
-];
-
-/**
- * LAA-G strategy composition (Keller, 2019) — Lethargic Asset Allocation.
- *
- * Structurally different from breadth-momentum: 75% of the portfolio is a
- * fixed permanent sleeve, 25% rotates between a risky and cash asset based
- * on Growth-Trend (GT) timing (SPY 200d SMA + UNRATE 12mo SMA).
- *
- * Region note: the rotating asset and permanent sleeve are remapped to UK
- * UCITS substitutes via the shared per-asset-class override mechanism.
- * The signal equity (SPY) and macro series (UNRATE) stay US-anchored —
- * GT timing is a US business-cycle indicator, so the signal is the same
- * regardless of which assets the UK user actually holds.
- */
-export const LAA_PERMANENT: AssetClassCode[] = [
-  'US_LARGE_VALUE', // IWD (Russell 1000 Value)
-  'GOLD',           // GLD
-  'TREASURY_7_10',  // IEF
-];
-export const LAA_RISKY: AssetClassCode = 'US_NASDAQ';     // QQQ
-export const LAA_CASH: AssetClassCode = 'TREASURY_SHORT'; // SHY
-
-/**
- * HAA strategy composition (Keller & Keuning, 2023).
- *
- * 8 risky assets across 4 categories (US/foreign equities, real assets,
- * treasuries), one canary (TIP — TIPS-class), one cash (BIL — short
- * T-bills). Top T=4 risky by 13612W are held when canary is bullish;
- * else 100% in cash.
- *
- * Note: HAA's foreign-equity sleeve (VEA, VWO) uses FTSE indices, so
- * `INTL_DEV_FTSE` (VEA) and `EM_FTSE` (VWO) are reused — same FTSE EM
- * exposure as DAA's canary, but the developed-ex-NA slot is HAA-specific.
- * The commodity sleeve uses DBC (Bloomberg Commodity), a different index
- * from PAA/DAA's GSG (S&P GSCI), hence its own asset class.
- */
-export const HAA_RISKY: AssetClassCode[] = [
-  'US_LARGE_CAP',      // SPY
-  'US_SMALL_CAP',      // IWM
-  'INTL_DEV_FTSE',     // VEA
-  'EM_FTSE',           // VWO
-  'US_REIT',           // VNQ
-  'COMMODITIES_BCOM',  // DBC
-  'TREASURY_7_10',     // IEF
-  'TREASURY_LONG',     // TLT
-];
-export const HAA_CANARY: AssetClassCode = 'TIPS';   // TIP
-export const HAA_CASH:   AssetClassCode = 'T_BILL'; // BIL
-
-/**
- * BAA-G12 strategy composition (Keller, 2022).
- *
- * Reuses asset classes already in the catalog — no new entries needed.
- * Note that BAA's EM exposure is `EM` (MSCI EEM, shared with VAA/PAA),
- * NOT `EM_FTSE` (VWO, used by DAA's canary). A UK override on `EM`
- * applies symmetrically to VAA/PAA/BAA but not to DAA's canary.
- *
- * Canary set (TIP/IEF/BIL) is the unanimous-AND gate — a single
- * non-positive 13612W flips the strategy fully defensive. Cash uses
- * SMA12 (PAA-style) for ranking, distinct from canary/risky which use
- * 13612W; this dual-signal design is in Keller's paper.
- */
-export const BAA_CANARY: AssetClassCode[] = [
-  'TIPS',           // TIP
-  'TREASURY_7_10',  // IEF
-  'T_BILL',         // BIL
-];
-export const BAA_RISKY: AssetClassCode[] = [
-  'US_LARGE_CAP',   // SPY
-  'US_SMALL_CAP',   // IWM
-  'US_NASDAQ',      // QQQ
-  'EU_DEV',         // VGK
-  'JAPAN',          // EWJ
-  'EM',             // EEM
-  'US_REIT',        // VNQ
-  'COMMODITIES',    // GSG
-  'GOLD',           // GLD
-  'TREASURY_LONG',  // TLT
-  'HIGH_YIELD',     // HYG
-  'IG_CORP',        // LQD
-];
-export const BAA_CASH: AssetClassCode[] = [
-  'T_BILL',         // BIL
-  'TREASURY_7_10',  // IEF
-  'TREASURY_LONG',  // TLT
-  'US_AGG_TOTAL',   // BND
-  'IG_CORP',        // LQD
-];
 
 export const ASSET_CLASSES: Record<AssetClassCode, AssetClassDefinition> = {
   US_LARGE_CAP: {
@@ -662,4 +519,20 @@ export function isTickerInCurated(code: AssetClassCode, ticker: string): boolean
   return ASSET_CLASSES[code].ukAlternatives.some(
     (o) => o.ticker.toUpperCase() === ticker.toUpperCase(),
   );
+}
+
+/**
+ * Paper ticker → asset class. The reverse of `usDefault`, used to turn
+ * the server's universe fixture back into configurable rows. Uniqueness
+ * of `usDefault` is asserted in `__tests__/universes.test.ts`, because
+ * this lookup depends on it.
+ */
+const CODE_BY_PAPER_TICKER: Record<string, AssetClassCode> = Object.fromEntries(
+  Object.values(ASSET_CLASSES).map((d) => [d.usDefault, d.code]),
+);
+
+export function codeForPaperTicker(ticker: string): AssetClassCode {
+  const code = CODE_BY_PAPER_TICKER[ticker];
+  if (!code) throw new Error(`No asset class for paper ticker '${ticker}'`);
+  return code;
 }

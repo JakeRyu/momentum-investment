@@ -22,22 +22,7 @@ import {
 import type { Region } from '../api/apiBase';
 import {
   ASSET_CLASSES,
-  BAA_CANARY,
-  BAA_CASH,
-  BAA_RISKY,
-  DAA_G12_CANARY,
-  DAA_G12_CASH,
-  DAA_G12_RISKY,
-  HAA_CANARY,
-  HAA_CASH,
-  HAA_RISKY,
-  LAA_CASH,
-  LAA_PERMANENT,
-  LAA_RISKY,
-  PAA_CASH,
-  PAA_RISKY,
-  VAA_DEFENSIVE,
-  VAA_OFFENSIVE,
+  codeForPaperTicker,
   findEtfOption,
   isTickerInCurated,
   type AssetClassCode,
@@ -45,63 +30,43 @@ import {
 import type { CustomEtfEntry, CustomTickers, Overrides } from '../storage';
 import { type StrategyId } from '../strategies';
 import { pickTicker } from '../universe';
+import UNIVERSES from '../universes.generated.json';
 
 /**
- * Strategy → ordered list of bucket sections shown in the config screen.
- * Each section has a label (the user-facing bucket name) and the asset
- * classes that compose it.
+ * A bucket of the strategy, as the config screen shows it: the label the
+ * user sees and the asset classes that compose it.
  *
- * Note: same `AssetClassCode` can appear across multiple sections (e.g.
- * `EM_FTSE` in DAA's canary AND risky, `IG_CORP` in DAA's risky AND cash).
- * That's intentional — the user sees the full strategy structure, and
- * because override is keyed on asset class, changing it in one section
- * automatically applies in the other.
+ * Note: the same `AssetClassCode` can appear across multiple sections
+ * (e.g. `EM_FTSE` in DAA's canary AND risky, `IG_CORP` in DAA's risky
+ * AND cash). That's intentional — the user sees the full strategy
+ * structure, and because override is keyed on asset class, changing it
+ * in one section automatically applies in the other.
  */
 type Section = { label: string; codes: AssetClassCode[] };
 
-const STRATEGY_SECTIONS: Record<StrategyId, Section[]> = {
-  vaa: [
-    { label: 'Offensive (G4)', codes: VAA_OFFENSIVE },
-    { label: 'Defensive (B3)', codes: VAA_DEFENSIVE },
-  ],
-  daa: [
-    { label: 'Canary (B=2)', codes: DAA_G12_CANARY },
-    { label: 'Risky (T=6 of 12)', codes: DAA_G12_RISKY },
-    { label: 'Cash', codes: DAA_G12_CASH },
-  ],
-  // PAA's three protection-factor variants share this universe; the
-  // active variant is selected via a segmented control on DecisionScreen,
-  // not here, so only one entry is needed.
-  paa: [
-    { label: 'Risky (T=6 of 12)', codes: PAA_RISKY },
-    { label: 'Cash', codes: PAA_CASH },
-  ],
-  // BAA-G12: same shape as DAA — three multi-asset buckets. Canary
-  // (TIP/IEF/BIL) is the unanimous-AND gate; risky is the standard G12;
-  // cash is selected by SMA12 (single top-scorer wins when defensive).
-  baa: [
-    { label: 'Canary (unanimous AND)', codes: BAA_CANARY },
-    { label: 'Risky (T=6 of 12)', codes: BAA_RISKY },
-    { label: 'Cash', codes: BAA_CASH },
-  ],
-  // HAA: 8 risky + single canary + single cash. Canary and cash render
-  // as one-row sleeves (same trick LAA uses for its rotating sleeves).
-  haa: [
-    { label: 'Risky (T=4 of 8)', codes: HAA_RISKY },
-    { label: 'Canary (TIPS regime gate)', codes: [HAA_CANARY] },
-    { label: 'Cash (defensive)', codes: [HAA_CASH] },
-  ],
-  // LAA's risky/cash sleeves are single-asset by spec, but the section
-  // contract (codes: AssetClassCode[]) renders them as one-row sleeves
-  // identically to the permanent sleeve, which is what we want — three
-  // visual sections, the rotating sleeves shown as two single-row groups
-  // so the user can see both QQQ and SHY mappings at a glance.
-  laa: [
-    { label: 'Permanent (75%)', codes: LAA_PERMANENT },
-    { label: 'Risky (rotating, Risk-On)', codes: [LAA_RISKY] },
-    { label: 'Cash (rotating, Risk-Off)', codes: [LAA_CASH] },
-  ],
+/** Bucket key → the label the user sees. */
+const BUCKET_LABELS: Record<string, string> = {
+  offensive: 'Offensive',
+  defensive: 'Defensive',
+  canary: 'Canary',
+  risky: 'Risky',
+  cash: 'Cash',
+  permanent: 'Permanent',
 };
+
+/**
+ * The strategy's structure, read from the server's universe rather than
+ * restated here. Restating it is how the app came to offer a BAA canary
+ * of TIP/IEF/BIL while the server scored SPY/VWO/VEA/BND.
+ */
+function sectionsFor(id: StrategyId): Section[] {
+  const buckets = (UNIVERSES as Record<string, { buckets: Record<string, string[]> }>)[id]
+    .buckets;
+  return Object.entries(buckets).map(([key, tickers]) => ({
+    label: BUCKET_LABELS[key] ?? key,
+    codes: tickers.map(codeForPaperTicker),
+  }));
+}
 
 const STRATEGY_LABEL: Record<StrategyId, string> = {
   vaa: 'VAA-G4/B3',
@@ -137,7 +102,7 @@ export default function ETFConfigScreen({
 }: ETFConfigScreenProps) {
   const [pickerFor, setPickerFor] = useState<AssetClassCode | null>(null);
   const editable = region === 'UK';
-  const sections = STRATEGY_SECTIONS[strategyId];
+  const sections = sectionsFor(strategyId);
   // Only consider overrides that this strategy actually consumes — if the
   // user customised an asset class that's not in the current strategy's
   // composition, "Reset" shouldn't claim there's anything to reset here.
