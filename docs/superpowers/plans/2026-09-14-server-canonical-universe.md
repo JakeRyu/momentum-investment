@@ -10,6 +10,28 @@
 
 **Spec:** [2026-09-14-server-canonical-universe-design.md](../specs/2026-09-14-server-canonical-universe-design.md)
 
+## Status
+
+**Tasks 1–3 are done and merged** (PR #20, branch `feat/server-canonical-universe`). They were split off because they are purely additive: the fixture exists, universes can be substituted, and `substitute` can be parsed — but nothing calls any of it, so the API contract is unchanged and both clients still work.
+
+**Resume at Task 4.** From there the change is atomic: Task 4 breaks the contract, and Tasks 6, 9 and 10 are what make the clients work again. Tasks 4–10 must land in one PR.
+
+To pick up in a fresh session:
+
+```bash
+git checkout main && git pull
+git checkout -b feat/server-canonical-universe-contract
+cd backend && dotnet test    # expect 127 passing before you start
+```
+
+Then read this plan from Task 4 and the spec it argues from. What already exists on `main` and Task 4 depends on:
+
+| Symbol | Where |
+|---|---|
+| `shared/universes.json` | repo root |
+| `TickerSubstitution.Parse` / `.Apply` | `backend/src/MomentumInvestment.Api/Strategies/TickerSubstitution.cs` |
+| `SubstitutableTickers()` / `WithSubstitutions()` | all six `*Universe.cs` records |
+
 ## Global Constraints
 
 - **The contract change is atomic.** Backend and web deploy together; the app build follows. No task may leave `main` with a client sending parameters the backend no longer reads — the tasks are ordered so the backend switches only after both clients are ready to stop sending.
@@ -66,7 +88,7 @@ Nothing else can be written until the fixture exists and is proven to match the 
 **Interfaces:**
 - Produces: `shared/universes.json` with top-level keys `vaa`, `daa`, `paa`, `haa`, `baa`, `laa`. Each has `buckets` (object of name → ticker array). `laa` also has `signalEquity` and `unemploymentSeriesId` strings.
 
-- [ ] **Step 1: Write the fixture**
+- [x] **Step 1: Write the fixture**
 
 Create `shared/universes.json`:
 
@@ -117,7 +139,7 @@ Create `shared/universes.json`:
 }
 ```
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 Create `backend/tests/MomentumInvestment.Api.Tests/UniverseFixtureTests.cs`:
 
@@ -221,12 +243,12 @@ public sealed class UniverseFixtureTests
 }
 ```
 
-- [ ] **Step 3: Run the tests**
+- [x] **Step 3: Run the tests**
 
 Run: `cd backend && dotnet test --filter UniverseFixtureTests`
 Expected: PASS — the fixture was transcribed from these records. A failure here means a transcription error; fix the JSON, not the record.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add shared/universes.json backend/tests/MomentumInvestment.Api.Tests/UniverseFixtureTests.cs
@@ -255,7 +277,7 @@ US-anchored."
   - `IEnumerable<string> SubstitutableTickers()` — the distinct union of the record's holding buckets.
   - `<TRecord> WithSubstitutions(IReadOnlyDictionary<string, string> map)` — the same record type with every bucket ticker replaced where the map has a key. Case-insensitive on lookup; the replacement is used verbatim.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `backend/tests/MomentumInvestment.Api.Tests/UniverseSubstitutionTests.cs`:
 
@@ -334,12 +356,12 @@ public sealed class UniverseSubstitutionTests
 }
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `cd backend && dotnet test --filter UniverseSubstitutionTests`
 Expected: FAIL — compile error, no `SubstitutableTickers` or `WithSubstitutions`.
 
-- [ ] **Step 3: Create the shared per-ticker helper**
+- [x] **Step 3: Create the shared per-ticker helper**
 
 Create `backend/src/MomentumInvestment.Api/Strategies/TickerSubstitution.cs`. Task 3 adds `Parse` to this same class; for now it holds only the substitution itself, so no universe record has to own a helper the other five call.
 
@@ -364,7 +386,7 @@ public static partial class TickerSubstitution
 }
 ```
 
-- [ ] **Step 4: Add the two members to each record**
+- [x] **Step 4: Add the two members to each record**
 
 In `VaaUniverse.cs`, inside the record body:
 
@@ -442,12 +464,12 @@ In `LaaUniverse.cs` — note this one does **not** delegate to `AllDailyTickers(
         UnemploymentSeriesId: UnemploymentSeriesId);
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 Run: `cd backend && dotnet test`
 Expected: PASS, including `PaperFingerprintTests` and `UniverseFixtureTests` untouched.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add backend/src/MomentumInvestment.Api/Strategies/ backend/tests/MomentumInvestment.Api.Tests/UniverseSubstitutionTests.cs
@@ -471,7 +493,7 @@ SPY is its Growth-Trend signal and is never held, so it is not offered."
 **Interfaces:**
 - Produces: `TickerSubstitution.Parse(string[]? raw, IEnumerable<string> substitutable)` returning `(Dictionary<string,string>? Map, string? Error)`. `Error` non-null means the caller returns `Results.BadRequest(Error)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `backend/tests/MomentumInvestment.Api.Tests/TickerSubstitutionTests.cs`:
 
@@ -556,12 +578,12 @@ public sealed class TickerSubstitutionTests
 }
 ```
 
-- [ ] **Step 2: Run it to make sure it fails**
+- [x] **Step 2: Run it to make sure it fails**
 
 Run: `cd backend && dotnet test --filter TickerSubstitutionTests`
 Expected: FAIL — `TickerSubstitution` does not exist.
 
-- [ ] **Step 3: Write the parser**
+- [x] **Step 3: Write the parser**
 
 Add `Parse` to the existing `TickerSubstitution` class created in Task 2, inside the same file:
 
@@ -621,12 +643,12 @@ public static partial class TickerSubstitution
 }
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd backend && dotnet test`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/MomentumInvestment.Api/Strategies/TickerSubstitution.cs backend/tests/MomentumInvestment.Api.Tests/TickerSubstitutionTests.cs
