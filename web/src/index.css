@@ -515,6 +515,15 @@ hr {
   margin: 0;
   color: var(--ink);
 }
+/* The gloss sits between the ticker and its weight: a reader who does
+   not know the code meets the plain-English line before the number. */
+.alloc-hero__gloss {
+  font-family: var(--body);
+  font-style: italic;
+  font-size: 17px;
+  margin: 2px 0 0;
+  color: var(--muted);
+}
 .alloc-hero__weight {
   font-family: var(--display);
   font-style: italic;
@@ -545,6 +554,17 @@ hr {
   font-size: 22px;
   letter-spacing: 0.5px;
   color: var(--ink);
+}
+.alloc-row__gloss {
+  display: block;
+  font-family: var(--body);
+  font-style: italic;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  margin-top: 2px;
 }
 .alloc-row__weight {
   font-size: 16px;
