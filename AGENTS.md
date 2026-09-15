@@ -501,7 +501,9 @@ mobile client depends on the string form. Don't remove this converter.
   the variant selector on DecisionScreen.
 - **History view** of past decisions — would require persistence beyond
   AsyncStorage prefs (SQLite trigger).
-- **Azure deployment** — Container Apps in uksouth, scale-to-zero, ACR
+- **Azure deployment** — Container Apps in uksouth, one always-on
+  replica (0.25 vCPU / 0.5 GiB — scale-to-zero cost 22.6s on the first
+  request of the month, see the script header), ACR
   Basic. Provisioning + redeploy in one script: `infra/azure-deploy.sh`
   (uses `az acr build` so no local docker required). FRED key flows in
   as a Container Apps secret; CORS is environment-aware (dev =
