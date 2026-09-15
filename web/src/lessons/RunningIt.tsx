@@ -21,41 +21,85 @@ export default function RunningIt() {
         <Link to="/strategies/vaa">VAA</Link> is the one lesson 7 argued
         for. Under <em>Today&rsquo;s Decision</em> the site computes the
         rule against live prices and prints what it says to hold. Buy that,
-        in those proportions, and note the date.
+        in those proportions, and note the date. Starting mid-month puts you
+        briefly off the rule&rsquo;s calendar; the next month-end puts you
+        back on it.
       </p>
 
       <h2>Once a month, after that</h2>
 
       <p>
-        At the start of each month, open the same page. Compare what it
-        says to what you hold, and trade only the difference — which is
-        often nothing at all. Then close it. There is no second check, no
-        confirmation, and nothing to watch in between; the allocation set
-        at the last month-end holds for the whole month, whatever happens
-        inside it.
+        The rule settles at the month-end close and holds for the whole of
+        the following month. So there is one moment that matters — the start
+        of a month — and nothing to watch on any day inside it. What that
+        moment costs you depends on which of the two you run it on.
+      </p>
+
+      <div className="lesson__steps">
+        <div className="lesson__steps-col">
+          <p className="lesson__steps-label">This Site</p>
+          <ol>
+            <li>
+              Open the strategy page on the first business day of a month,
+              before the US market opens
+            </li>
+            <li>Compare what it prints to what you hold</li>
+            <li>Trade only the difference — often nothing at all</li>
+            <li>Write down the date and the allocation</li>
+            <li>Close it, and open nothing until next month</li>
+          </ol>
+        </div>
+        <div className="lesson__steps-col lesson__steps-col--app">
+          <p className="lesson__steps-label">The App</p>
+          <ol>
+            <li>Open it — any day, any hour</li>
+            <li>Compare what it prints to what you hold</li>
+            <li>Trade only the difference — often nothing at all</li>
+            <li>Tick the month off</li>
+          </ol>
+        </div>
+      </div>
+
+      <h2>Why one list is longer</h2>
+
+      <p>
+        The first step is the site computing at today&rsquo;s date. Before
+        the US market opens on the first business day, the most recent close
+        it can reach is the month-end you want; at any other hour it is
+        printing a reading that is not in force. The app is built the other
+        way round — the in-force allocation is what it opens on, and
+        today&rsquo;s recomputation sits behind a second tab that says so.
       </p>
 
       <p>
-        If you miss the date, act on the last month-end&rsquo;s decision
-        anyway rather than on a fresher reading. A mid-month signal is a
-        different rule from the one that was tested, and the next scheduled
-        rebalance is already on its way.
-      </p>
-
-      <h2>What this site can and cannot do</h2>
-
-      <p>
-        It runs the papers&rsquo; original US ETF universe, at
-        today&rsquo;s date only. It does not know what you hold, does not
-        remember you, and cannot tell you whether last month&rsquo;s
-        decision is still the one in force.
+        The last step is memory. The site does not know what you hold and
+        will not remember you were here, so the written note is the only
+        record there is. The app marks the month off per strategy and clears
+        the mark when the month rolls over, which is also what stops you
+        checking twice.
       </p>
 
       <p>
-        The iPhone app does those two things — it holds the allocation
-        currently in force rather than today&rsquo;s recomputation, and it
-        maps every asset to a local UCITS alternative for readers outside
-        the US, per lesson 5.{' '}
+        Neither one knows your holdings and neither places a trade. The
+        middle steps are yours in both columns.
+      </p>
+
+      <h2>If you miss the date</h2>
+
+      <p>
+        Do not act on a fresher reading. A mid-month signal is a different
+        rule from the one that was tested, and the next scheduled rebalance
+        is already on its way. The site cannot show you the month-end you
+        missed — it computes at today&rsquo;s date only — so there the
+        answer is to hold what you have until the next one. The app can: its
+        Holding view is that reading, whatever day you open it.
+      </p>
+
+      <p>
+        One difference is not about steps at all. The site runs the
+        papers&rsquo; original US ETF universe as published; the app maps
+        every asset to a local UCITS alternative for readers outside the US,
+        per lesson 5.{' '}
         <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
           {APP_STORE_CTA} →
         </a>

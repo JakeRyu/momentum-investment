@@ -50,6 +50,11 @@ export default function StrategyPage() {
           <span className="decision-banner__asof">
             As of {new Date().toISOString().slice(0, 10).replace(/-/g, '.')}
           </span>
+          <p className="decision-banner__note">
+            Today&rsquo;s prices, run through the rule — what it would say if
+            today were rebalance day. Not in force until the next month-end,
+            so act on it in the first days of a month.
+          </p>
         </div>
         <DecisionTool strategy={strategy} />
       </section>
