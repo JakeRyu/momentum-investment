@@ -455,6 +455,17 @@ hr {
   color: var(--muted);
   font-family: var(--display);
 }
+/* Keeps a live reading from being read as a forecast. The rule settles at
+   the month-end close; this is the same rule on today's data, which is a
+   different claim. Takes its own row — .decision-banner already wraps. */
+.decision-banner__note {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
 
 .back-link {
   margin: 36px 0 0;
@@ -1207,6 +1218,46 @@ hr {
   color: var(--ink-soft);
 }
 
+/* Web-vs-app procedure, lesson 8. Two ordered lists set side by side
+   because the difference in their length is the argument — it has to be
+   countable at a glance, not read for. Same ruled-grid treatment as the
+   home page's .app-compare, but ordered steps rather than features. */
+.lesson__body .lesson__steps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: var(--rule-thin);
+  border-left: var(--rule-thin);
+  margin: 24px 0;
+}
+.lesson__body .lesson__steps-col {
+  border-right: var(--rule-thin);
+  border-bottom: var(--rule-thin);
+  padding: 18px 20px;
+}
+.lesson__body .lesson__steps-label {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+}
+.lesson__body .lesson__steps-col--app .lesson__steps-label {
+  color: var(--red);
+}
+.lesson__body .lesson__steps-col ol {
+  margin: 0;
+  padding-left: 18px;
+}
+.lesson__body .lesson__steps-col li {
+  font-size: 15px;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.lesson__body .lesson__steps-col li:last-child {
+  margin-bottom: 0;
+}
+
 .lesson__pager {
   display: flex;
   justify-content: space-between;
@@ -1262,6 +1313,12 @@ hr {
   }
   .lesson__body p {
     font-size: 17px;
+  }
+  /* Side by side stops working before the lesson column does — at this
+     width each list wraps enough that the step counts stop reading as
+     comparable, which is the only reason they are paired. */
+  .lesson__body .lesson__steps {
+    grid-template-columns: 1fr;
   }
 }
 
