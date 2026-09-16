@@ -1247,7 +1247,8 @@ hr {
 }
 .lesson__body .lesson__steps-col ol {
   margin: 0;
-  padding-left: 18px;
+  /* Wide enough for the numbers to clear the timing rule below. */
+  padding-left: 24px;
 }
 .lesson__body .lesson__steps-col li {
   font-size: 15px;
@@ -1256,6 +1257,24 @@ hr {
 }
 .lesson__body .lesson__steps-col li:last-child {
   margin-bottom: 0;
+}
+/* The opening step is the one that differs between the columns — the
+   site's reading is only the month-end's before the US open, the app is
+   under no such constraint — and it was reading as just another step. A
+   rule in the number gutter marks the pair, so the asymmetry shows in
+   the lists themselves and not only in the prose underneath.
+   Ink rather than red: inside this block red already means "the app". */
+.lesson__body .lesson__steps-col li.lesson__step--timing {
+  position: relative;
+}
+.lesson__body .lesson__steps-col li.lesson__step--timing::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 3px;
+  bottom: 3px;
+  width: 3px;
+  background: var(--ink);
 }
 
 .lesson__pager {
