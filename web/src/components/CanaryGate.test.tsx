@@ -41,6 +41,37 @@ describe('CanaryGate', () => {
     }
   })
 
+  /**
+   * Every grid states a count in the line under it, so the squares and
+   * the sentence are two spellings of one fact and can disagree. They
+   * did: the main universe read "8 of 12 rising" over twelve filled
+   * squares, and "best 3 of the 8" sat over three.
+   */
+  it('draws each count as the number of squares it claims', () => {
+    const { container } = render(<CanaryGate />)
+    const grids = [...container.querySelectorAll('.canary__grid')]
+
+    const shape = (g: Element) => ({
+      total: g.querySelectorAll('.canary__cell').length,
+      off: g.querySelectorAll('.canary__cell--off').length,
+      held: g.querySelectorAll('.canary__cell--held').length,
+    })
+
+    // Canary all clear: 2 of 2 rising.
+    expect(shape(grids[0])).toEqual({ total: 2, off: 0, held: 0 })
+    // Main universe: 8 of 12 rising — so four are not.
+    expect(shape(grids[1])).toEqual({ total: 12, off: 4, held: 0 })
+    // Best 3 of the 8: all eight shown, three marked.
+    expect(shape(grids[2])).toEqual({ total: 8, off: 0, held: 3 })
+
+    // One canary falling of two.
+    expect(shape(grids[3])).toEqual({ total: 2, off: 1, held: 0 })
+    // The same main universe, unchanged.
+    expect(shape(grids[4])).toEqual({ total: 12, off: 4, held: 0 })
+    // Best 1 of 3 in the defensive set.
+    expect(shape(grids[5])).toEqual({ total: 3, off: 1, held: 1 })
+  })
+
   it('says the canary belongs to only three of the six', () => {
     const { container } = render(<CanaryGate />)
     expect(container.querySelector('.canary__note')?.textContent).toMatch(

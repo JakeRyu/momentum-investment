@@ -64,7 +64,10 @@ export default function CanaryGate() {
           <Stem />
 
           <Box title="Ranked &amp; held" aside="top scorers">
-            <Grid cells="***" />
+            {/* All eight risers, three of them marked: "best 3 of the 8"
+                is a selection, so the eight it selects from have to be
+                on the page for the three to mean anything. */}
+            <Grid cells="***+++++" />
             <p className="canary__count">
               Best 3 of the 8 <em>— from the main universe</em>
             </p>

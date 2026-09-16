@@ -1697,6 +1697,27 @@ hr {
 
 /* ── Lesson 3: the canary gate ── */
 
+/* "Not rising" is a diagonal drawn inside the box by a gradient with
+   hard stops. A rotated border was tried first and escaped the box at
+   these sizes. Held here as tokens so the legend swatch and the cells
+   it explains cannot drift apart. */
+.canary {
+  --hatch-ink: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.8px),
+    var(--ink) calc(50% - 0.8px),
+    var(--ink) calc(50% + 0.8px),
+    transparent calc(50% + 0.8px)
+  );
+  --hatch-red: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    var(--red) calc(50% - 1px),
+    var(--red) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+
 .lesson__body .canary__legend {
   display: flex;
   flex-wrap: wrap;
@@ -1716,19 +1737,14 @@ hr {
   margin-right: 6px;
 }
 /* The diagonal is a gradient rather than a rotated border: a transform
-   escapes the box at some sizes, which is exactly what it did here. */
-.canary__key--off,
-.canary__cell--off {
-  background: linear-gradient(
-    to top right,
-    transparent calc(50% - 0.8px),
-    var(--ink) calc(50% - 0.8px),
-    var(--ink) calc(50% + 0.8px),
-    transparent calc(50% + 0.8px)
-  );
+   escapes the box at some sizes, which is exactly what it did here.
+   The cell modifiers that share this treatment are declared after
+   `.canary__cell`, not here — same specificity, so whichever is written
+   last wins, and a fill declared later flattened every hatch. */
+.canary__key--off {
+  background: var(--hatch-ink);
 }
-.canary__key--held,
-.canary__cell--held {
+.canary__key--held {
   outline: 2px solid var(--red);
   outline-offset: 2px;
 }
@@ -1802,6 +1818,15 @@ hr {
   border: 1px solid var(--ink);
   background: var(--ink);
 }
+/* Modifiers after the base cell, never before it: both are one class
+   deep, so source order is the whole cascade here. */
+.canary__cell--off {
+  background: var(--hatch-ink);
+}
+.canary__cell--held {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
 .canary__grid--large .canary__cell {
   width: 26px;
   height: 26px;
@@ -1809,13 +1834,7 @@ hr {
   background: var(--red);
 }
 .canary__grid--large .canary__cell--off {
-  background: linear-gradient(
-    to top right,
-    transparent calc(50% - 1px),
-    var(--red) calc(50% - 1px),
-    var(--red) calc(50% + 1px),
-    transparent calc(50% + 1px)
-  );
+  background: var(--hatch-red);
 }
 .lesson__body .canary__count {
   font-family: var(--mono);
