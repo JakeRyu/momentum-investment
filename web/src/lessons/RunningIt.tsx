@@ -39,9 +39,9 @@ export default function RunningIt() {
         <div className="lesson__steps-col">
           <p className="lesson__steps-label">This Site</p>
           <ol>
-            <li>
-              Open the strategy page on the first business day of a month,
-              before the US market opens
+            <li className="lesson__step--timing">
+              Open the strategy page on the first business day of a month,{' '}
+              <strong>before the US market opens</strong>
             </li>
             <li>Compare what it prints to what you hold</li>
             <li>Trade only the difference — often nothing at all</li>
@@ -52,7 +52,9 @@ export default function RunningIt() {
         <div className="lesson__steps-col lesson__steps-col--app">
           <p className="lesson__steps-label">The App</p>
           <ol>
-            <li>Open it — any day, any hour</li>
+            <li className="lesson__step--timing">
+              Open it — <strong>any day, any hour</strong>
+            </li>
             <li>Compare what it prints to what you hold</li>
             <li>Trade only the difference — often nothing at all</li>
             <li>Tick the month off</li>
