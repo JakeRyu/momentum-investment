@@ -41,7 +41,13 @@ export type AssetMomentum = {
 /** Generic per-strategy decision response. */
 export type AllocationDecision = {
   strategyId: string;
+  /** What was asked for. The lookback anchors are measured from this. */
   asOf: string;
+  /**
+   * The latest close the reading could reach. Earlier than `asOf` on a
+   * weekend or holiday month-end, and before the US open.
+   */
+  pricesAsOf: string;
   modeLabel: string;
   allocations: Allocation[];
   scores: AssetMomentum[];
