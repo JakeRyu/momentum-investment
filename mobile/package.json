@@ -12,13 +12,16 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFiles": ["<rootDir>/jest.setup.js"]
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ]
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/datetimepicker": "8.4.4",
     "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.0",
+    "expo-application": "~7.0.8",
     "expo-asset": "~12.0.13",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",

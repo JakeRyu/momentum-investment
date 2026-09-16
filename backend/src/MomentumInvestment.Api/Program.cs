@@ -3,6 +3,7 @@ using System.Net.Security;
 using System.Security.Authentication;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
+using MomentumInvestment.Api;
 using MomentumInvestment.Api.Fred;
 using MomentumInvestment.Api.Strategies;
 using MomentumInvestment.Api.YahooFinance;
@@ -120,6 +121,15 @@ async Task<Dictionary<string, IReadOnlyList<DailyClose>>?> FetchHistoriesAsync(
     return prices;
 }
 
+// Stamps the caller's staleness onto a decision on the way out. The
+// strategy services build these records without knowing a request exists,
+// so this is the seam where an HTTP concern is allowed to meet one.
+AllocationDecision WithClientStatus(AllocationDecision decision, HttpRequest request)
+    => decision with
+    {
+        ClientStatus = ClientVersion.Status(request.Headers[ClientVersion.HeaderName]),
+    };
+
 // A fetch failure used to be indistinguishable from a bad substitution,
 // because every ticker came from the caller. Now the server knows which
 // ones the holder replaced, so it can point at the setting to check —
@@ -149,6 +159,7 @@ app.MapGet("/api/vaa-g4b3/decision", async (
     YahooFinanceClient yahoo,
     VaaG4B3Service vaa,
     IMemoryCache cache,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = VaaUniverse.Us;
@@ -160,7 +171,7 @@ app.MapGet("/api/vaa-g4b3/decision", async (
     if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = vaa.Decide(asOf, universe, prices);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // DAA-G12 decision (Keller & Keuning, 2018).
@@ -177,6 +188,7 @@ app.MapGet("/api/daa-g12/decision", async (
     YahooFinanceClient yahoo,
     DaaG12Service daa,
     IMemoryCache cacheStore,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = DaaG12Universe.Us;
@@ -188,7 +200,7 @@ app.MapGet("/api/daa-g12/decision", async (
     if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = daa.Decide(asOf, universe, prices);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // PAA-G12 decision (Keller & van Putten, 2016).
@@ -214,6 +226,7 @@ app.MapGet("/api/paa/decision", async (
     YahooFinanceClient yahoo,
     PaaService paa,
     IMemoryCache cacheStore,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = PaaUniverse.Us;
@@ -232,7 +245,7 @@ app.MapGet("/api/paa/decision", async (
     if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = paa.Decide(asOf, universe, prices, protectionFactor);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // HAA decision (Keller & Keuning, 2023) — Hybrid Asset Allocation.
@@ -250,6 +263,7 @@ app.MapGet("/api/haa/decision", async (
     YahooFinanceClient yahoo,
     HaaService haa,
     IMemoryCache cacheStore,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = HaaUniverse.Us;
@@ -261,7 +275,7 @@ app.MapGet("/api/haa/decision", async (
     if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = haa.Decide(asOf, universe, prices);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // BAA-G12 decision (Keller, 2022) — Bold Asset Allocation.
@@ -282,6 +296,7 @@ app.MapGet("/api/baa/decision", async (
     YahooFinanceClient yahoo,
     BaaService baa,
     IMemoryCache cacheStore,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = BaaUniverse.Us;
@@ -293,7 +308,7 @@ app.MapGet("/api/baa/decision", async (
     if (prices is null) return Results.Problem(FetchFailure(map!));
 
     var decision = baa.Decide(asOf, universe, prices);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // LAA decision (Keller, 2019) — Lethargic Asset Allocation.
@@ -317,6 +332,7 @@ app.MapGet("/api/laa/decision", async (
     FredClient fred,
     LaaService laa,
     IMemoryCache cacheStore,
+    HttpRequest req,
     CancellationToken ct) =>
 {
     var canonical = LaaUniverse.Us;
@@ -342,7 +358,7 @@ app.MapGet("/api/laa/decision", async (
     }
 
     var decision = laa.Decide(asOf, universe, prices, unemployment);
-    return Results.Ok(decision);
+    return Results.Ok(WithClientStatus(decision, req));
 });
 
 // Validates a single ticker against Yahoo Finance and returns the meta
