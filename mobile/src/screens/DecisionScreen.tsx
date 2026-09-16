@@ -14,6 +14,8 @@ import {
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { type PaaProtectionFactor } from '../api/paaTypes';
+import { isOutdated } from '../appVersion';
+import UpdateBanner from '../components/UpdateBanner';
 import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
 import {
   decisionSubtitle,
@@ -206,6 +208,8 @@ export default function DecisionScreen({
             <Text style={styles.back}>← Back</Text>
           </Pressable>
         </View>
+
+        {isOutdated(decision?.clientStatus) && <UpdateBanner />}
 
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>

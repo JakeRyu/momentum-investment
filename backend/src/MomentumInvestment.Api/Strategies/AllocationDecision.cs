@@ -43,4 +43,18 @@ public sealed record AllocationDecision(
     string ModeLabel,
     IReadOnlyList<Allocation> Allocations,
     IReadOnlyList<AssetMomentum> Scores,
-    string Reasoning);
+    string Reasoning)
+{
+    /// <summary>
+    /// "current" or "outdated" — whether the calling app is old enough that
+    /// we no longer stand behind what it renders. See
+    /// <see cref="ClientVersion"/>.
+    ///
+    /// It sits outside the primary constructor on purpose. The strategy
+    /// services build these records and have no business knowing about HTTP
+    /// headers, so the endpoints stamp it on afterwards with `with`. The
+    /// default means every caller that never gets stamped — every unit
+    /// test, and the website, which sends no version — reads as current.
+    /// </summary>
+    public string ClientStatus { get; init; } = ClientVersion.Current;
+}

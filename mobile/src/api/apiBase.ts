@@ -48,6 +48,13 @@ export type AllocationDecision = {
    * weekend or holiday month-end, and before the US open.
    */
   pricesAsOf: string;
+  /**
+   * The server's verdict on this app's version, from the `X-App-Version`
+   * header it sent. Optional because a server deployed before this existed
+   * omits it — and because anything other than an explicit "outdated" is
+   * treated as fine, so a shape we do not recognise never nags.
+   */
+  clientStatus?: 'current' | 'outdated';
   modeLabel: string;
   allocations: Allocation[];
   scores: AssetMomentum[];
