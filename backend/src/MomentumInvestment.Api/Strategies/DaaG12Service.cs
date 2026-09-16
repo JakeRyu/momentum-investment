@@ -142,6 +142,7 @@ public sealed class DaaG12Service : IAllocationStrategy<DaaG12Universe>
         return new AllocationDecision(
             StrategyId: StrategyId,
             AsOf: asOf,
+            PricesAsOf: LookbackPriceLookup.ResolvePriceDate(asOf, dailyByTicker),
             ModeLabel: modeLabel,
             Allocations: allocations,
             Scores: allScores,

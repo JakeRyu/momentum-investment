@@ -49,6 +49,7 @@ public sealed class VaaG4B3Service : IAllocationStrategy<VaaUniverse>
             return new AllocationDecision(
                 StrategyId: StrategyId,
                 AsOf: asOf,
+                PricesAsOf: LookbackPriceLookup.ResolvePriceDate(asOf, dailyByTicker),
                 ModeLabel: "Defensive",
                 Allocations: new[] { new Allocation(top.Ticker, 1.0m) },
                 Scores: allScores,
@@ -62,6 +63,7 @@ public sealed class VaaG4B3Service : IAllocationStrategy<VaaUniverse>
             return new AllocationDecision(
                 StrategyId: StrategyId,
                 AsOf: asOf,
+                PricesAsOf: LookbackPriceLookup.ResolvePriceDate(asOf, dailyByTicker),
                 ModeLabel: "Offensive",
                 Allocations: new[] { new Allocation(top.Ticker, 1.0m) },
                 Scores: allScores,

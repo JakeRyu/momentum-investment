@@ -12,7 +12,20 @@ import DecisionSkeleton from './DecisionSkeleton'
 import PaaProtectionPicker from './PaaProtectionPicker'
 import ScoreSection from './ScoreSection'
 
-export default function DecisionTool({ strategy }: { strategy: Strategy }) {
+/**
+ * `onPricesAsOf` reports the close the reading actually reached, so the
+ * banner above can date itself. The banner is a sibling — a flex row with
+ * the heading — so it cannot read this component's state directly, and
+ * dating it from the browser clock was how it came to claim a trading day
+ * that had not happened yet.
+ */
+export default function DecisionTool({
+  strategy,
+  onPricesAsOf,
+}: {
+  strategy: Strategy
+  onPricesAsOf?: (date: string | null) => void
+}) {
   const [decision, setDecision] = useState<AllocationDecision | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loadedKey, setLoadedKey] = useState<string | null>(null)
@@ -31,11 +44,13 @@ export default function DecisionTool({ strategy }: { strategy: Strategy }) {
         setDecision(d)
         setError(null)
         setLoadedKey(requestKey)
+        onPricesAsOf?.(d.pricesAsOf)
       })
       .catch((e: unknown) => {
         if (cancelled) return
         setError(e instanceof Error ? e.message : String(e))
         setLoadedKey(requestKey)
+        onPricesAsOf?.(null)
       })
     return () => {
       cancelled = true

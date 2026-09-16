@@ -133,4 +133,76 @@ public sealed class LookbackPriceLookupTests
             () => LookbackPriceLookup.FindMonthlyLookbackPrices(
                 new DateOnly(2026, 5, 4), history, monthsBack: -1));
     }
+
+    private static IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> Histories(
+        params (string Ticker, DateOnly Last)[] entries)
+    {
+        return entries.ToDictionary(
+            e => e.Ticker,
+            e => (IReadOnlyList<DailyClose>)new List<DailyClose>
+            {
+                new(e.Last.AddDays(-7), 100m),
+                new(e.Last,             101m),
+            });
+    }
+
+    [Fact]
+    public void ResolvePriceDate_AsOfIsATradingDay_ReturnsThatDay()
+    {
+        var prices = Histories(("SPY", new DateOnly(2026, 9, 15)));
+
+        Assert.Equal(
+            new DateOnly(2026, 9, 15),
+            LookbackPriceLookup.ResolvePriceDate(new DateOnly(2026, 9, 15), prices));
+    }
+
+    [Fact]
+    public void ResolvePriceDate_BeforeTheOpen_ReturnsThePreviousClose()
+    {
+        // The case measured against Yahoo on 2026-09-16: before the US open
+        // there is no bar for the current session, so a decision asked for
+        // "today" is computed from yesterday's close.
+        var prices = Histories(
+            ("SPY", new DateOnly(2026, 9, 15)),
+            ("EFA", new DateOnly(2026, 9, 15)),
+            ("AGG", new DateOnly(2026, 9, 15)));
+
+        Assert.Equal(
+            new DateOnly(2026, 9, 15),
+            LookbackPriceLookup.ResolvePriceDate(new DateOnly(2026, 9, 16), prices));
+    }
+
+    [Fact]
+    public void ResolvePriceDate_OverAWeekend_ReturnsTheFridayClose()
+    {
+        // Friday 2026-09-11 is the last close before Sunday the 13th.
+        var prices = Histories(("SPY", new DateOnly(2026, 9, 11)));
+
+        Assert.Equal(
+            new DateOnly(2026, 9, 11),
+            LookbackPriceLookup.ResolvePriceDate(new DateOnly(2026, 9, 13), prices));
+    }
+
+    [Fact]
+    public void ResolvePriceDate_OneTickerLagsTheRest_TakesTheLatest()
+    {
+        // A laggard is a gap in one ticker's data, not an earlier reading
+        // date for the decision as a whole.
+        var prices = Histories(
+            ("SPY", new DateOnly(2026, 9, 15)),
+            ("EFA", new DateOnly(2026, 9, 11)));
+
+        Assert.Equal(
+            new DateOnly(2026, 9, 15),
+            LookbackPriceLookup.ResolvePriceDate(new DateOnly(2026, 9, 16), prices));
+    }
+
+    [Fact]
+    public void ResolvePriceDate_NoHistories_Throws()
+    {
+        var empty = new Dictionary<string, IReadOnlyList<DailyClose>>();
+
+        Assert.Throws<InvalidOperationException>(
+            () => LookbackPriceLookup.ResolvePriceDate(new DateOnly(2026, 9, 16), empty));
+    }
 }

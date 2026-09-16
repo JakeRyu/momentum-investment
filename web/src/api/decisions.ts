@@ -17,7 +17,14 @@ export type Allocation = { ticker: string; weight: number }
 export type AssetMomentum = { ticker: string; score: number; bucket: string }
 export type AllocationDecision = {
   strategyId: string
+  /** What was asked for. The lookback anchors are measured from this. */
   asOf: string
+  /**
+   * The latest close the reading could reach. Earlier than `asOf` on a
+   * weekend, a holiday, or before the US open — which is exactly when the
+   * course tells a reader to look.
+   */
+  pricesAsOf: string
   modeLabel: string
   allocations: Allocation[]
   scores: AssetMomentum[]

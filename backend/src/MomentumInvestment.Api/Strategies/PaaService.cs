@@ -198,6 +198,7 @@ public sealed class PaaService : IAllocationStrategy<PaaUniverse>
             // DI/logging.
             StrategyId: $"paa-g12-a{a}",
             AsOf: asOf,
+            PricesAsOf: LookbackPriceLookup.ResolvePriceDate(asOf, dailyByTicker),
             ModeLabel: modeLabel,
             Allocations: allocations,
             Scores: allScores,

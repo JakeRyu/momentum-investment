@@ -135,4 +135,17 @@ public sealed class VaaG4B3ServiceTests
         Assert.Equal("CSPX.L", decision.Allocations[0].Ticker);
         Assert.All(decision.Scores, s => Assert.EndsWith(".L", s.Ticker));
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var prices = Prices(
+            spy: 1.05m, efa: 1.04m, eem: 1.03m, agg: 1.02m,
+            lqd: 1.04m, ief: 1.03m, shy: 1.02m);
+
+        var decision = new VaaG4B3Service().Decide(AsOf.AddDays(2), VaaUniverse.Us, prices);
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }
