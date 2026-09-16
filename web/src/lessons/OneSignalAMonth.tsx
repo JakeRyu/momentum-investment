@@ -1,3 +1,5 @@
+import DecisionCalendar from '../components/DecisionCalendar'
+
 /**
  * Lesson 4. Prose carried from the phase 3 home page, where it sat as
  * the "One Signal a Month" section.
@@ -20,6 +22,9 @@ export default function OneSignalAMonth() {
         already on its way regardless. Remembering that one date, every
         month, without fail, is the part a phone does better than a person.
       </p>
+
+      <DecisionCalendar />
+
       <p>
         It also means the work is small. Once a month you check what the
         rule says, compare it to what you hold, and place the trades that

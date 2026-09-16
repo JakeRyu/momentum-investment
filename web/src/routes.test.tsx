@@ -153,7 +153,9 @@ describe('the course', () => {
   it('names UCITS substitutes for UK readers', () => {
     const { container } = renderAt('/learn/what-you-would-buy')
     expect(container.textContent).toMatch(/UCITS/)
-    expect(container.textContent).toMatch(/CSPX\.L/)
+    // The app's curated default for SPY, so the lesson and the app name
+    // the same fund.
+    expect(container.textContent).toMatch(/VUAG\.L/)
   })
 
   it('quotes the drawdown range from the data, not from memory', () => {

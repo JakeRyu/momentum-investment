@@ -2,9 +2,12 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { STRATEGIES } from '../strategies'
 
+import ScrollToTop from './ScrollToTop'
+
 export default function Layout() {
   return (
     <div className="layout">
+      <ScrollToTop />
       <header className="site-header">
         <Link to="/" className="brand">
           Momentum Investment

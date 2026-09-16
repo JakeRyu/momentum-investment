@@ -1,3 +1,5 @@
+import RecoveryAsymmetry from '../components/RecoveryAsymmetry'
+
 /**
  * Lesson 1. New copy — the other three are carried from phase 3.
  *
@@ -30,6 +32,9 @@ export default function WhyNotBuyAndHold() {
         50%. And the recovery takes as long as it takes; you do not get to
         choose the year you need the money.
       </p>
+
+      <RecoveryAsymmetry />
+
       <p>
         That is the problem these papers set out to solve. Not{' '}
         <em>earn more</em> — they mostly do not promise that — but{' '}
