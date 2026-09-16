@@ -393,4 +393,19 @@ public sealed class PaaServiceTests
         Assert.Throws<ArgumentOutOfRangeException>(
             () => new PaaService().Decide(AsOf, PaaUniverse.Us, prices, a));
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var prices = PricesFor(
+            ("SPY", 1.10m), ("IWM", 1.09m), ("QQQ", 1.08m), ("VGK", 1.07m),
+            ("EWJ", 1.06m), ("EEM", 1.05m), ("VNQ", 1.04m), ("GSG", 1.03m),
+            ("GLD", 1.02m), ("HYG", 1.015m), ("LQD", 1.01m), ("TLT", 1.005m),
+            ("IEF", 1.006m), ("SHY", 1.004m));
+
+        var decision = new PaaService().Decide(AsOf.AddDays(2), PaaUniverse.Us, prices);
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }

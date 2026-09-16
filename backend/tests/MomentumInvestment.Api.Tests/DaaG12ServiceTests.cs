@@ -222,4 +222,19 @@ public sealed class DaaG12ServiceTests
         Assert.Single(vwoEntries.Where(s => s.Bucket == "Risky"));
         Assert.Equal(vwoEntries[0].Score, vwoEntries[1].Score);
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var prices = PricesFor(
+            ("VWO", 1.01m), ("BND", 1.01m), ("SPY", 1.10m), ("IWM", 1.09m),
+            ("QQQ", 1.08m), ("VGK", 1.07m), ("EWJ", 1.06m), ("VNQ", 0.99m),
+            ("GSG", 0.98m), ("GLD", 0.97m), ("TLT", 0.96m), ("HYG", 0.95m),
+            ("LQD", 0.94m), ("SHY", 1.005m), ("IEF", 1.003m));
+
+        var decision = new DaaG12Service().Decide(AsOf.AddDays(2), DaaG12Universe.Us, prices);
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }

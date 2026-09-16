@@ -166,4 +166,19 @@ public sealed class HaaServiceTests
         Assert.Equal("Canary", decision.Scores[0].Bucket);
         Assert.Equal("TIP", decision.Scores[0].Ticker);
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var prices = PricesFor(
+            ("TIP", 1.01m),
+            ("SPY", 1.10m), ("IWM", 1.09m), ("VEA", 1.08m), ("VWO", 1.07m),
+            ("VNQ", 1.06m), ("DBC", 1.05m), ("IEF", 1.04m), ("TLT", 1.03m),
+            ("BIL", 1.001m));
+
+        var decision = new HaaService().Decide(AsOf.AddDays(2), HaaUniverse.Us, prices);
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }

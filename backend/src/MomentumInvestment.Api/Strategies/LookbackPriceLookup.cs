@@ -37,6 +37,37 @@ public static class LookbackPriceLookup
     }
 
     /// <summary>
+    /// The date of the most recent close the reading could actually reach.
+    ///
+    /// Asking for a date is not the same as getting it. Before the US open,
+    /// Yahoo publishes no bar for the current session at all (checked
+    /// directly on 2026-09-16: ten tickers, no bar for that day), and a
+    /// weekend or holiday as-of has none either — so a decision requested
+    /// "today" is routinely computed from yesterday's close. Callers report
+    /// this alongside the requested date rather than in place of it: the
+    /// request is what the lookback anchors are measured from, this is what
+    /// the prices are.
+    ///
+    /// Tickers are taken at their latest, not their earliest. On one
+    /// exchange calendar they agree; where they do not, the laggard is a
+    /// gap in one ticker's data rather than a different reading date.
+    /// </summary>
+    public static DateOnly ResolvePriceDate(
+        DateOnly asOf,
+        IReadOnlyDictionary<string, IReadOnlyList<DailyClose>> dailyByTicker)
+    {
+        DateOnly? latest = null;
+        foreach (var history in dailyByTicker.Values)
+        {
+            var used = FindOnOrBefore(asOf, history).Date;
+            if (latest is null || used > latest) latest = used;
+        }
+
+        return latest ?? throw new InvalidOperationException(
+            $"No price histories to resolve a reading date for {asOf:yyyy-MM-dd}.");
+    }
+
+    /// <summary>
     /// Picks consecutive monthly lookback prices for the given as-of date.
     /// Returns a list of length <c>monthsBack + 1</c>: index 0 is P₀
     /// (on-or-before <paramref name="asOf"/>), index 1 is P₁

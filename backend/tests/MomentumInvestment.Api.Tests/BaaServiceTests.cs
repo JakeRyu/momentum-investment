@@ -204,4 +204,14 @@ public sealed class BaaServiceTests
         Assert.Equal(7, decision.Scores.Count(s => s.Bucket == "Cash"));
         Assert.Equal("Canary", decision.Scores[0].Bucket);
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var decision = new BaaService().Decide(
+            AsOf.AddDays(2), BaaUniverse.Us, UniverseWith());
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }

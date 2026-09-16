@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import AppPromo from '../components/AppPromo'
@@ -10,6 +11,10 @@ import NotFound from './NotFound'
 export default function StrategyPage() {
   const { id } = useParams<{ id: string }>()
   const strategy = id ? findStrategy(id) : undefined
+  // The date the reading actually used, reported up by the tool below.
+  // Null until it loads, and again if the fetch fails — better no date
+  // than a guessed one.
+  const [pricesAsOf, setPricesAsOf] = useState<string | null>(null)
 
   if (!strategy) return <NotFound />
 
@@ -47,16 +52,18 @@ export default function StrategyPage() {
       <section className="strategy-page__tool">
         <div className="decision-banner">
           <h2>Today's Decision</h2>
-          <span className="decision-banner__asof">
-            As of {new Date().toISOString().slice(0, 10).replace(/-/g, '.')}
-          </span>
+          {pricesAsOf && (
+            <span className="decision-banner__asof">
+              As of {pricesAsOf.replace(/-/g, '.')}
+            </span>
+          )}
           <p className="decision-banner__note">
-            Today&rsquo;s prices, run through the rule — what it would say if
-            today were rebalance day. Not in force until the next month-end,
-            so act on it in the first days of a month.
+            The latest closing prices, run through the rule — what it would
+            say if today were rebalance day. Not in force until the next
+            month-end, so act on it in the first days of a month.
           </p>
         </div>
-        <DecisionTool strategy={strategy} />
+        <DecisionTool strategy={strategy} onPricesAsOf={setPricesAsOf} />
       </section>
 
       <AppPromo />

@@ -241,4 +241,14 @@ public sealed class LaaServiceTests
             new[] { "IUSV.L", "SGLN.L", "IBTM.L", "IBTS.L" },
             decision.Allocations.Select(a => a.Ticker));
     }
+
+    [Fact]
+    public void Decide_AsOfAfterTheLastClose_ReportsTheCloseItUsed()
+    {
+        var decision = new LaaService().Decide(
+            AsOf.AddDays(2), LaaUniverse.Us, Prices(95m), UeHistory(5.0m));
+
+        Assert.Equal(AsOf.AddDays(2), decision.AsOf);
+        Assert.Equal(AsOf, decision.PricesAsOf);
+    }
 }
