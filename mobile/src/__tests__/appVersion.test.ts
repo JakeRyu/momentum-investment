@@ -1,4 +1,4 @@
-import { isOutdated } from '../appVersion';
+import { anyOutdated, isOutdated } from '../appVersion';
 
 describe('isOutdated', () => {
   it('nags only on an explicit outdated', () => {
@@ -22,5 +22,29 @@ describe('isOutdated', () => {
     expect(isOutdated('unsupported')).toBe(false);
     expect(isOutdated('OUTDATED')).toBe(false);
     expect(isOutdated('')).toBe(false);
+  });
+});
+
+describe('anyOutdated', () => {
+  const outdated = { decision: { clientStatus: 'outdated' }, error: null };
+  const current = { decision: { clientStatus: 'current' }, error: null };
+  const failed = { decision: null, error: 'offline' };
+
+  it('warns when any loaded strategy says so', () => {
+    expect(anyOutdated([current, outdated, current])).toBe(true);
+  });
+
+  it('stays quiet when every strategy is current', () => {
+    expect(anyOutdated([current, current])).toBe(false);
+  });
+
+  it('is not confused by strategies still loading or failed', () => {
+    // Home holds one slot per registered strategy; some may be empty.
+    expect(anyOutdated([undefined, failed])).toBe(false);
+    expect(anyOutdated([undefined, failed, outdated])).toBe(true);
+  });
+
+  it('stays quiet before anything has arrived', () => {
+    expect(anyOutdated([])).toBe(false);
   });
 });

@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 
 import type { CardState } from '../../App';
+import { anyOutdated } from '../appVersion';
 import StrategyDecisionCard from '../components/StrategyDecisionCard';
+import UpdateBanner from '../components/UpdateBanner';
 import { holdingHint, inForceMonthKey } from '../rebalance';
 import { findStrategy, type StrategyId } from '../strategies';
 import { WEB_BASE_URL } from '../webLinks';
@@ -61,6 +63,8 @@ export default function HomeScreen({
             <Text style={styles.gearText}>⚙︎</Text>
           </TouchableOpacity>
         </View>
+
+        {anyOutdated(Object.values(results)) && <UpdateBanner />}
 
         <View style={styles.cardList}>
           {registered.map((id) => {

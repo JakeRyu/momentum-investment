@@ -38,3 +38,18 @@ export function appVersion(): string | null {
 export function isOutdated(clientStatus: string | undefined | null): boolean {
   return clientStatus === 'outdated';
 }
+
+/**
+ * Home holds one result per registered strategy, any of which may still be
+ * loading or have failed. One verdict is enough — they all carried the same
+ * version header — so this asks whether any answer that did arrive says the
+ * app is stale.
+ */
+export function anyOutdated(
+  results: Iterable<{ decision: { clientStatus?: string } | null } | undefined>,
+): boolean {
+  for (const result of results) {
+    if (isOutdated(result?.decision?.clientStatus)) return true;
+  }
+  return false;
+}

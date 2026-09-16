@@ -14,8 +14,8 @@ import {
 
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { type PaaProtectionFactor } from '../api/paaTypes';
-import { APP_STORE_URL } from '../appStore';
 import { isOutdated } from '../appVersion';
+import UpdateBanner from '../components/UpdateBanner';
 import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
 import {
   decisionSubtitle,
@@ -250,32 +250,6 @@ export default function DecisionScreen({
         </Text>
       </ScrollView>
     </View>
-  );
-}
-
-/**
- * Shown only when the server says this build is old enough that it no
- * longer stands behind what is on screen. It cannot be dismissed: this app
- * is opened about once a month, so a dismissal would in practice be
- * permanent, and the one message worth interrupting for is the one saying
- * the numbers below may be wrong.
- *
- * It sits above the title rather than beside the result, because it is a
- * statement about the app, not about this particular strategy.
- */
-function UpdateBanner() {
-  return (
-    <TouchableOpacity
-      style={styles.updateBanner}
-      onPress={() => Linking.openURL(APP_STORE_URL)}
-      accessibilityRole="link"
-      accessibilityLabel="Update this app on the App Store"
-    >
-      <Text style={styles.updateBannerTitle}>This version is out of date</Text>
-      <Text style={styles.updateBannerBody}>
-        It may show allocations that no longer match the rule. Tap to update.
-      </Text>
-    </TouchableOpacity>
   );
 }
 
@@ -582,29 +556,6 @@ const styles = StyleSheet.create({
     color: '#7ed4a3',
     fontSize: 16,
     fontWeight: '600',
-  },
-  // Orange, the same hue the Defensive badge uses: attention without
-  // alarm. Red is not in this screen's vocabulary and would overstate a
-  // message that is advisory — nothing here is blocked.
-  updateBanner: {
-    borderLeftWidth: 3,
-    borderLeftColor: '#ffb37e',
-    backgroundColor: '#16191e',
-    borderRadius: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 20,
-  },
-  updateBannerTitle: {
-    color: '#ffb37e',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  updateBannerBody: {
-    color: '#8a93a0',
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 4,
   },
   title: {
     color: '#f4f6f8',
