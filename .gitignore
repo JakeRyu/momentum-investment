@@ -29,6 +29,7 @@ Thumbs.db
 .claude/
 .gstack/
 .playwright-mcp/
+.superpowers/
 
 # Cowork scratch output (screenshots etc. dropped into the repo folder)
 Claude outputs/
