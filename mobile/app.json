@@ -25,7 +25,7 @@
     "android": {
       "package": "com.jake.momentuminvestment"
     },
-    "plugins": ["expo-asset", "@react-native-community/datetimepicker"],
+    "plugins": ["expo-asset"],
     "extra": {
       "eas": {
         "projectId": "e9d12183-7d07-45d2-bd6d-64dd41159409"
