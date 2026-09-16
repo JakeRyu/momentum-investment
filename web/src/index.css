@@ -173,11 +173,33 @@ hr {
   line-height: 0.93;
   margin: 0 0 16px;
 }
+/* The claim, in the masthead's own voice — display serif, so it reads as
+   the title's second line rather than as the first line of the blurb.
+   Held well below the h1's size: two display lines at similar weight
+   would compete, and the name has to win. */
+.hero-claim {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(26px, 3.6vw, 38px);
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 0 0 14px;
+}
 .hero-tagline {
   font-size: 22px;
   line-height: 1.4;
   max-width: 50ch;
   font-style: italic;
+}
+/* The capability claim, demoted below the design claim. It still has to
+   be here — without it a visitor cannot tell the site computes anything
+   — but it is no longer what the page leads with. */
+.hero-runnable {
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-top: 10px;
 }
 .hero-keller {
   font-family: var(--mono);
@@ -1519,4 +1541,713 @@ hr {
 .learn-entry__cta:hover {
   background: var(--ink);
   color: var(--bg);
+}
+
+/* ─── Lesson figures ──────────────────────────────────────────────────
+   Five diagrams, one per lesson in the first half of the course. The
+   back half already carried figures (a backtest block, the comparison,
+   a two-column procedure); lessons 1-5 were unbroken prose, which is
+   where a beginner decides whether to keep going.
+
+   All five are drawn in ink, cream and the one red, with rules rather
+   than boxes-with-shadows, so they read as printed diagrams rather than
+   dashboard widgets. No chart library: every mark here is a border, a
+   background or a hard-stop gradient. */
+
+/* Shared: a figure sits in the reading column, announced by a heavy
+   rule above it the way a section break is elsewhere on the site. */
+.lesson__body figure {
+  margin: 32px 0;
+  border-top: var(--rule-heavy);
+  padding-top: 18px;
+}
+.lesson__body figcaption {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+/* ── Lesson 1: recovery asymmetry ── */
+
+.recovery__rows {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) 84px;
+  gap: 10px 14px;
+  align-items: center;
+}
+.recovery__label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.recovery__track {
+  position: relative;
+  height: 30px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.25);
+}
+.recovery__solid,
+.recovery__gain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.recovery__solid {
+  left: 0;
+  background: var(--ink);
+}
+.recovery__gain {
+  background: var(--red);
+}
+.recovery__value {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.recovery__value--accent {
+  color: var(--red);
+}
+.lesson__body .recovery__pull {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.3;
+  margin: 24px 0 0;
+  padding-left: 15px;
+  border-left: 5px solid var(--red);
+}
+
+/* ── Lesson 2: the two momentum measures ── */
+
+.measures__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: var(--rule-thin);
+}
+.measures__col {
+  padding: 16px 20px 18px;
+}
+.measures__col + .measures__col {
+  border-left: var(--rule-thin);
+}
+.lesson__body .measures__name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 5px;
+}
+.lesson__body .measures__sub {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.measures__row {
+  margin-bottom: 14px;
+}
+.measures__row:last-child {
+  margin-bottom: 0;
+}
+.measures__label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.measures__value {
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.measures__dial {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+.measures__dial i {
+  width: 18px;
+  height: 7px;
+  background: rgba(10, 10, 10, 0.15);
+}
+.measures__dial i.is-on {
+  background: var(--red);
+}
+.lesson__body .measures__note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 16px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(10, 10, 10, 0.18);
+}
+
+/* ── Lesson 3: the canary gate ── */
+
+.lesson__body .canary__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+.canary__key {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  vertical-align: -3px;
+  margin-right: 6px;
+}
+/* The diagonal is a gradient rather than a rotated border: a transform
+   escapes the box at some sizes, which is exactly what it did here. */
+.canary__key--off,
+.canary__cell--off {
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 0.8px),
+    var(--ink) calc(50% - 0.8px),
+    var(--ink) calc(50% + 0.8px),
+    transparent calc(50% + 0.8px)
+  );
+}
+.canary__key--held,
+.canary__cell--held {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+.canary__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.canary__col {
+  display: flex;
+  flex-direction: column;
+  padding: 0 20px;
+}
+.canary__col:first-child {
+  padding-left: 0;
+}
+.canary__col + .canary__col {
+  border-left: var(--rule-thin);
+}
+.lesson__body .canary__head {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+  padding-bottom: 9px;
+  border-bottom: var(--rule-thin);
+}
+.canary__box {
+  border: var(--rule-thin);
+  padding: 12px 14px 13px;
+}
+.canary__box--canary {
+  border-color: var(--red);
+  background: var(--red-tint);
+}
+.canary__box--skipped {
+  border-style: dashed;
+  border-color: rgba(10, 10, 10, 0.4);
+}
+/* Only the numbers go quiet — the conclusion stays at full strength,
+   because what is skipped is the count, not the outcome. */
+.canary__box--skipped .canary__grid,
+.canary__box--skipped .canary__count {
+  opacity: 0.3;
+}
+.lesson__body .canary__title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 9px;
+}
+.canary__box--canary .canary__title {
+  color: var(--red);
+}
+.canary__title span {
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.canary__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 9px;
+}
+.canary__cell {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+}
+.canary__grid--large .canary__cell {
+  width: 26px;
+  height: 26px;
+  border-color: var(--red);
+  background: var(--red);
+}
+.canary__grid--large .canary__cell--off {
+  background: linear-gradient(
+    to top right,
+    transparent calc(50% - 1px),
+    var(--red) calc(50% - 1px),
+    var(--red) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+.lesson__body .canary__count {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+.canary__count em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--muted);
+}
+.lesson__body .canary__count--red,
+.lesson__body .canary__count--red em {
+  color: var(--red);
+}
+.lesson__body .canary__verdict {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  line-height: 1.45;
+  text-transform: uppercase;
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid rgba(10, 10, 10, 0.2);
+}
+.canary__box--canary .canary__verdict {
+  color: var(--red);
+  border-top-color: rgba(230, 57, 70, 0.35);
+}
+.canary__box--skipped .canary__verdict {
+  color: var(--red);
+}
+.canary__stem {
+  align-self: center;
+  width: 2px;
+  height: 18px;
+  background: var(--ink);
+}
+.canary__stem--red {
+  background: var(--red);
+}
+.canary__arrow {
+  align-self: center;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid var(--red);
+}
+.canary__out {
+  align-self: center;
+  margin-top: 10px;
+  padding: 11px 20px;
+  text-align: center;
+}
+.canary__out--offensive {
+  border: 2px solid var(--ink);
+}
+.canary__out--defensive {
+  background: var(--red);
+  color: var(--bg);
+}
+.canary__out-when {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin-bottom: 6px;
+}
+.canary__out-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.canary__out-body {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  margin-top: 7px;
+  opacity: 0.85;
+}
+.lesson__body .canary__note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 20px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(10, 10, 10, 0.18);
+}
+
+/* ── Lesson 4: the decision calendar ── */
+
+.calendar__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 208px;
+  gap: 26px;
+  align-items: start;
+}
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.calendar__dow {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  text-align: center;
+  padding-bottom: 7px;
+}
+.calendar__day {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid rgba(10, 10, 10, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.calendar__day--weekend,
+.calendar__day--outside {
+  border-color: rgba(10, 10, 10, 0.1);
+  color: rgba(10, 10, 10, 0.28);
+}
+.calendar__day--close {
+  border: 2px solid var(--red);
+  color: var(--red);
+  font-weight: 700;
+}
+.calendar__day--act {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--bg);
+  font-weight: 700;
+}
+.calendar__day--next {
+  border: 2px dashed var(--red);
+  color: var(--red);
+  font-weight: 700;
+}
+.calendar__day--noise::after,
+.calendar__swatch--noise::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.35);
+}
+.calendar__key {
+  border-left: var(--rule-thin);
+  padding-left: 18px;
+}
+.calendar__k {
+  margin-bottom: 16px;
+}
+.lesson__body .calendar__k-head {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin: 0 0 5px;
+}
+.lesson__body .calendar__k-body {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  margin: 0;
+}
+.calendar__swatch {
+  position: relative;
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1px solid rgba(10, 10, 10, 0.22);
+  vertical-align: -3px;
+  margin-right: 8px;
+}
+.calendar__swatch--close {
+  border: 2px solid var(--red);
+}
+.calendar__swatch--act {
+  background: var(--red);
+  border-color: var(--red);
+}
+.calendar__swatch--next {
+  border: 2px dashed var(--red);
+}
+.calendar__swatch--noise::after {
+  bottom: 2px;
+}
+.lesson__body .calendar__tally {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: var(--rule-heavy);
+}
+.calendar__tally-figure {
+  display: block;
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.calendar__tally-figure em {
+  font-size: 20px;
+  color: var(--muted);
+}
+.calendar__tally-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* ── Lesson 5: UCITS substitutes ── */
+
+/* The rule lives on the row, never on the cells: cells are baseline-
+   aligned and wrap to different heights, so per-cell borders landed at
+   different depths and the horizontal rule came apart. */
+.ucits__row {
+  display: grid;
+  grid-template-columns: 74px 18px 88px 132px minmax(0, 1fr);
+  gap: 0 14px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.18);
+}
+.ucits__row--head {
+  padding: 0 0 9px;
+  border-bottom: var(--rule-thin);
+}
+.ucits__row--head span {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ucits__ticker {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.ucits__arrow {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.ucits__scale {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ucits__meter {
+  display: flex;
+  flex: none;
+  gap: 3px;
+}
+.ucits__meter i {
+  width: 11px;
+  height: 11px;
+  border: 1px solid rgba(10, 10, 10, 0.3);
+}
+.ucits__meter i.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+.ucits__scale--far .ucits__meter i.is-on {
+  border-color: var(--red);
+  background: var(--red);
+}
+.ucits__scale-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.ucits__scale--far .ucits__scale-label {
+  color: var(--red);
+}
+.ucits__differs {
+  font-size: 14px;
+  line-height: 1.4;
+}
+.ucits__consequence {
+  border-top: var(--rule-heavy);
+  margin-top: 26px;
+  padding-top: 20px;
+}
+.lesson__body .ucits__pull {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1.32;
+  margin: 0 0 22px;
+  padding-left: 15px;
+  border-left: 5px solid var(--red);
+}
+.ucits__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.ucits__col {
+  padding: 0 22px;
+}
+.ucits__col:first-child {
+  padding-left: 0;
+}
+.ucits__col + .ucits__col {
+  border-left: var(--rule-thin);
+}
+.lesson__body .ucits__col-head {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.2);
+}
+.lesson__body .ucits__col-head--red {
+  color: var(--red);
+}
+.lesson__body .ucits__col-body {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+.ucits__figure {
+  display: block;
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--red);
+  margin-top: 9px;
+}
+.lesson__body .ucits__tail {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(10, 10, 10, 0.2);
+}
+
+/* ── Narrow screens ──
+   Every figure here is a pair of columns or a grid beside a key, and
+   each one stacks rather than shrinks: at phone width a two-column
+   comparison set in 9px mono stops being readable well before it stops
+   fitting. */
+@media (max-width: 720px) {
+  .recovery__rows {
+    grid-template-columns: 84px minmax(0, 1fr) 62px;
+  }
+  .lesson__body .recovery__pull {
+    font-size: 21px;
+  }
+
+  .measures__cols,
+  .canary__cols,
+  .ucits__cols {
+    grid-template-columns: 1fr;
+  }
+  .measures__col + .measures__col,
+  .ucits__col + .ucits__col {
+    border-left: 0;
+    border-top: var(--rule-thin);
+  }
+  .measures__col {
+    padding: 16px 0 18px;
+  }
+  .ucits__col {
+    padding: 18px 0 0;
+  }
+
+  .canary__col {
+    padding: 0;
+  }
+  .canary__col + .canary__col {
+    border-left: 0;
+    border-top: var(--rule-heavy);
+    margin-top: 26px;
+    padding-top: 22px;
+  }
+
+  .calendar__layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .calendar__key {
+    border-left: 0;
+    border-top: var(--rule-thin);
+    padding-left: 0;
+    padding-top: 18px;
+  }
+  .calendar__day {
+    font-size: 10px;
+  }
+
+  /* "What differs" repeats what the scale already says, so it is the
+     column that goes when there is no room for five. */
+  .ucits__row {
+    grid-template-columns: 62px 16px 78px minmax(0, 1fr);
+  }
+  .ucits__row > :nth-child(5) {
+    display: none;
+  }
 }

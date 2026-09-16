@@ -1,3 +1,5 @@
+import CanaryGate from '../components/CanaryGate'
+
 /**
  * Lesson 3. Prose carried from the phase 3 About page, including the
  * coal-mine canary metaphor.
@@ -36,6 +38,9 @@ export default function WhatBreadthAdds() {
         expect for those strategies: you need a price feed for the
         canaries, not a position in them.
       </p>
+
+      <CanaryGate />
+
       <p>
         This is where the strategies separate from one another. How many
         bad assets it takes before the rule starts selling, and whether it

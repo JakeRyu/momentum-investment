@@ -1,3 +1,5 @@
+import MomentumMeasures from '../components/MomentumMeasures'
+
 /**
  * Lesson 2. Prose carried from the phase 3 About page, where it sat
  * under "How the strategies work, in 30 seconds".
@@ -29,6 +31,9 @@ export default function WhatMomentumIs() {
         settings on the same dial, and the strategy pages say which one
         each uses.
       </p>
+
+      <MomentumMeasures />
+
       <p>
         What momentum is <em>not</em> is a prediction. The pattern is a
         tendency measured across decades of history, not a rule the market

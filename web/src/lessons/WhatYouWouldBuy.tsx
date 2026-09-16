@@ -1,3 +1,4 @@
+import UcitsSubstitutes from '../components/UcitsSubstitutes'
 import { describeTicker } from '../etfDescriptions'
 
 /**
@@ -7,10 +8,11 @@ import { describeTicker } from '../etfDescriptions'
  * same source the decision tool's score rows use, so the lesson and the
  * tool cannot describe the same ticker two different ways.
  *
- * The UK substitutes are hand-written rather than imported from the
- * mobile catalog: `mobile/src/etfCatalog.ts` is a different package, and
- * where the canonical universe should live is an open question. Three
- * representative pairs make the point; the app carries the full mapping.
+ * The UK substitutes live in `UcitsSubstitutes`, hand-written rather
+ * than imported from the mobile catalog: `mobile/src/etfCatalog.ts` is a
+ * different package, and where the canonical universe should live is an
+ * open question. A few representative pairs make the point; the app
+ * carries the full mapping.
  */
 export default function WhatYouWouldBuy() {
   return (
@@ -77,32 +79,19 @@ export default function WhatYouWouldBuy() {
       </p>
 
       <p>
-        The substitution is per asset, and it is rarely exact. Three of the
-        common ones:
+        The substitution is per asset, and it is rarely exact.
       </p>
 
-      <ul>
-        <li>
-          <strong>SPY</strong> → <strong>CSPX.L</strong> — both track the
-          S&amp;P 500.
-        </li>
-        <li>
-          <strong>IEF</strong> → <strong>IDTM.L</strong> — both hold 7–10
-          year US Treasuries.
-        </li>
-        <li>
-          <strong>SHY</strong> → <strong>IBTS.L</strong> — both hold short
-          US Treasuries, though the maturity bands differ slightly.
-        </li>
-      </ul>
+      <UcitsSubstitutes />
 
       <p>
-        Some have no clean equivalent at all, and choosing between the near
-        misses is a judgement rather than a lookup. The iPhone app carries
-        a full mapping for all six strategies with the trade-offs written
-        out per asset, and lets you override any of them. Check anything
-        you pick against your own broker before you rely on it — listings
-        change, and this site is not tracking yours.
+        Every asset these six strategies use has a UCITS substitute, so none
+        of them is a dead end. But the further one sits from what the paper
+        tested, the more choosing it is a judgement rather than a lookup. The
+        iPhone app carries a full mapping for all six strategies with the
+        trade-offs written out per asset, and lets you override any of them.
+        Check anything you pick against your own broker before you rely on it
+        — listings change, and this site is not tracking yours.
       </p>
     </>
   )
