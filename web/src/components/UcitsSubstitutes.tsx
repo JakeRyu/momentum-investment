@@ -11,9 +11,15 @@ import { findStrategy, fundsNeeded } from '../strategies'
  * describe your setup — which is lesson 6's argument, so the figure
  * hands off to it rather than inventing a second one.
  *
- * An imperfect row had to be here. SPY, IEF and SHY all substitute
- * cleanly, so a table of only those three would quietly assert that
- * substitution is easy. EFA is the counter-example the lesson needs.
+ * An imperfect row had to be here. A table of clean swaps would quietly
+ * assert that substitution is easy, which is the opposite of the
+ * lesson. EFA is the counter-example.
+ *
+ * SPY's row reads Near rather than As tested because the catalog's
+ * curated default, VUAG.L, is the pound-denominated line: the index
+ * matches, the price series carries USD/GBP on top of it. The catalog
+ * flags currency for exactly this reason. It is the only substitute
+ * here that is not USD-denominated.
  *
  * Tickers are hardcoded, as the surrounding lesson already explains:
  * `mobile/src/etfCatalog.ts` is a different package, and the catalog
@@ -37,9 +43,14 @@ const SUBSTITUTES: {
 }[] = [
   {
     us: 'SPY',
-    uk: 'CSPX.L',
-    distance: 'tested',
-    differs: 'Same index — the S&P 500',
+    uk: 'VUAG.L',
+    distance: 'near',
+    differs: (
+      <>
+        Same index, but <strong>priced in pounds</strong> — the series carries
+        the dollar&rsquo;s moves as well as the S&amp;P&rsquo;s
+      </>
+    ),
   },
   {
     us: 'IEF',
@@ -120,10 +131,10 @@ export default function UcitsSubstitutes() {
             <p className="ucits__col-head">What still holds</p>
             <p className="ucits__col-body">
               Momentum is measured on price, and knows nothing about which
-              index a fund tracks. Hold CSPX.L and it is scored on{' '}
-              <strong>CSPX.L&rsquo;s own history</strong>, before any ranking
-              happens. You are not running an approximation of the rule — you
-              are running the same rule on your own holdings.
+              index a fund tracks or what it is priced in. Hold VUAG.L and it
+              is scored on <strong>VUAG.L&rsquo;s own history</strong>, before
+              any ranking happens. You are not running an approximation of the
+              rule — you are running the same rule on your own holdings.
             </p>
           </div>
           <div className="ucits__col">
