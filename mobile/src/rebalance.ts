@@ -62,3 +62,24 @@ export function holdingHint(today: string = formatYmd(new Date())): string {
 export function previewHint(today: string = formatYmd(new Date())): string {
   return `Not in force yet · takes effect at the end of ${currentMonthName(today)}`;
 }
+
+/**
+ * The detail screen's subtitle.
+ *
+ * The date is the server's `pricesAsOf` — the close the reading actually
+ * reached — not the date the app asked for. The two part company on a
+ * weekend or holiday month-end (31 October 2026 is a Saturday, so the
+ * October decision settles on the 30th) and before the US open, when no
+ * bar exists for the current session yet.
+ *
+ * Which month's rebalance this is stays the job of `holdingHint`, which
+ * names the calendar event — so this line is free to say where the prices
+ * came from. While the decision loads there is no date to show, and the
+ * separator goes with it rather than dangling.
+ */
+export function decisionSubtitle(
+  pricesAsOf: string | null | undefined,
+  funds: string,
+): string {
+  return pricesAsOf ? `As of ${pricesAsOf}  ·  ${funds}` : funds;
+}

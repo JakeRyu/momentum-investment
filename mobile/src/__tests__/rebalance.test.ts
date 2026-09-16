@@ -1,4 +1,5 @@
 import {
+  decisionSubtitle,
   holdingHint,
   inForceAsOf,
   inForceMonthKey,
@@ -66,5 +67,28 @@ describe('defaults', () => {
     expect(inForceMonthKey()).toMatch(/^\d{4}-\d{2}$/);
     expect(holdingHint()).toMatch(/^Set at the /);
     expect(previewHint()).toMatch(/^Not in force yet · /);
+  });
+});
+
+describe('decisionSubtitle', () => {
+  it('dates the reading by the close it used, not by the date asked for', () => {
+    // 31 October 2026 is a Saturday, so the October rebalance settles on
+    // Friday the 30th. The app asks for the 31st; the server answers with
+    // the close it could actually reach.
+    expect(decisionSubtitle('2026-10-30', '🇬🇧 UK funds')).toBe(
+      'As of 2026-10-30  ·  🇬🇧 UK funds',
+    );
+  });
+
+  it('drops the separator too when there is no date yet', () => {
+    expect(decisionSubtitle(undefined, '🇺🇸 US funds')).toBe('🇺🇸 US funds');
+    expect(decisionSubtitle(null, '🇺🇸 US funds')).toBe('🇺🇸 US funds');
+  });
+
+  it('leaves naming the month to holdingHint', () => {
+    // The subtitle says where the prices came from; the hint says which
+    // rebalance this is. The two carry different dates on purpose.
+    expect(decisionSubtitle('2026-10-30', 'x')).toContain('2026-10-30');
+    expect(holdingHint('2026-11-04')).toContain('31 October');
   });
 });

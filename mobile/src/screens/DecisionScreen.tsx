@@ -15,7 +15,12 @@ import {
 import { getApiBaseUrl, type AllocationDecision, type AssetMomentum, type Region } from '../api/apiBase';
 import { type PaaProtectionFactor } from '../api/paaTypes';
 import { buildDecisionRequest, fetchDecisionFor } from '../decisions';
-import { holdingHint, inForceAsOf, previewHint } from '../rebalance';
+import {
+  decisionSubtitle,
+  holdingHint,
+  inForceAsOf,
+  previewHint,
+} from '../rebalance';
 import type { Overrides } from '../storage';
 import { describeTicker } from '../tickerDescriptions';
 import type { Strategy } from '../strategies';
@@ -184,7 +189,10 @@ export default function DecisionScreen({
   // Both VAA and DAA resolve their universe via the region picker +
   // per-asset-class overrides on the mobile side, so the region flag is
   // meaningful for either.
-  const subtitle = `As of ${asOf}  ·  ${REGION_FLAG[region]} ${region} funds`;
+  const subtitle = decisionSubtitle(
+    decision?.pricesAsOf,
+    `${REGION_FLAG[region]} ${region} funds`,
+  );
 
   return (
     <View style={styles.root}>
