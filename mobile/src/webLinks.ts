@@ -5,7 +5,7 @@
  */
 import type { StrategyId } from './strategies';
 
-export const WEB_BASE_URL = 'https://investment.ecomcraft.co.uk';
+export const WEB_BASE_URL = 'https://monthlyrule.com';
 
 export function strategyWebUrl(id: StrategyId): string {
   return `${WEB_BASE_URL}/strategies/${id}`;

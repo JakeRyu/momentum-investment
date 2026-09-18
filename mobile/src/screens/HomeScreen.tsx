@@ -51,7 +51,7 @@ export default function HomeScreen({
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
-            <Text style={styles.title}>Momentum Investment</Text>
+            <Text style={styles.title}>Monthly Rule</Text>
             <Text style={styles.subtitle}>Wouter Keller momentum strategies</Text>
           </View>
           <TouchableOpacity
