@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="home">
       <section className="hero">
-        <h1>Momentum Investment</h1>
+        <h1>Monthly Rule</h1>
         <p className="hero-claim">Built to be held.</p>
         <p className="hero-tagline">
           Six tactical asset allocation strategies, judged by the depth of the

@@ -10,7 +10,7 @@ export default function Layout() {
       <ScrollToTop />
       <header className="site-header">
         <Link to="/" className="brand">
-          Momentum Investment
+          Monthly Rule
         </Link>
         <nav className="nav">
           <NavLink to="/" end className={navClass}>

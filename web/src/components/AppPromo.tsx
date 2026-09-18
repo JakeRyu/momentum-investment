@@ -16,7 +16,7 @@ export default function AppPromo() {
       <p className="app-promo__tag">US Universe · Today Only</p>
       <p className="app-promo__body">
         This tool runs Keller's original US-ETF universe at today's date. The
-        Momentum Investment iPhone app maps every asset class to local UCITS
+        Monthly Rule iPhone app maps every asset class to local UCITS
         alternatives (UK first) and holds the allocation currently in force,
         month to month.
       </p>

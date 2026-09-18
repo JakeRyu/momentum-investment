@@ -10,7 +10,7 @@ export default function Privacy() {
       <section>
         <h2>Summary</h2>
         <p>
-          Momentum Investment — this website and the companion mobile app —
+          Monthly Rule — this website and the companion mobile app —
           does not collect, store, or share any personal data. There are no
           user accounts, no analytics, no advertising, and no tracking of any
           kind.
