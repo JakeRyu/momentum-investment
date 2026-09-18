@@ -354,11 +354,18 @@ After the first deploy, ongoing cost on a personal Azure subscription:
 
 - **ACR Basic**: ~£4/month (always-on, can't scale to zero)
 - **Container Apps env**: free
-- **Container App** with `min-replicas=0`: pay-per-use only. Idle = £0.
-  Active vCPU-seconds + memory-seconds — for personal usage (handful
-  of requests/day), expect well under £1/month.
+- **Container App** with `min-replicas=1` (changed 2026-09-15): one
+  replica at 0.25 vCPU / 0.5 GiB stays warm around the clock, so **idle
+  is no longer £0**. That standing charge is exactly what buys the 0.49s
+  warm response on the once-a-month visit that matters — scale-to-zero
+  measured 22.6s cold. See the `azure-deploy.sh` header for the
+  measurements behind the trade.
 - **Egress**: minimal at this volume.
 
-Total: ~£4-6/month, easily covered by the Azure free monthly credit.
+Total: the ~£4-6/month this playbook used to quote was measured under
+scale-to-zero and no longer holds. Azure's monthly free grant of vCPU- and GiB-seconds
+absorbs part of a single small replica, so the increase is modest — but
+read the real number in Cost Management for the `momentum-investment`
+resource group rather than trusting this line.
 If the user wants to drop the ~£4 ACR cost, GitHub Container Registry
 is a free alternative — but that's out of scope for the first deploy.
