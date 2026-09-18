@@ -158,7 +158,7 @@ export default function ETFConfigScreen({
           <Text style={styles.note}>
             US universe is fixed to the tickers Keller's papers specify. The UK list
             exists because those ETFs aren't practically available to a UK investor
-            — switch region in Settings to customise the UK substitutes.
+            — switch region in Settings to customize the UK substitutes.
           </Text>
         )}
 

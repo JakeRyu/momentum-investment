@@ -223,7 +223,7 @@ export default function DecisionScreen({
         {loading && !decision && (
           <View style={styles.center}>
             <ActivityIndicator />
-            <Text style={styles.muted}>Analysing 12 months of live prices</Text>
+            <Text style={styles.muted}>Analyzing 12 months of live prices</Text>
           </View>
         )}
 

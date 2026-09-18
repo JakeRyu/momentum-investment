@@ -130,7 +130,7 @@ function Skeleton() {
 
   return (
     <View style={styles.allocList}>
-      <Text style={styles.skeletonLabel}>Analysing 12 months of live prices</Text>
+      <Text style={styles.skeletonLabel}>Analyzing 12 months of live prices</Text>
       <Animated.View style={[styles.skeletonBar, { width: '60%', opacity: pulse }]} />
       <Animated.View style={[styles.skeletonBar, { width: '45%', opacity: pulse }]} />
       <Animated.View style={[styles.skeletonBar, { width: '52%', opacity: pulse }]} />

@@ -116,7 +116,7 @@ export default function SettingsScreen({
                     papers specify — so the row must not offer an edit it
                     cannot honour once opened. */}
                 <Text style={styles.linkRowText}>
-                  {region === 'US' ? 'View' : 'Customise'} {s?.shortName} tickers
+                  {region === 'US' ? 'View' : 'Customize'} {s?.shortName} tickers
                 </Text>
                 <Text style={styles.linkRowArrow}>›</Text>
               </TouchableOpacity>
