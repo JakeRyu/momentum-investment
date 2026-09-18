@@ -112,8 +112,13 @@ export default function SettingsScreen({
                 onPress={() => onOpenEtfConfig(id)}
                 activeOpacity={0.7}
               >
-                <Text style={styles.linkRowText}>Customise {s?.shortName} tickers</Text>
-                <Text style={styles.linkRowArrow}>→</Text>
+                {/* The US universe is read-only — fixed to what Keller's
+                    papers specify — so the row must not offer an edit it
+                    cannot honour once opened. */}
+                <Text style={styles.linkRowText}>
+                  {region === 'US' ? 'View' : 'Customize'} {s?.shortName} tickers
+                </Text>
+                <Text style={styles.linkRowArrow}>›</Text>
               </TouchableOpacity>
             );
           })}
@@ -267,7 +272,7 @@ const styles = StyleSheet.create({
   },
   linkRowArrow: {
     color: '#7ed4a3',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 20,
+    lineHeight: 20,
   },
 });

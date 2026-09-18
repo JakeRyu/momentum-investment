@@ -59,7 +59,7 @@ export default function ChoosingOne() {
 
       <p>
         The table says it in one line — start with VAA — and now the
-        reasoning can go with it. It is not that the figures favour VAA:
+        reasoning can go with it. It is not that the figures back VAA:
         its published fall is the deepest of the six. It is that its rule
         is the one you can hold in your head, score four assets and go
         defensive if any is negative, so you can tell at a glance whether

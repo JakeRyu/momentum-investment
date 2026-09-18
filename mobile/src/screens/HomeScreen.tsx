@@ -52,7 +52,12 @@ export default function HomeScreen({
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>Monthly Rule</Text>
-            <Text style={styles.subtitle}>Wouter Keller momentum strategies</Text>
+            {/* The name only means something once it is spelled out: a
+                decision made on a schedule by a rule, and cards that are
+                already the answer to it. */}
+            <Text style={styles.subtitle}>One decision a month, not a hunch.</Text>
+            <Text style={styles.subtitleSecond}>Each card is this month&apos;s answer.</Text>
+            <Text style={styles.credit}>Strategies by Wouter Keller</Text>
           </View>
           <TouchableOpacity
             style={styles.gearButton}
@@ -84,8 +89,12 @@ export default function HomeScreen({
           })}
         </View>
 
+        {/* A button, and the cards' own chevron: this one stays inside the
+            app, unlike the link below it. Both said "→" before, which
+            promised the same thing for a screen and for a browser. */}
         <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.manageRow}>
-          <Text style={styles.manageRowText}>Manage my strategies →</Text>
+          <Text style={styles.manageRowText}>Manage my strategies</Text>
+          <Text style={styles.manageRowChevron}>›</Text>
         </TouchableOpacity>
 
         {/* The app deliberately teaches nothing about choosing a strategy —
@@ -96,7 +105,7 @@ export default function HomeScreen({
           activeOpacity={0.7}
           style={styles.learnRow}
         >
-          <Text style={styles.learnRowText}>How these strategies work →</Text>
+          <Text style={styles.learnRowText}>How these strategies work ↗</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -141,9 +150,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gearButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#161a1f',
     alignItems: 'center',
     justifyContent: 'center',
@@ -151,7 +160,7 @@ const styles = StyleSheet.create({
   },
   gearText: {
     color: '#cfd5dc',
-    fontSize: 24,
+    fontSize: 40,
   },
   title: {
     color: '#f4f6f8',
@@ -163,20 +172,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
+  subtitleSecond: {
+    color: '#8a93a0',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  credit: {
+    color: '#5e6671',
+    fontSize: 12,
+    marginTop: 8,
+  },
   cardList: {
     gap: 12,
   },
   manageRow: {
-    marginTop: 20,
+    marginTop: 24,
+    height: 48,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#2a2f37',
+    backgroundColor: '#161a1f',
   },
   manageRowText: {
     color: '#7ed4a3',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
+  manageRowChevron: {
+    color: '#7ed4a3',
+    fontSize: 18,
+  },
   learnRow: {
-    marginTop: 14,
+    marginTop: 16,
     alignItems: 'center',
   },
   learnRowText: {

@@ -44,7 +44,7 @@ export default function WhyDrawdown() {
       </blockquote>
 
       <p>
-        And it is built into the measure the papers optimise. They score
+        And it is built into the measure the papers optimize. They score
         candidate rules with <strong>K25</strong>, a return measure defined
         to hit zero once maximum drawdown reaches 25% — so a rule that
         earns beautifully and falls 25% scores nothing at all. The ceiling
