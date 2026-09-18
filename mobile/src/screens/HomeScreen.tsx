@@ -52,7 +52,12 @@ export default function HomeScreen({
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>Monthly Rule</Text>
-            <Text style={styles.subtitle}>Wouter Keller momentum strategies</Text>
+            {/* The name only means something once it is spelled out: a
+                decision made on a schedule by a rule, and cards that are
+                already the answer to it. */}
+            <Text style={styles.subtitle}>One decision a month, not a hunch.</Text>
+            <Text style={styles.subtitleSecond}>Each card is this month&apos;s answer.</Text>
+            <Text style={styles.credit}>Strategies by Wouter Keller</Text>
           </View>
           <TouchableOpacity
             style={styles.gearButton}
@@ -141,9 +146,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gearButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: '#161a1f',
     alignItems: 'center',
     justifyContent: 'center',
@@ -151,7 +156,7 @@ const styles = StyleSheet.create({
   },
   gearText: {
     color: '#cfd5dc',
-    fontSize: 24,
+    fontSize: 47,
   },
   title: {
     color: '#f4f6f8',
@@ -162,6 +167,16 @@ const styles = StyleSheet.create({
     color: '#8a93a0',
     fontSize: 14,
     marginTop: 4,
+  },
+  subtitleSecond: {
+    color: '#8a93a0',
+    fontSize: 14,
+    marginTop: 2,
+  },
+  credit: {
+    color: '#5e6671',
+    fontSize: 12,
+    marginTop: 8,
   },
   cardList: {
     gap: 12,
