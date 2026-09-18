@@ -89,8 +89,12 @@ export default function HomeScreen({
           })}
         </View>
 
+        {/* A button, and the cards' own chevron: this one stays inside the
+            app, unlike the link below it. Both said "→" before, which
+            promised the same thing for a screen and for a browser. */}
         <TouchableOpacity onPress={onOpenSettings} activeOpacity={0.7} style={styles.manageRow}>
-          <Text style={styles.manageRowText}>Manage my strategies →</Text>
+          <Text style={styles.manageRowText}>Manage my strategies</Text>
+          <Text style={styles.manageRowChevron}>›</Text>
         </TouchableOpacity>
 
         {/* The app deliberately teaches nothing about choosing a strategy —
@@ -101,7 +105,7 @@ export default function HomeScreen({
           activeOpacity={0.7}
           style={styles.learnRow}
         >
-          <Text style={styles.learnRowText}>How these strategies work →</Text>
+          <Text style={styles.learnRowText}>How these strategies work ↗</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -146,9 +150,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gearButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#161a1f',
     alignItems: 'center',
     justifyContent: 'center',
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
   },
   gearText: {
     color: '#cfd5dc',
-    fontSize: 47,
+    fontSize: 40,
   },
   title: {
     color: '#f4f6f8',
@@ -182,16 +186,28 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   manageRow: {
-    marginTop: 20,
+    marginTop: 24,
+    height: 48,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#2a2f37',
+    backgroundColor: '#161a1f',
   },
   manageRowText: {
     color: '#7ed4a3',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
+  manageRowChevron: {
+    color: '#7ed4a3',
+    fontSize: 18,
+  },
   learnRow: {
-    marginTop: 14,
+    marginTop: 16,
     alignItems: 'center',
   },
   learnRowText: {
