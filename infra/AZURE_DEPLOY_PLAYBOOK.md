@@ -279,6 +279,51 @@ that's the file to commit — not `.env`.
 
 ---
 
+## Adding a web origin (CORS)
+
+The API's allow-list lives in `Cors:AllowedOrigins` and is **empty by
+default**. A missing origin fails in a way only a browser sees: native
+app fetches send no Origin header, so the phone keeps working while
+every request from the web site is blocked. Test a new domain in a
+browser, not just the app.
+
+`azure-deploy.sh` seeds the known origins in its **create** branch only.
+The update branch leaves env vars alone on purpose, so an origin added
+here survives every later redeploy. To add one to a running app:
+
+```bash
+# Next free index — check what's already there first.
+az containerapp show -n momentum-api -g momentum-investment \
+    --query "properties.template.containers[0].env[?contains(name,'Cors')].{name:name,value:value}" -o tsv
+
+az containerapp update -n momentum-api -g momentum-investment \
+    --set-env-vars "Cors__AllowedOrigins__3=https://example.com"
+```
+
+`--set-env-vars` merges. Never use `--replace-env-vars` here — it drops
+the `Fred__ApiKey=secretref:fred-key` reference and LAA starts 5xx-ing.
+
+Verify against the live API rather than trusting the env list:
+
+```bash
+API=https://momentum-api.bravehill-06823086.uksouth.azurecontainerapps.io
+
+# Allowed origin echoes itself back.
+curl -s -D- -o /dev/null -H "Origin: https://example.com" \
+    "$API/api/vaa-g4b3/decision?asOf=2026-09-17" | grep -i access-control-allow-origin
+```
+
+A disallowed origin still returns 200 with **no** `access-control-allow-origin`
+header — that absence is what the browser enforces on. Re-check an
+existing origin too, so a typo in the new index doesn't quietly shift
+the array.
+
+**Don't detach a retired domain.** Shipped app binaries hardcode
+`WEB_BASE_URL` (`mobile/src/webLinks.ts`), so `investment.ecomcraft.co.uk`
+stays attached to the Static Web App and in this allow-list indefinitely.
+
+---
+
 ## Rollback / cleanup (only if user requests)
 
 To delete everything cleanly:
@@ -309,11 +354,18 @@ After the first deploy, ongoing cost on a personal Azure subscription:
 
 - **ACR Basic**: ~£4/month (always-on, can't scale to zero)
 - **Container Apps env**: free
-- **Container App** with `min-replicas=0`: pay-per-use only. Idle = £0.
-  Active vCPU-seconds + memory-seconds — for personal usage (handful
-  of requests/day), expect well under £1/month.
+- **Container App** with `min-replicas=1` (changed 2026-09-15): one
+  replica at 0.25 vCPU / 0.5 GiB stays warm around the clock, so **idle
+  is no longer £0**. That standing charge is exactly what buys the 0.49s
+  warm response on the once-a-month visit that matters — scale-to-zero
+  measured 22.6s cold. See the `azure-deploy.sh` header for the
+  measurements behind the trade.
 - **Egress**: minimal at this volume.
 
-Total: ~£4-6/month, easily covered by the Azure free monthly credit.
+Total: the ~£4-6/month this playbook used to quote was measured under
+scale-to-zero and no longer holds. Azure's monthly free grant of vCPU- and GiB-seconds
+absorbs part of a single small replica, so the increase is modest — but
+read the real number in Cost Management for the `momentum-investment`
+resource group rather than trusting this line.
 If the user wants to drop the ~£4 ACR cost, GitHub Container Registry
 is a free alternative — but that's out of scope for the first deploy.

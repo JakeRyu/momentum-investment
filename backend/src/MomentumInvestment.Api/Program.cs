@@ -64,11 +64,13 @@ builder.Services.AddSingleton<BaaService>();
 // CORS — dev gets the wide-open policy Expo Go needs; production reads
 // an allow-list from `Cors:AllowedOrigins` (empty by default).
 //
-// Note for the deployed setup: the iOS native fetch used by Expo Go
-// does NOT send an Origin header, so CORS does not gate mobile-app
-// requests at all — it only matters if a browser starts hitting these
-// endpoints. The allow-list is here for hygiene; leaving it empty in
-// production blocks browsers without affecting the mobile app.
+// The allow-list is load-bearing: the web site calls these endpoints
+// from a browser, so a domain missing here takes its decision lookups
+// down. Native app fetches send no Origin header and are never gated by
+// CORS — which means that breakage is invisible from a phone. Test a new
+// domain in a browser. Origins are seeded on first deploy by
+// `infra/azure-deploy.sh`; adding one to a running app is a manual step
+// documented in `infra/AZURE_DEPLOY_PLAYBOOK.md`.
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
