@@ -24,6 +24,17 @@
 #   measuring client), and a full price-cache miss adds only ~0.03s per
 #   ticker. Compute was never the constraint here.
 #
+# Why CORS origins are seeded in the create branch only:
+#   The API's allow-list (`Cors:AllowedOrigins`) is empty by default, and
+#   a missing origin fails in a way only a browser ever sees — native app
+#   fetches send no Origin header, so the app keeps working while every
+#   request from the web site is blocked. Recreating the app without
+#   seeding them would look healthy from the phone. The update branch
+#   deliberately does NOT manage env vars: `--replace-env-vars` would
+#   drop the `Fred__ApiKey` secret reference, and forcing this list on
+#   every redeploy would silently undo an origin added by hand. Adding a
+#   domain is rare and deliberate — the playbook has the one-liner.
+#
 # Required env vars (only on FIRST deploy):
 #   FRED_API_KEY — your FRED API key. Stored as a Container Apps secret
 #                  and exposed to the app as `Fred__ApiKey`.
@@ -170,6 +181,9 @@ else
         --env-vars \
             "ASPNETCORE_ENVIRONMENT=Production" \
             "Fred__ApiKey=secretref:fred-key" \
+            "Cors__AllowedOrigins__0=https://monthlyrule.com" \
+            "Cors__AllowedOrigins__1=https://investment.ecomcraft.co.uk" \
+            "Cors__AllowedOrigins__2=https://orange-desert-0b606e003.7.azurestaticapps.net" \
         -o none
 fi
 
