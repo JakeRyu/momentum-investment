@@ -31,7 +31,7 @@ export default function BacktestFigure({ backtest }: { backtest: Backtest }) {
           </span>
         </div>
         <div className="backtest__row">
-          <span className="backtest__label">Annualised return</span>
+          <span className="backtest__label">Annualized return</span>
           <span className="backtest__value">{backtest.cagrPct.toFixed(1)}%</span>
         </div>
       </div>
