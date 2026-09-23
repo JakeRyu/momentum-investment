@@ -8,14 +8,14 @@ public sealed class ClientVersionTests
     // These pin the comparison, not the policy. OldestTrusted moves when a
     // version is condemned; the tests below state it explicitly so raising
     // it is a deliberate edit here too, rather than a silent behaviour change.
-    private const string Below = "0.9";
-    private const string AtTheLine = "1.0";
-    private const string Above = "1.3";
+    private const string Below = "1.3";
+    private const string AtTheLine = "1.4";
+    private const string Above = "1.5";
 
     [Fact]
-    public void OldestTrusted_StartsAtTheFirstRelease_SoNothingShippedIsCondemned()
+    public void OldestTrusted_IsTheRenameRelease_SoEverythingBeforeItIsCondemned()
     {
-        Assert.Equal(new Version(1, 0), ClientVersion.OldestTrusted);
+        Assert.Equal(new Version(1, 4), ClientVersion.OldestTrusted);
     }
 
     [Theory]
@@ -38,9 +38,9 @@ public sealed class ClientVersionTests
     {
         // The trap: "1.10" sorts BEFORE "1.9" as text, so a string
         // comparison would call the tenth release older than the ninth.
-        // The line is passed in here because the real one (1.0) sits below
-        // everything, where text and numeric ordering happen to agree — a
-        // broken comparison would pass every other test in this file.
+        // The line is passed in here because the real one (1.4) sits where
+        // text and numeric ordering happen to agree — a broken comparison
+        // would pass every other test in this file.
         var line = new Version(1, 10);
 
         Assert.Equal(ClientVersion.Outdated, ClientVersion.Status("1.9", line));
@@ -64,6 +64,6 @@ public sealed class ClientVersionTests
     [Fact]
     public void Whitespace_IsTolerated()
     {
-        Assert.Equal(ClientVersion.Current, ClientVersion.Status(" 1.3 "));
+        Assert.Equal(ClientVersion.Current, ClientVersion.Status(" 1.4 "));
     }
 }
