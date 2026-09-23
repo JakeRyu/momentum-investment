@@ -33,9 +33,14 @@ public static class ClientVersion
     /// listing that offers them nothing to install, and a banner that has
     /// lied once is a banner nobody reads.
     ///
-    /// 1.0 means: nothing shipped so far is distrusted.
+    /// 1.4 means: every build before the Monthly Rule rename is distrusted.
+    /// Raised on 2026-09-23, once 1.4 was approved and live, to pull the
+    /// remaining installs forward. This line is deliberately broader than
+    /// the rule above — 1.2 and 1.3 render correct allocations — so it is
+    /// also the line that spends the banner's credibility. The next raise
+    /// should have a real defect behind it.
     /// </summary>
-    public static readonly Version OldestTrusted = new(1, 0);
+    public static readonly Version OldestTrusted = new(1, 4);
 
     /// <summary>
     /// Fails open, deliberately. A missing header is the website or an app
