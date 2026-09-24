@@ -2302,3 +2302,32 @@ hr {
 .lang-switch a {
   color: var(--red);
 }
+
+/* A small numeric table inside lesson prose. Rules, not boxes — DESIGN.md
+   allows no rounded corners and no shadows — and figures right-aligned
+   so the columns read as numbers. */
+.lesson__table {
+  border-collapse: collapse;
+  margin: 8px 0 24px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.lesson__table th {
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+  padding: 6px 0 6px 24px;
+  border-bottom: var(--rule-thin);
+}
+.lesson__table td {
+  text-align: right;
+  padding: 6px 0 6px 24px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.15);
+}
+.lesson__table :is(th, td):first-child {
+  padding-left: 0;
+}
+.lesson__table-accent td {
+  color: var(--red);
+  font-weight: 700;
+}

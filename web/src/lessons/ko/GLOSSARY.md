@@ -35,6 +35,7 @@
 | allocation | 배분 | "in-force allocation" → 현재 유효한 배분 |
 | rebalance | 리밸런싱 | |
 | signal | 신호 | |
+| trade-off | 교환, trade-off | 첫 등장 시 "교환, 즉 trade-off", 이후 trade-off |
 | rule | 규칙 | 전략의 규칙. "rules applied to the past" → 과거에 적용한 규칙 |
 
 ## 시장·거래
@@ -57,7 +58,7 @@
 
 ## 문체
 
-- "-합니다"체. 원문만큼 짧게. 원문에 없는 설명은 붙이지 않는다.
+- "-합니다"체. 번역이 아니라 한국판 원고: 독자가 흐름을 따라오기 쉬운 것이 우선. 정의·원화 예시·소제목·표를 더해도 된다. 사실과 숫자는 영어판·논문과 같아야 한다.
 - 티커와 전략명(VAA, DAA, SPY …)은 로마자 그대로.
 - 퍼센트·날짜는 원문 숫자 그대로. `Dec 1970 – Dec 2016` → `1970년 12월 – 2016년 12월`.
 - *Holds*, *De-risks*, *ETFs*, *Today's Decision*, *Holding*처럼 화면에 영어로 보이는 UI 이름은 영어 그대로 두고 기울임 대신 그대로 인용한다.

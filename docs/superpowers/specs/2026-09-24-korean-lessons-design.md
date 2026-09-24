@@ -149,8 +149,15 @@ English pages are unaffected.
    momentum → 모멘텀, drawdown → 낙폭 (with MDD on first use),
    canary → 카나리아, breadth → 시장 폭(breadth), rebalance → 리밸런싱.
    Keep tickers and strategy names (VAA, DAA …) in English.
-2. **Register:** "-합니다" form, as terse as the English. No added
-   explanation beyond the source.
+2. **Register:** "-합니다" form. **Korean editions, not translations**
+   (decided with the user on 2026-09-24, after lesson 1): each lesson is
+   written so a Korean reader can follow the argument easily. It may add
+   definitions, worked examples in won, headings and tables, and it need
+   not match the English sentence for sentence. The lesson's facts and
+   numbers must still match the English and the papers. If the Korean
+   reads better, the English may be revised to match after this work.
+   A Korean edition may replace an English-labelled figure with a Korean
+   table when both would show the same thing.
 3. Claude drafts, the user reviews **one lesson at a time**. A lesson
    ships only after its review.
 
