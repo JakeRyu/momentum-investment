@@ -22,5 +22,9 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Cloudflare Web Analytics: cookieless, so no consent banner. Added
+         by hand because DNS is grey-cloud and Cloudflare's auto-inject
+         only works on proxied traffic. -->
+    <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "fb7fc090e0dd49a19ba6bcd00092c69b"}'></script>
   </body>
 </html>
