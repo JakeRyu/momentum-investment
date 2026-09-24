@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 
+import PageMeta from '../components/PageMeta'
 import { LESSONS } from '../lessons'
 
 /**
@@ -10,6 +11,11 @@ import { LESSONS } from '../lessons'
 export default function Learn() {
   return (
     <article className="learn">
+      <PageMeta
+        title="Learn"
+        description="A short course on tactical asset allocation from no background at all: why these rules exist, what they measure, and what you would actually buy."
+        path="/learn"
+      />
       <header>
         <p className="learn__eyebrow">{LESSONS.length} lessons</p>
         <h1>Learn</h1>

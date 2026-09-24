@@ -1,11 +1,16 @@
 import { Link } from 'react-router-dom'
 
 import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
+import PageMeta from '../components/PageMeta'
 import StrategyComparison from '../components/StrategyComparison'
 
 export default function Home() {
   return (
     <div className="home">
+      <PageMeta
+        description="Six tactical asset allocation strategies by Wouter Keller — VAA, DAA, PAA, HAA, BAA and LAA — run on live market data and compared by how deep they fall."
+        path="/"
+      />
       <section className="hero">
         <h1>Monthly Rule</h1>
         <p className="hero-claim">Built to be held.</p>

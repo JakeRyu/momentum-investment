@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom'
 
+import PageMeta from '../components/PageMeta'
 import { STRATEGIES } from '../strategies'
 
 export default function About() {
   return (
     <article className="about-page">
+      <PageMeta
+        title="About"
+        description="Who designed the six strategies, the momentum signals they use, links to Wouter Keller's papers, and what this site does and does not claim."
+        path="/about"
+      />
       <header>
         <h1>About</h1>
       </header>
