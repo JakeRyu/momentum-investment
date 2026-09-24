@@ -1,6 +1,8 @@
 /**
- * Per-page title, description and canonical URL. React 19 hoists these
- * into <head> wherever they are rendered.
+ * Per-page title, description, canonical URL and link-preview tags.
+ * React 19 hoists these into <head> in the browser; at build time
+ * scripts/prerender.mjs moves them there, so crawlers that run no
+ * JavaScript still see each page's own.
  *
  * The canonical always names monthlyrule.com, so the retired domain that
  * still serves the same pages does not compete with it in search.
@@ -17,11 +19,15 @@ type Props = {
 }
 
 export default function PageMeta({ title, description, path, noindex }: Props) {
+  const fullTitle = title ? `${title} — Monthly Rule` : 'Monthly Rule'
   return (
     <>
-      <title>{title ? `${title} — Monthly Rule` : 'Monthly Rule'}</title>
+      <title>{fullTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={ORIGIN + path} />
+      <meta property="og:title" content={fullTitle} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={ORIGIN + path} />
       {noindex && <meta name="robots" content="noindex" />}
     </>
   )
