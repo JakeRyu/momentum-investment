@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 import { LESSONS } from './lessons'
+import { LESSONS_KO } from './lessons/ko'
 import { STRATEGIES } from './strategies'
 
 // public/sitemap.xml is written by hand, so a new lesson or strategy
@@ -17,6 +18,8 @@ describe('sitemap', () => {
       ...STRATEGIES.map((s) => `/strategies/${s.id}`),
       '/learn',
       ...LESSONS.map((l) => `/learn/${l.slug}`),
+      '/ko/learn',
+      ...LESSONS_KO.map((l) => `/ko/learn/${l.slug}`),
       '/about',
       '/privacy',
     ]

@@ -18,6 +18,8 @@ export default function AppRoutes() {
         <Route path="/strategies/:id" element={<StrategyPage />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:slug" element={<Lesson />} />
+        <Route path="/ko/learn" element={<Learn lang="ko" />} />
+        <Route path="/ko/learn/:slug" element={<Lesson lang="ko" />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />

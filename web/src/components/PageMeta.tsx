@@ -16,9 +16,11 @@ type Props = {
   path: string
   /** For pages that should never be indexed, such as "not found". */
   noindex?: boolean
+  /** For pages that exist in both languages: each twin's path. */
+  alternates?: { en: string; ko: string }
 }
 
-export default function PageMeta({ title, description, path, noindex }: Props) {
+export default function PageMeta({ title, description, path, noindex, alternates }: Props) {
   const fullTitle = title ? `${title} — Monthly Rule` : 'Monthly Rule'
   return (
     <>
@@ -28,6 +30,13 @@ export default function PageMeta({ title, description, path, noindex }: Props) {
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={ORIGIN + path} />
+      {alternates && (
+        <>
+          <link rel="alternate" hrefLang="en" href={ORIGIN + alternates.en} />
+          <link rel="alternate" hrefLang="ko" href={ORIGIN + alternates.ko} />
+          <link rel="alternate" hrefLang="x-default" href={ORIGIN + alternates.en} />
+        </>
+      )}
       {noindex && <meta name="robots" content="noindex" />}
     </>
   )

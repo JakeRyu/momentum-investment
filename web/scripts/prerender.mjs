@@ -11,9 +11,10 @@ import { render } from '../dist-ssr/entry-server.js'
 
 const TITLE = '<title>Monthly Rule</title>'
 const ROOT = '<div id="root"></div>'
+const HTML = '<html lang="en">'
 
 const template = readFileSync('dist/index.html', 'utf8')
-for (const marker of [TITLE, ROOT]) {
+for (const marker of [TITLE, ROOT, HTML]) {
   if (template.split(marker).length !== 2) {
     throw new Error(`dist/index.html must contain ${marker} exactly once`)
   }
@@ -33,7 +34,9 @@ function page(url) {
   const html = render(url)
   const head = html.match(HEAD)?.[0]
   if (!head) throw new Error(`${url} rendered no PageMeta`)
+  const lang = url.startsWith('/ko/') ? 'ko' : 'en'
   return template
+    .replace(HTML, `<html lang="${lang}">`)
     .replace(TITLE, head)
     .replace(ROOT, `<div id="root">${html.slice(head.length)}</div>`)
 }

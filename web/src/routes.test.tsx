@@ -1,9 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import AppPromo from './components/AppPromo'
 import { LESSONS } from './lessons'
+import { LESSONS_KO } from './lessons/ko'
+import KoreanHead from './components/KoreanHead'
 import { STRATEGIES, drawdownRange } from './strategies'
 import About from './routes/About'
 import Learn from './routes/Learn'
@@ -22,6 +24,8 @@ function renderAt(path: string) {
         <Route path="/strategies/:id" element={<StrategyPage />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:slug" element={<Lesson />} />
+        <Route path="/ko/learn" element={<Learn lang="ko" />} />
+        <Route path="/ko/learn/:slug" element={<Lesson lang="ko" />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
@@ -220,5 +224,57 @@ describe('the course', () => {
       )
       unmount()
     }
+  })
+})
+
+describe('Korean course', () => {
+  it('serves the Korean contents page in Korean', () => {
+    const { container } = renderAt('/ko/learn')
+    expect(container.querySelector('.not-found')).toBeNull()
+    expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('동적자산배분 강의')
+  })
+
+  it('links the contents pages to each other', () => {
+    renderAt('/learn')
+    expect(screen.getByRole('link', { name: '한국어' })).toHaveAttribute('href', '/ko/learn')
+    cleanup()
+    renderAt('/ko/learn')
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/learn')
+  })
+
+  it('does not invent a Korean lesson that does not exist', () => {
+    const { container } = renderAt('/ko/learn/what-is-a-stock')
+    expect(container.querySelector('.not-found')).not.toBeNull()
+  })
+
+  it('offers no Korean link on an English lesson with no Korean twin', () => {
+    const untranslated = LESSONS.find(
+      (l) => !LESSONS_KO.some((k) => k.slug === l.slug),
+    )
+    if (!untranslated) return // every lesson is translated
+    renderAt(`/learn/${untranslated.slug}`)
+    expect(screen.queryByRole('link', { name: '한국어' })).toBeNull()
+  })
+
+  it.each(LESSONS_KO.map((l) => l.slug))('serves /ko/learn/%s in Korean', (slug) => {
+    const { container } = renderAt(`/ko/learn/${slug}`)
+    expect(container.querySelector('.not-found')).toBeNull()
+    expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
+    // Rail and pager stay inside the Korean course.
+    for (const a of container.querySelectorAll('.lesson__rail a, .lesson__pager a[href*="/learn/"]')) {
+      expect(a.getAttribute('href'), a.textContent ?? '').toMatch(/^\/ko\/learn\//)
+    }
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', `/learn/${slug}`)
+  })
+})
+
+describe('KoreanHead', () => {
+  it('marks the document Korean while mounted and restores it after', () => {
+    document.documentElement.lang = 'en'
+    const { unmount } = render(<KoreanHead />)
+    expect(document.documentElement.lang).toBe('ko')
+    unmount()
+    expect(document.documentElement.lang).toBe('en')
   })
 })
