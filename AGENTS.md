@@ -88,8 +88,8 @@ The C# tests mirror these values; a divergence means one side is wrong.
 
 ### CI/CD (`.github/workflows/`)
 
-- `ci.yml` — `dotnet test` + mobile `npm test` on every PR and push to main.
-  (Web tests are not in CI; run them locally.)
+- `ci.yml` — `dotnet test`, mobile `npm test` and web `npm test` on every PR
+  and push to main.
 - `deploy.yml` — push to main runs `infra/azure-deploy.sh` via OIDC
   federated identity (`az acr build`, no local Docker).
 - `web-deploy.yml` — Static Web Apps build of `web/` on changes under
@@ -201,7 +201,15 @@ react-router routes: `/`, `/strategies/:id`, `/learn`, `/learn/:slug`,
 backtest figures pinned by `strategies.test.ts`. `src/api/decisions.ts` is the
 single decision client. Lessons live in `src/lessons/` (registered in
 `index.ts`). Styling follows `DESIGN.md` — three colours, serif typography, no
-shadows/gradients. `staticwebapp.config.json` provides the SPA fallback.
+shadows/gradients.
+
+`npm run build` prerenders every URL in `public/sitemap.xml` to its own
+`dist/<path>/index.html` (`scripts/prerender.mjs` via `src/entry-server.tsx`)
+plus `404.html`; `main.tsx` hydrates it. There is **no SPA fallback** in
+`staticwebapp.config.json`, so a new route must be added to the sitemap or
+it 404s on direct load (`sitemap.test.ts` enforces this for lessons and
+strategies). Per-page title, description, canonical and og tags come from
+`components/PageMeta.tsx`.
 
 ### Deliberately absent
 
