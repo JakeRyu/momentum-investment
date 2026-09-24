@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import AppPromo from '../components/AppPromo'
 import BacktestFigure from '../components/BacktestFigure'
 import DecisionTool from '../components/DecisionTool'
+import PageMeta from '../components/PageMeta'
 import { findStrategy, type Strategy } from '../strategies'
 
 import NotFound from './NotFound'
@@ -20,6 +21,11 @@ export default function StrategyPage() {
 
   return (
     <article className="strategy-page">
+      <PageMeta
+        title={`${strategy.fullName} (${strategy.shortName})`}
+        description={`${strategy.tagline}. How ${strategy.shortName} works, the paper behind it, and today's decision on live market data.`}
+        path={`/strategies/${strategy.id}`}
+      />
       <header className="strategy-page__head">
         <p className="strategy-page__tag">{dottedShort(strategy)}</p>
         <h1>{splitTitle(strategy.fullName)}</h1>

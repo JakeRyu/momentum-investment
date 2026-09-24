@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 
+import PageMeta from '../components/PageMeta'
 import { LESSONS, findLesson } from '../lessons'
 
 import NotFound from './NotFound'
@@ -25,6 +26,11 @@ export default function Lesson() {
 
   return (
     <article className="lesson">
+      <PageMeta
+        title={lesson.title}
+        description={lesson.summary}
+        path={`/learn/${lesson.slug}`}
+      />
       <nav className="lesson__rail" aria-label="Course progress">
         <ol>
           {LESSONS.map((l) => (

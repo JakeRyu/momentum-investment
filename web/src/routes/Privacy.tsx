@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom'
 
+import PageMeta from '../components/PageMeta'
+
 export default function Privacy() {
   return (
     <article className="about-page">
+      <PageMeta
+        title="Privacy Policy"
+        description="What Monthly Rule and its companion app collect, store and send."
+        path="/privacy"
+      />
       <header>
         <h1>Privacy Policy</h1>
       </header>
