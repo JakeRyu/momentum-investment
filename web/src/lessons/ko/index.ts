@@ -1,5 +1,6 @@
 import type { Lesson } from '../index'
 
+import OneSignalAMonth from './OneSignalAMonth'
 import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
 import WhyNotBuyAndHold from './WhyNotBuyAndHold'
@@ -32,5 +33,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '시장 폭이 더해 주는 것',
     summary: '오르는 자산이 몇 개인지 세는 일, 그리고 나머지를 모두 뒤집을 수 있는 작은 바구니.',
     Body: WhatBreadthAdds,
+  },
+  {
+    slug: 'one-signal-a-month',
+    number: 4,
+    title: '한 달에 신호 하나',
+    summary: '결정은 언제 나오는지, 왜 한 달 내내 유지되는지, 늦었을 때는 어떻게 하는지.',
+    Body: OneSignalAMonth,
   },
 ]

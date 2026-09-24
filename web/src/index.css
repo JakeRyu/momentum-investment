@@ -2352,3 +2352,9 @@ hr {
   text-align: left;
   padding-left: 32px;
 }
+
+/* A list whose items carry their own marker (①, ②, ③) in the text. */
+.lesson__body .lesson__marked {
+  list-style: none;
+  padding-left: 0;
+}
