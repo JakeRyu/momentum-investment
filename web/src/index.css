@@ -2331,3 +2331,24 @@ hr {
   color: var(--red);
   font-weight: 700;
 }
+
+/* A step-by-step chain under a short lead line: arrows instead of
+   bullets, tucked up under the line it continues. */
+.lesson__body .lesson__flow {
+  list-style: none;
+  padding-left: 0;
+  margin: -12px 0 20px;
+}
+.lesson__body .lesson__flow li {
+  margin-bottom: 4px;
+}
+.lesson__body .lesson__flow li::before {
+  content: '→ ';
+}
+
+/* The same table holding words rather than figures: left-aligned, and
+   the columns spaced wider because the cells are phrases. */
+.lesson__table--text :is(th, td) {
+  text-align: left;
+  padding-left: 32px;
+}

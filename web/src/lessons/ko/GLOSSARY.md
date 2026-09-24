@@ -12,6 +12,8 @@
 | breadth | 시장 폭(breadth) | 첫 등장 시 원어 병기, 이후 "시장 폭" |
 | canary / canary universe | 카나리아 / 카나리아 자산군 | 탄광 카나리아 비유는 그대로 |
 | early-warning basket | 조기 경보 바구니 | |
+| gate (open / shut) | 게이트 (열림 / 닫힘) | 그림 라벨 Gate와 맞춤 |
+| main universe | 메인 자산군 | 그림 라벨 Main universe와 맞춤 |
 | universe | 자산군 | "the broader universe" → 전체 자산군 |
 | drawdown | 낙폭 | 첫 등장 시 "낙폭(MDD)" |
 | maximum drawdown | 최대 낙폭(MDD) | |

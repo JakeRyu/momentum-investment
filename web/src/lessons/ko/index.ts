@@ -1,5 +1,6 @@
 import type { Lesson } from '../index'
 
+import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
 import WhyNotBuyAndHold from './WhyNotBuyAndHold'
 
@@ -24,5 +25,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '모멘텀이란 무엇인가',
     summary: '이미 움직인 가격에서 측정되는 경향입니다. 예측이 아닙니다.',
     Body: WhatMomentumIs,
+  },
+  {
+    slug: 'what-breadth-adds',
+    number: 3,
+    title: '시장 폭이 더해 주는 것',
+    summary: '오르는 자산이 몇 개인지 세는 일, 그리고 나머지를 모두 뒤집을 수 있는 작은 바구니.',
+    Body: WhatBreadthAdds,
   },
 ]
