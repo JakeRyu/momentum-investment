@@ -1,5 +1,6 @@
 import type { Lesson } from '../index'
 
+import WhatMomentumIs from './WhatMomentumIs'
 import WhyNotBuyAndHold from './WhyNotBuyAndHold'
 
 /**
@@ -16,5 +17,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     summary:
       '인덱스 펀드는 좋은 선택입니다. 문제는 얼마나 깊이 떨어지는지, 그리고 회복에 무엇이 드는지입니다.',
     Body: WhyNotBuyAndHold,
+  },
+  {
+    slug: 'what-momentum-is',
+    number: 2,
+    title: '모멘텀이란 무엇인가',
+    summary: '이미 움직인 가격에서 측정되는 경향입니다. 예측이 아닙니다.',
+    Body: WhatMomentumIs,
   },
 ]
