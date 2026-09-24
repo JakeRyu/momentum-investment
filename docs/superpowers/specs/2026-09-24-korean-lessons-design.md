@@ -54,9 +54,11 @@ translation and maintenance cost that still reads naturally.
 ### UK-specific passages dropped
 
 - **Lesson 5 (`WhatYouWouldBuy`):** the UCITS section and the
-  `UcitsSubstitutes` table. In their place, one factual sentence: the
-  funds are US-listed and can be bought through a Korean broker's
-  overseas-stock account. Nothing about tax.
+  `UcitsSubstitutes` table. In their place, a short factual passage.
+  Korean brokers sell US-listed ETFs through overseas-stock accounts, so
+  a Korean reader buys **the exact funds the strategies name**, with no
+  substitutes. That is a better position than the UK reader's, and the
+  passage can say so. Nothing about tax.
 - **Lesson 7 (`ChoosingOne`):** the "sixteen UCITS substitutes" sentence.
   The explanation of why the site shows no returns column (a UK company
   publishing returns is a financial promotion) stays. It describes the
@@ -123,10 +125,18 @@ the site nav. Nav stays untouched.
 Source Serif 4 and IBM Plex Mono have no Hangul glyphs. Under `:lang(ko)`
 only:
 
-- append a Korean serif to `--body` and `--display`. Use Noto Serif KR
-  from Google Fonts, loaded with `display=swap` only on pages that need
-  it, or fall back to system fonts if its weight is not worth it (decide
-  at implementation, after measuring).
+- append **Noto Serif KR** (Google Fonts) to `--body` and `--display`.
+  It is Adobe's Source Han Serif under Google's name, drawn as the CJK
+  companion to Source Serif, which the site already uses, so Latin and
+  Hangul share one design. It is also the Google serif a major Korean
+  paper uses: JoongAng sets its opinion and feature headlines in it. Load
+  weights 400 and 700 only, with `display=swap`, and only on `/ko` pages.
+  Google serves Korean in `unicode-range` slices, so a page downloads
+  only the glyphs it uses.
+- Korean news sites set body text in sans (Noto Sans KR, Pretendard).
+  The site's identity is a serif newspaper, so it stays serif. If
+  on-screen review finds serif Hangul body text hard to read on phones,
+  Noto Sans KR for `--body` only is the fallback.
 - `word-break: keep-all`, so lines do not break mid-word.
 - if lesson bodies are justified, switch to left-aligned. Korean
   justified text spaces badly.
@@ -172,4 +182,3 @@ English pages are unaffected.
 
 - The Korean disclaimer wording on `/ko/learn`. It is drafted with the
   intro and reviewed by the user.
-- Noto Serif KR versus system fonts, decided by measured weight.
