@@ -19,8 +19,10 @@ export default function Privacy() {
         <p>
           Monthly Rule — this website and the companion mobile app —
           does not collect, store, or share any personal data. There are no
-          user accounts, no analytics, no advertising, and no tracking of any
-          kind.
+          user accounts and no advertising. The website counts visits with
+          Cloudflare Web Analytics, which sets no cookies and does not
+          identify or follow individual visitors; the app has no analytics
+          at all.
         </p>
       </section>
 
@@ -68,7 +70,7 @@ export default function Privacy() {
           Questions about this policy:{' '}
           <a href="mailto:jihyung.ryu@gmail.com">jihyung.ryu@gmail.com</a>
         </p>
-        <p>Last updated: 18 July 2026</p>
+        <p>Last updated: 24 September 2026</p>
       </section>
 
       <p className="back-link">
