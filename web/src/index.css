@@ -226,6 +226,7 @@ hr {
 .hero-paths__primary:hover {
   background: var(--red);
   border-color: var(--red);
+  color: var(--bg);
 }
 .hero-paths__secondary {
   font-family: var(--mono);
