@@ -178,7 +178,7 @@ describe('the course', () => {
     // CanaryGate draws one faltering canary sending everything defensive.
     // DAA moves only half on one bad canary; the prose has to say so.
     const { container } = renderAt('/learn/what-breadth-adds')
-    expect(container.textContent).toMatch(/DAA[^.]*half/)
+    expect(container.textContent).toMatch(/DAA[^.]*half/i)
   })
 
   it('does not say the site computes on live prices', () => {
