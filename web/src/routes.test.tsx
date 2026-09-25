@@ -288,6 +288,14 @@ describe('Korean lesson 7', () => {
   })
 })
 
+describe('Korean lesson 8', () => {
+  it('sends the Korean reader to the English strategy page, without a UCITS detour', () => {
+    const { container } = renderAt('/ko/learn/running-it')
+    expect(container.querySelector('.lesson__body a[href="/strategies/vaa"]')).not.toBeNull()
+    expect(container.querySelector('.lesson__body')?.textContent).not.toMatch(/UCITS/)
+  })
+})
+
 describe('KoreanHead', () => {
   it('marks the document Korean while mounted and restores it after', () => {
     document.documentElement.lang = 'en'

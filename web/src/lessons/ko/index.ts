@@ -2,6 +2,7 @@ import type { Lesson } from '../index'
 
 import ChoosingOne from './ChoosingOne'
 import OneSignalAMonth from './OneSignalAMonth'
+import RunningIt from './RunningIt'
 import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
 import WhatYouWouldBuy from './WhatYouWouldBuy'
@@ -64,5 +65,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '하나 고르기',
     summary: '여섯 전략을 평점이 아닌 사실로 나란히 놓고, 그 표 아래에 있는 질문을 봅니다.',
     Body: ChoosingOne,
+  },
+  {
+    slug: 'running-it',
+    number: 8,
+    title: '실제로 운용하기',
+    summary: '첫날은 어떤 모습인지, 매달은 어떤 모습인지, 그리고 사이트가 어디까지 해 주는지.',
+    Body: RunningIt,
   },
 ]
