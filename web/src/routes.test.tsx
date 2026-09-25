@@ -352,3 +352,38 @@ describe('KoreanHead', () => {
     expect(document.documentElement.lang).toBe('en')
   })
 })
+
+describe('the way into the course', () => {
+  it('leads the landing page with the first lesson, and keeps the table one link away', () => {
+    renderAt('/')
+    const hero = document.querySelector('.hero')!
+    expect(hero.querySelector('.hero-paths__primary')).toHaveAttribute(
+      'href',
+      `/learn/${LESSONS[0].slug}`,
+    )
+    expect(hero.querySelector('.hero-paths__secondary')).toHaveAttribute('href', '#strategies')
+  })
+
+  it('starts the course at lesson 1, not the contents page', () => {
+    renderAt('/')
+    expect(screen.getByRole('link', { name: /Start the course/i })).toHaveAttribute(
+      'href',
+      `/learn/${LESSONS[0].slug}`,
+    )
+  })
+
+  it.each(STRATEGIES.map((s) => s.id))('points /strategies/%s at the lessons behind the reading', (id) => {
+    const { container } = renderAt(`/strategies/${id}`)
+    const key = container.querySelector('.decision-banner__learn')!
+    const hrefs = [...key.querySelectorAll('a')].map((a) => a.getAttribute('href'))
+    expect(hrefs).toContain('/learn/what-momentum-is')
+    expect(hrefs).toContain('/learn/one-signal-a-month')
+    const hasCanary = 'canary' in STRATEGIES.find((s) => s.id === id)!.defaultUniverse
+    expect(hrefs.includes('/learn/what-breadth-adds')).toBe(hasCanary)
+    // Lesson numbers come from the catalog.
+    for (const a of key.querySelectorAll('a')) {
+      const slug = a.getAttribute('href')!.replace('/learn/', '')
+      expect(a.textContent).toContain(`lesson ${LESSONS.find((l) => l.slug === slug)!.number}`)
+    }
+  })
+})

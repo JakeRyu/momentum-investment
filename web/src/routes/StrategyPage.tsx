@@ -5,6 +5,7 @@ import AppPromo from '../components/AppPromo'
 import BacktestFigure from '../components/BacktestFigure'
 import DecisionTool from '../components/DecisionTool'
 import PageMeta from '../components/PageMeta'
+import { findLesson } from '../lessons'
 import { findStrategy, type Strategy } from '../strategies'
 
 import NotFound from './NotFound'
@@ -68,6 +69,7 @@ export default function StrategyPage() {
             say if today were rebalance day. Not in force until the next
             month-end, so act on it in the first days of a month.
           </p>
+          <LessonKey strategy={strategy} />
         </div>
         <DecisionTool strategy={strategy} onPricesAsOf={setPricesAsOf} />
       </section>
@@ -78,6 +80,42 @@ export default function StrategyPage() {
         <Link to="/">← All strategies</Link>
       </p>
     </article>
+  )
+}
+
+/**
+ * Points a reader who landed here from a search, not from the course, at
+ * the lesson behind each part of the reading below. Numbers come from the
+ * catalog so reordering the course cannot leave them stale.
+ */
+function LessonKey({ strategy }: { strategy: Strategy }) {
+  const topics: [label: string, slug: string][] = [
+    ['the scores', 'what-momentum-is'],
+    ...('canary' in strategy.defaultUniverse
+      ? [['the canary', 'what-breadth-adds'] as [string, string]]
+      : []),
+    ['when to act', 'one-signal-a-month'],
+  ]
+  const links = topics.map(([label, slug]) => {
+    const lesson = findLesson(slug)!
+    return (
+      <Link key={slug} to={`/learn/${slug}`}>
+        {label} (lesson {lesson.number})
+      </Link>
+    )
+  })
+
+  return (
+    <p className="decision-banner__learn">
+      New to these readings? The course explains{' '}
+      {links.map((link, i) => (
+        <span key={i}>
+          {i > 0 && (i === links.length - 1 ? ' and ' : ', ')}
+          {link}
+        </span>
+      ))}
+      .
+    </p>
   )
 }
 
