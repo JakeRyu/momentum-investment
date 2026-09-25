@@ -28,4 +28,8 @@ describe('courses', () => {
       expect(ko.number, ko.slug).toBe(en!.number)
     }
   })
+
+  it('translates every lesson, in the same order', () => {
+    expect(COURSES.ko.lessons.map((l) => l.slug)).toEqual(LESSONS.map((l) => l.slug))
+  })
 })

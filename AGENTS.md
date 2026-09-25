@@ -197,10 +197,14 @@ otherwise the banner points at nothing to install.
 ### Web (`web/`)
 
 react-router routes: `/`, `/strategies/:id`, `/learn`, `/learn/:slug`,
-`/about`, `/privacy`. `src/strategies.ts` is the web catalog, including paper
+`/ko/learn`, `/ko/learn/:slug`, `/about`, `/privacy`. `src/strategies.ts` is the web catalog, including paper
 backtest figures pinned by `strategies.test.ts`. `src/api/decisions.ts` is the
 single decision client. Lessons live in `src/lessons/` (registered in
-`index.ts`). Styling follows `DESIGN.md` — three colours, serif typography, no
+`index.ts`). The Korean course (`src/lessons/ko/`, `LESSONS_KO`) is a
+Korean edition of each lesson, not a line-by-line translation: same slugs,
+same facts and figures, its own wording, examples and tables. Site chrome
+and figure components stay English. `lessons/courses.test.ts` fails if it
+drifts from `LESSONS`, and terms are fixed in `src/lessons/ko/GLOSSARY.md`. Styling follows `DESIGN.md` — three colours, serif typography, no
 shadows/gradients.
 
 `npm run build` prerenders every URL in `public/sitemap.xml` to its own
