@@ -1,5 +1,6 @@
 import type { Lesson } from '../index'
 
+import ChoosingOne from './ChoosingOne'
 import OneSignalAMonth from './OneSignalAMonth'
 import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
@@ -56,5 +57,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '낙폭. 이 전략들이 존재하는 이유',
     summary: '저자들이 세운 목표, 그들이 발표한 수치, 그리고 그것이 지켜지지 않은 경우.',
     Body: WhyDrawdown,
+  },
+  {
+    slug: 'choosing-one',
+    number: 7,
+    title: '하나 고르기',
+    summary: '여섯 전략을 평점이 아닌 사실로 나란히 놓고, 그 표 아래에 있는 질문을 봅니다.',
+    Body: ChoosingOne,
   },
 ]

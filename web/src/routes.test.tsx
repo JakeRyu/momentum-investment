@@ -277,6 +277,17 @@ describe('Korean lesson 5', () => {
   })
 })
 
+describe('Korean lesson 7', () => {
+  it('drops the UCITS count', () => {
+    const { container } = renderAt('/ko/learn/choosing-one')
+    expect(container.querySelector('.lesson__body')?.textContent).not.toMatch(/UCITS/)
+  })
+  it('keeps the past-results caveat beside the table it no longer carries', () => {
+    const { container } = renderAt('/ko/learn/choosing-one')
+    expect(container.textContent).toMatch(/과거\s+결과가 미래를 예측하지는 않습니다/)
+  })
+})
+
 describe('KoreanHead', () => {
   it('marks the document Korean while mounted and restores it after', () => {
     document.documentElement.lang = 'en'
