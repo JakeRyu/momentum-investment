@@ -1215,7 +1215,9 @@ hr {
   padding-left: 16px;
   margin: 22px 0;
 }
-.lesson__define strong {
+/* The term is the block's first <strong>; any later one is ordinary
+   emphasis inside the definition. */
+.lesson__define > strong:first-child {
   display: block;
   margin-bottom: 4px;
   font-family: var(--mono);

@@ -269,6 +269,14 @@ describe('Korean course', () => {
   })
 })
 
+describe('Korean lesson 5', () => {
+  it('tells Korean readers they buy the named funds, with no UCITS detour', () => {
+    const { container } = renderAt('/ko/learn/what-you-would-buy')
+    expect(container.textContent).not.toMatch(/UCITS|ISA/)
+    expect(container.textContent).toMatch(/해외주식 계좌/)
+  })
+})
+
 describe('KoreanHead', () => {
   it('marks the document Korean while mounted and restores it after', () => {
     document.documentElement.lang = 'en'

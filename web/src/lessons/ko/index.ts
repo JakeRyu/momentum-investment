@@ -3,6 +3,7 @@ import type { Lesson } from '../index'
 import OneSignalAMonth from './OneSignalAMonth'
 import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
+import WhatYouWouldBuy from './WhatYouWouldBuy'
 import WhyNotBuyAndHold from './WhyNotBuyAndHold'
 
 /**
@@ -40,5 +41,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '한 달에 신호 하나',
     summary: '결정은 언제 나오는지, 왜 한 달 내내 유지되는지, 늦었을 때는 어떻게 하는지.',
     Body: OneSignalAMonth,
+  },
+  {
+    slug: 'what-you-would-buy',
+    number: 5,
+    title: '실제로 무엇을 사게 되나',
+    summary: '티커, 그 뒤의 펀드, 한국에서 사는 법, 그리고 드는 비용.',
+    Body: WhatYouWouldBuy,
   },
 ]
