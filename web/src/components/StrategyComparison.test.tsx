@@ -75,4 +75,17 @@ describe('StrategyComparison', () => {
     expect(container.textContent).toMatch(/simplest/i)
     expect(container.textContent).not.toMatch(/highest return|best performing|earns the most/i)
   })
+
+  it('shows the table alone when asked, for pages that frame it themselves', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <StrategyComparison tableOnly />
+      </MemoryRouter>,
+    )
+    expect(container.textContent).not.toMatch(/Start with VAA/)
+    expect(container.textContent).not.toMatch(/do not predict/i)
+    for (const s of STRATEGIES) {
+      expect(screen.getByTestId(`compare-row-${s.id}`), s.id).toBeInTheDocument()
+    }
+  })
 })

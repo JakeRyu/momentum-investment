@@ -1215,7 +1215,9 @@ hr {
   padding-left: 16px;
   margin: 22px 0;
 }
-.lesson__define strong {
+/* The term is the block's first <strong>; any later one is ordinary
+   emphasis inside the definition. */
+.lesson__define > strong:first-child {
   display: block;
   margin-bottom: 4px;
   font-family: var(--mono);
@@ -2269,4 +2271,92 @@ hr {
   .ucits__row > :nth-child(5) {
     display: none;
   }
+}
+
+/* Korean pages. Noto Serif KR (loaded by KoreanHead) follows the Latin
+   face, so Latin text keeps Source Serif and Hangul falls through to its
+   companion. Hangul has no true italic — browsers slant it, which reads
+   as broken — so the italic display styles stand upright here. keep-all
+   stops a line breaking inside a Korean word. */
+[lang='ko'] {
+  --display: "Source Serif 4", "Noto Serif KR", "Tiempos Headline", "Times New Roman", Georgia, serif;
+  --body: "Source Serif 4", "Noto Serif KR", "Tiempos Text", Georgia, "Times New Roman", serif;
+  font-family: var(--body);
+  word-break: keep-all;
+}
+[lang='ko'] :is(h1, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
+  font-style: normal;
+}
+
+.learn__intro {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 58ch;
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+}
+
+.lang-switch {
+  font-family: var(--mono);
+  font-size: 12px;
+  margin: 0 0 24px;
+}
+.lang-switch a {
+  color: var(--red);
+}
+
+/* A small numeric table inside lesson prose. Rules, not boxes — DESIGN.md
+   allows no rounded corners and no shadows — and figures right-aligned
+   so the columns read as numbers. */
+.lesson__table {
+  border-collapse: collapse;
+  margin: 8px 0 24px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.lesson__table th {
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+  padding: 6px 0 6px 24px;
+  border-bottom: var(--rule-thin);
+}
+.lesson__table td {
+  text-align: right;
+  padding: 6px 0 6px 24px;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.15);
+}
+.lesson__table :is(th, td):first-child {
+  padding-left: 0;
+}
+.lesson__table-accent td {
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* A step-by-step chain under a short lead line: arrows instead of
+   bullets, tucked up under the line it continues. */
+.lesson__body .lesson__flow {
+  list-style: none;
+  padding-left: 0;
+  margin: -12px 0 20px;
+}
+.lesson__body .lesson__flow li {
+  margin-bottom: 4px;
+}
+.lesson__body .lesson__flow li::before {
+  content: '→ ';
+}
+
+/* The same table holding words rather than figures: left-aligned, and
+   the columns spaced wider because the cells are phrases. */
+.lesson__table--text :is(th, td) {
+  text-align: left;
+  padding-left: 32px;
+}
+
+/* A list whose items carry their own marker (①, ②, ③) in the text. */
+.lesson__body .lesson__marked {
+  list-style: none;
+  padding-left: 0;
 }

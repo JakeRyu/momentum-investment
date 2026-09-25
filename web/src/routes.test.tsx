@@ -1,9 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 
 import AppPromo from './components/AppPromo'
 import { LESSONS } from './lessons'
+import { LESSONS_KO } from './lessons/ko'
+import KoreanHead from './components/KoreanHead'
 import { STRATEGIES, drawdownRange } from './strategies'
 import About from './routes/About'
 import Learn from './routes/Learn'
@@ -22,6 +24,8 @@ function renderAt(path: string) {
         <Route path="/strategies/:id" element={<StrategyPage />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/learn/:slug" element={<Lesson />} />
+        <Route path="/ko/learn" element={<Learn lang="ko" />} />
+        <Route path="/ko/learn/:slug" element={<Lesson lang="ko" />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
@@ -158,6 +162,32 @@ describe('the course', () => {
     expect(container.textContent).toMatch(/VUAG\.L/)
   })
 
+  it('sizes each canary basket from the data, not from memory', () => {
+    const words = ['zero', 'one', 'two', 'three', 'four', 'five']
+    const { container } = renderAt('/learn/what-breadth-adds')
+    const text = container.querySelector('.lesson__body')?.textContent ?? ''
+    for (const s of STRATEGIES) {
+      const u = s.defaultUniverse
+      if (!('canary' in u)) continue
+      const n = Array.isArray(u.canary) ? u.canary.length : 1
+      expect(text, s.shortName).toMatch(new RegExp(`${words[n]}( assets?)? for ${s.shortName}`))
+    }
+  })
+
+  it('says the canary figure is the simplest case, and how DAA differs', () => {
+    // CanaryGate draws one faltering canary sending everything defensive.
+    // DAA moves only half on one bad canary; the prose has to say so.
+    const { container } = renderAt('/learn/what-breadth-adds')
+    expect(container.textContent).toMatch(/DAA[^.]*half/i)
+  })
+
+  it('does not say the site computes on live prices', () => {
+    // The rule reads the month-end close; "live prices" invites a reader
+    // to act on today's market.
+    const { container } = renderAt('/learn/running-it')
+    expect(container.textContent).not.toMatch(/live prices/i)
+  })
+
   it('quotes the drawdown range from the data, not from memory', () => {
     const { container } = renderAt('/learn/why-drawdown')
     const { min, max } = drawdownRange()
@@ -220,5 +250,105 @@ describe('the course', () => {
       )
       unmount()
     }
+  })
+})
+
+describe('Korean course', () => {
+  it('serves the Korean contents page in Korean', () => {
+    const { container } = renderAt('/ko/learn')
+    expect(container.querySelector('.not-found')).toBeNull()
+    expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('동적자산배분 강의')
+  })
+
+  it('links the contents pages to each other', () => {
+    renderAt('/learn')
+    expect(screen.getByRole('link', { name: '한국어' })).toHaveAttribute('href', '/ko/learn')
+    cleanup()
+    renderAt('/ko/learn')
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/learn')
+  })
+
+  it('does not invent a Korean lesson that does not exist', () => {
+    const { container } = renderAt('/ko/learn/what-is-a-stock')
+    expect(container.querySelector('.not-found')).not.toBeNull()
+  })
+
+  it('offers no Korean link on an English lesson with no Korean twin', () => {
+    const untranslated = LESSONS.find(
+      (l) => !LESSONS_KO.some((k) => k.slug === l.slug),
+    )
+    if (!untranslated) return // every lesson is translated
+    renderAt(`/learn/${untranslated.slug}`)
+    expect(screen.queryByRole('link', { name: '한국어' })).toBeNull()
+  })
+
+  it.each(LESSONS_KO.map((l) => l.slug))('serves /ko/learn/%s in Korean', (slug) => {
+    const { container } = renderAt(`/ko/learn/${slug}`)
+    expect(container.querySelector('.not-found')).toBeNull()
+    expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
+    // Rail and pager stay inside the Korean course.
+    for (const a of container.querySelectorAll('.lesson__rail a, .lesson__pager a[href*="/learn/"]')) {
+      expect(a.getAttribute('href'), a.textContent ?? '').toMatch(/^\/ko\/learn\//)
+    }
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', `/learn/${slug}`)
+  })
+})
+
+describe('Korean lesson 5', () => {
+  it('tells Korean readers they buy the named funds, with no UCITS detour', () => {
+    const { container } = renderAt('/ko/learn/what-you-would-buy')
+    expect(container.textContent).not.toMatch(/UCITS|ISA/)
+    expect(container.textContent).toMatch(/해외주식 계좌/)
+  })
+})
+
+describe('Korean lesson 7', () => {
+  it('drops the UCITS count', () => {
+    const { container } = renderAt('/ko/learn/choosing-one')
+    expect(container.querySelector('.lesson__body')?.textContent).not.toMatch(/UCITS/)
+  })
+  it('keeps the past-results caveat beside the table it no longer carries', () => {
+    const { container } = renderAt('/ko/learn/choosing-one')
+    expect(container.textContent).toMatch(/과거\s+결과가 미래를 예측하지는 않습니다/)
+  })
+})
+
+describe('Korean lesson 8', () => {
+  it('opens the Korean window at 9am, when the UTC date the site sends turns over', () => {
+    // DecisionTool dates its request with toISOString(), i.e. in UTC, and
+    // KST is UTC+9 all year. Before 09:00 KST on the first business day
+    // the site would still compute as of the previous day.
+    const { container } = renderAt('/ko/learn/running-it')
+    const box = [...container.querySelectorAll('.lesson__define')].find((p) =>
+      p.textContent?.includes('한국 시간 기준'),
+    )
+    expect(box?.textContent).toMatch(/오전 9시/)
+    expect(box?.textContent).not.toMatch(/새벽 5시 이후/)
+  })
+
+  it('sends the Korean reader to the English strategy page, without a UCITS detour', () => {
+    const { container } = renderAt('/ko/learn/running-it')
+    expect(container.querySelector('.lesson__body a[href="/strategies/vaa"]')).not.toBeNull()
+    expect(container.querySelector('.lesson__body')?.textContent).not.toMatch(/UCITS/)
+  })
+})
+
+describe('KoreanHead', () => {
+  it('marks the document Korean while mounted and restores it after', () => {
+    document.documentElement.lang = 'en'
+    const { unmount } = render(<KoreanHead />)
+    expect(document.documentElement.lang).toBe('ko')
+    unmount()
+    expect(document.documentElement.lang).toBe('en')
+  })
+
+  it('hands English pages back an English document after a Korean first landing', () => {
+    // A prerendered /ko page arrives with lang="ko" already on <html>;
+    // leaving it must not keep that for the English pages that follow.
+    document.documentElement.lang = 'ko'
+    const { unmount } = render(<KoreanHead />)
+    unmount()
+    expect(document.documentElement.lang).toBe('en')
   })
 })

@@ -2,7 +2,11 @@ import UcitsSubstitutes from '../components/UcitsSubstitutes'
 import { describeTicker } from '../etfDescriptions'
 
 /**
- * Lesson 5. New copy — the gap this site has carried since it launched.
+ * Lesson 5. Restructured after the Korean edition (ko/WhatYouWouldBuy):
+ * a question and a one-sentence answer up front, a sharper ticker
+ * definition, and the currency cost for readers whose account is not in
+ * dollars. The UCITS half stays — it is the Korean edition that drops
+ * it, because a Korean broker sells the US-listed funds themselves.
  *
  * The walked example pulls its one-liner from `etfDescriptions.ts`, the
  * same source the decision tool's score rows use, so the lesson and the
@@ -19,51 +23,53 @@ export default function WhatYouWouldBuy() {
     <>
       <p>
         Every strategy on this site ends the month by naming something like{' '}
-        <strong>SHY</strong> and a percentage. That is the whole output. So
-        it is worth being plain about what the thing on the left actually
-        is, because the site has been assuming you knew.
+        <strong>SHY 100%</strong>: a ticker and a weight. In other words, it
+        tells you <strong>what to hold this month, and how much</strong>.
+        This lesson answers the obvious next question: what is that ticker,
+        and what do you actually buy?
       </p>
+      <p>
+        <strong>
+          A ticker names one ETF, and you buy that ETF through a brokerage
+          account — or, outside the US, its local equivalent.
+        </strong>
+      </p>
+
+      <h2>Tickers and ETFs</h2>
 
       <p className="lesson__define">
         <strong>Ticker</strong> A short code that identifies one fund on
-        one exchange — like a postcode, not a description. Two funds
-        holding nearly the same thing have different tickers, and the same
-        fund listed in two countries has two.
+        one exchange. It is <strong>a code for telling products apart</strong>,
+        not a name that describes what is inside. Two funds holding nearly
+        the same thing can have different tickers, and the same fund listed
+        in two countries has two.
       </p>
 
       <p className="lesson__define">
-        <strong>ETF</strong> Exchange-traded fund. A single holding that
-        owns a basket of other things on your behalf, and that you buy and
-        sell during the day like a share. Every asset these six strategies
-        allocate to is one.
+        <strong>ETF</strong> Exchange-traded fund. A basket of assets
+        packaged into <strong>a single product you can trade</strong>, bought
+        and sold on an exchange during the day like a share. Every asset
+        these six strategies allocate to is one.
       </p>
 
+      <h2>SHY, for example</h2>
+
       <p>
-        So <strong>SHY</strong> is an ETF, and what it holds is{' '}
-        {describeTicker('SHY')} — government debt due back within three
-        years. That is why the strategies reach for it when the signal
-        turns: it is the corner of the portfolio least likely to move much
-        in either direction. When the site says <em>SHY · 100%</em>, it is
-        saying &ldquo;hold nothing but that, this month.&rdquo;
+        SHY is an ETF that holds {describeTicker('SHY')}: US government
+        debt due back within three years. Its price moves far less than
+        longer bonds or stocks, so the strategies use it as a{' '}
+        <strong>defensive asset</strong> when conditions turn. When the site
+        says <strong>SHY · 100%</strong>, it is saying &ldquo;hold nothing
+        but that, this month.&rdquo;
       </p>
+
+      <h2>Buying it</h2>
 
       <p>
         Buying it is unremarkable. You open a brokerage account, search the
-        ticker, and place an order the same way you would for a share.
-        There is no minimum beyond the price of one unit, and nothing about
-        it is reserved for professionals.
-      </p>
-
-      <h2>Two costs worth knowing</h2>
-
-      <p>
-        The fund charges an annual fee, taken out of the price rather than
-        billed to you — a few hundredths of a percent for the ETFs these
-        strategies use. And each trade costs you the broker&rsquo;s
-        commission plus the spread, the small gap between the buying and
-        selling price. Neither is large, but both are why a rule that
-        trades once a month is cheaper to run than one that reacts to the
-        news.
+        ticker, and place an order the same way you would for a share. It is
+        not reserved for professional investors, though the smallest order
+        and whether you can buy fractions of a unit vary by broker.
       </p>
 
       <h2>If you are outside the US</h2>
@@ -78,20 +84,41 @@ export default function WhatYouWouldBuy() {
         London.
       </p>
 
-      <p>
-        The substitution is per asset, and it is rarely exact.
-      </p>
+      <p>The substitution is per asset, and it is rarely exact.</p>
 
       <UcitsSubstitutes />
 
       <p>
         Every asset these six strategies use has a UCITS substitute, so none
         of them is a dead end. But the further one sits from what the paper
-        tested, the more choosing it is a judgement rather than a lookup. The
-        iPhone app carries a full mapping for all six strategies with the
-        trade-offs written out per asset, and lets you override any of them.
-        Check anything you pick against your own broker before you rely on it
-        — listings change, and this site is not tracking yours.
+        tested, the more choosing it means weighing trade-offs rather than
+        looking something up. The iPhone app carries a full mapping for all
+        six strategies with the trade-offs written out per asset, and lets
+        you override any of them. Check anything you pick against your own
+        broker before you rely on it — listings change, and this site is not
+        tracking yours.
+      </p>
+
+      <h2>Two costs worth knowing</h2>
+
+      <ul>
+        <li>
+          <strong>The annual fee.</strong> The fund takes it out of the
+          price each year rather than billing you, and for the ETFs these
+          strategies use it is generally low.
+        </li>
+        <li>
+          <strong>Trading costs.</strong> Each trade costs the broker&rsquo;s
+          commission plus the spread, the small gap between the buying and
+          selling price. If your account is not in dollars, converting
+          currency adds a third.
+        </li>
+      </ul>
+      <p>
+        Each looks small, but repeated over years they eat into returns.
+        That is why a rule that trades once a month keeps its costs lower
+        than one that trades on the news or the market&rsquo;s short-term
+        moves.
       </p>
     </>
   )

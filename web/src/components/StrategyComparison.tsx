@@ -17,15 +17,25 @@ import { STRATEGIES, fundsNeeded } from '../strategies'
  * Since the HAA and BAA reconciliations all six publish a figure, so the
  * footnote collapses to the period caveat alone.
  */
-export default function StrategyComparison() {
+type Props = {
+  /**
+   * Drop the starting-point line above the table and the note below it,
+   * for a page whose own prose already frames the figures.
+   */
+  tableOnly?: boolean
+}
+
+export default function StrategyComparison({ tableOnly }: Props) {
   const withheld = STRATEGIES.filter((s) => !s.backtest).map((s) => s.shortName)
 
   return (
     <div className="compare">
-      <p className="compare__lede">
-        New to this? Start with VAA — it has the simplest rule and holds one
-        fund at a time.
-      </p>
+      {!tableOnly && (
+        <p className="compare__lede">
+          New to this? Start with VAA — it has the simplest rule and holds one
+          fund at a time.
+        </p>
+      )}
 
       <div className="compare__list">
         <div className="compare__head" aria-hidden="true">
@@ -59,19 +69,21 @@ export default function StrategyComparison() {
         ))}
       </div>
 
-      <p className="compare__note">
-        Worst fall is the deepest month-end drop in each paper&rsquo;s own
-        backtest, over periods running from the 1970s. Past results do not
-        predict future returns.{' '}
-        {withheld.length > 0 && (
-          <>
-            No figure is shown for {withheld.join(' and ')}: this site&rsquo;s
-            version of {withheld.length > 1 ? 'those rules differs' : 'that rule differs'}{' '}
-            from the published one, so quoting the paper&rsquo;s number here
-            would be misleading.
-          </>
-        )}
-      </p>
+      {!tableOnly && (
+        <p className="compare__note">
+          Worst fall is the deepest month-end drop in each paper&rsquo;s own
+          backtest, over periods running from the 1970s. Past results do not
+          predict future returns.{' '}
+          {withheld.length > 0 && (
+            <>
+              No figure is shown for {withheld.join(' and ')}: this site&rsquo;s
+              version of {withheld.length > 1 ? 'those rules differs' : 'that rule differs'}{' '}
+              from the published one, so quoting the paper&rsquo;s number here
+              would be misleading.
+            </>
+          )}
+        </p>
+      )}
     </div>
   )
 }
