@@ -4,6 +4,7 @@ import OneSignalAMonth from './OneSignalAMonth'
 import WhatBreadthAdds from './WhatBreadthAdds'
 import WhatMomentumIs from './WhatMomentumIs'
 import WhatYouWouldBuy from './WhatYouWouldBuy'
+import WhyDrawdown from './WhyDrawdown'
 import WhyNotBuyAndHold from './WhyNotBuyAndHold'
 
 /**
@@ -48,5 +49,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '실제로 무엇을 사게 되나',
     summary: '티커, 그 뒤의 펀드, 한국에서 사는 법, 그리고 드는 비용.',
     Body: WhatYouWouldBuy,
+  },
+  {
+    slug: 'why-drawdown',
+    number: 6,
+    title: '낙폭. 이 전략들이 존재하는 이유',
+    summary: '저자들이 세운 목표, 그들이 발표한 수치, 그리고 그것이 지켜지지 않은 경우.',
+    Body: WhyDrawdown,
   },
 ]
