@@ -20,8 +20,8 @@ export default function RunningIt() {
         Pick a strategy and open its page — if you have no preference,{' '}
         <Link to="/strategies/vaa">VAA</Link> is the one lesson 7 argued
         for. Under <em>Today&rsquo;s Decision</em> the site computes the
-        rule against live prices and prints what it says to hold. Buy that,
-        in those proportions, and note the date. Starting mid-month puts you
+        rule on the latest prices it can reach and prints what it says to
+        hold. Buy that, in those proportions, and note the date. Starting mid-month puts you
         briefly off the rule&rsquo;s calendar; the next month-end puts you
         back on it.
       </p>

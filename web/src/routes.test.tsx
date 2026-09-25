@@ -162,6 +162,32 @@ describe('the course', () => {
     expect(container.textContent).toMatch(/VUAG\.L/)
   })
 
+  it('sizes each canary basket from the data, not from memory', () => {
+    const words = ['zero', 'one', 'two', 'three', 'four', 'five']
+    const { container } = renderAt('/learn/what-breadth-adds')
+    const text = container.querySelector('.lesson__body')?.textContent ?? ''
+    for (const s of STRATEGIES) {
+      const u = s.defaultUniverse
+      if (!('canary' in u)) continue
+      const n = Array.isArray(u.canary) ? u.canary.length : 1
+      expect(text, s.shortName).toMatch(new RegExp(`${words[n]}( assets?)? for ${s.shortName}`))
+    }
+  })
+
+  it('says the canary figure is the simplest case, and how DAA differs', () => {
+    // CanaryGate draws one faltering canary sending everything defensive.
+    // DAA moves only half on one bad canary; the prose has to say so.
+    const { container } = renderAt('/learn/what-breadth-adds')
+    expect(container.textContent).toMatch(/DAA[^.]*half/)
+  })
+
+  it('does not say the site computes on live prices', () => {
+    // The rule reads the month-end close; "live prices" invites a reader
+    // to act on today's market.
+    const { container } = renderAt('/learn/running-it')
+    expect(container.textContent).not.toMatch(/live prices/i)
+  })
+
   it('quotes the drawdown range from the data, not from memory', () => {
     const { container } = renderAt('/learn/why-drawdown')
     const { min, max } = drawdownRange()

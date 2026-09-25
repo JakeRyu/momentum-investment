@@ -22,11 +22,11 @@ export default function WhatBreadthAdds() {
         particular wobble is serious.
       </p>
       <p>
-        A few of these strategies — DAA, BAA, HAA — apply that same breadth
-        count to a small early-warning basket of just two or three assets,
-        what the papers call a <strong>canary universe</strong>. Each asset
-        in it acts as a canary, named for the caged birds coal miners once
-        carried underground: if a canary faltered, the miners left
+        Three of these strategies apply that same breadth count to a small
+        early-warning basket, what the papers call a{' '}
+        <strong>canary universe</strong>: one asset for HAA, two for DAA and
+        four for BAA. Each asset in it acts as a canary, named for the caged
+        birds coal miners once carried underground: if a canary faltered, the miners left
         immediately, without waiting to see whether the rest of the mine
         felt fine. These strategies work the same way — when the canary
         universe&rsquo;s breadth turns down, the strategy retreats
@@ -40,6 +40,13 @@ export default function WhatBreadthAdds() {
       </p>
 
       <CanaryGate />
+
+      <p>
+        The figure draws the simplest case, where one faltering canary is
+        enough to go fully defensive. That is how BAA and HAA react. DAA
+        moves only half the portfolio when one of its two canaries falters,
+        and all of it when both do.
+      </p>
 
       <p>
         This is where the strategies separate from one another. How many
