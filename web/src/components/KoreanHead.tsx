@@ -13,10 +13,11 @@ const FONT =
 export default function KoreanHead() {
   useEffect(() => {
     const html = document.documentElement
-    const previous = html.lang
     html.lang = 'ko'
     return () => {
-      html.lang = previous
+      // Every page outside /ko is English. Restoring whatever was there
+      // before would keep "ko" when the reader landed on a Korean page.
+      html.lang = 'en'
     }
   }, [])
   return <link rel="stylesheet" href={FONT} precedence="default" />

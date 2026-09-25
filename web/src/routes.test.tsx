@@ -289,6 +289,18 @@ describe('Korean lesson 7', () => {
 })
 
 describe('Korean lesson 8', () => {
+  it('opens the Korean window at 9am, when the UTC date the site sends turns over', () => {
+    // DecisionTool dates its request with toISOString(), i.e. in UTC, and
+    // KST is UTC+9 all year. Before 09:00 KST on the first business day
+    // the site would still compute as of the previous day.
+    const { container } = renderAt('/ko/learn/running-it')
+    const box = [...container.querySelectorAll('.lesson__define')].find((p) =>
+      p.textContent?.includes('한국 시간 기준'),
+    )
+    expect(box?.textContent).toMatch(/오전 9시/)
+    expect(box?.textContent).not.toMatch(/새벽 5시 이후/)
+  })
+
   it('sends the Korean reader to the English strategy page, without a UCITS detour', () => {
     const { container } = renderAt('/ko/learn/running-it')
     expect(container.querySelector('.lesson__body a[href="/strategies/vaa"]')).not.toBeNull()
@@ -301,6 +313,15 @@ describe('KoreanHead', () => {
     document.documentElement.lang = 'en'
     const { unmount } = render(<KoreanHead />)
     expect(document.documentElement.lang).toBe('ko')
+    unmount()
+    expect(document.documentElement.lang).toBe('en')
+  })
+
+  it('hands English pages back an English document after a Korean first landing', () => {
+    // A prerendered /ko page arrives with lang="ko" already on <html>;
+    // leaving it must not keep that for the English pages that follow.
+    document.documentElement.lang = 'ko'
+    const { unmount } = render(<KoreanHead />)
     unmount()
     expect(document.documentElement.lang).toBe('en')
   })

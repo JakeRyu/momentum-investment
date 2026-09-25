@@ -4,12 +4,12 @@ import { APP_STORE_CTA, APP_STORE_URL } from "../../appStore"
 
 /**
  * Korean edition of lesson 8 — see ../RunningIt.tsx for the English.
- * Puts the site's timing window in Korean time: from the morning of the
- * US first business day (the month-end close is final at 05:00 KST in
- * US summer time, 06:00 otherwise) until the US open that night (22:30
- * or 23:30). The site dates its request by the reader's own clock, and
- * in that window the Korean date is the US date, so the latest close it
- * reaches is the month-end.
+ * Puts the site's timing window in Korean time: from 09:00 KST on the
+ * US first business day, when the UTC date DecisionTool sends (it dates
+ * requests with toISOString) turns over to that day, until the US open
+ * that night (22:30, or 23:30 outside US summer time). KST has no summer
+ * time, so 09:00 holds all year, and the month-end close (05:00 or 06:00
+ * KST) is final well before it.
  *
  * The English sentence on the app's UCITS mapping is gone; the app
  * link stays. Column labels stay English because they name the site and
@@ -94,10 +94,11 @@ export default function RunningIt() {
         그 밖의 시간에 열면 지금 유효하지 않은 결과를 보게 됩니다.
       </p>
       <p className="lesson__define">
-        <strong>한국 시간 기준</strong> 미국 첫 영업일 새벽 5시 이후부터 밤
-        10시 30분 전까지입니다. 새벽 5시에는 월말 종가가 이미 확정되어
-        있고, 밤 10시 30분에 미국장이 열립니다. 미국 서머타임이 아닐 때는
-        각각 한 시간씩 늦어져 새벽 6시, 밤 11시 30분이 됩니다.
+        <strong>한국 시간 기준</strong> 미국 첫 영업일 오전 9시부터 밤 10시
+        30분 전까지입니다. 사이트는 세계 표준시(UTC) 날짜로 계산하는데, 그
+        날짜가 한국 시간 오전 9시에 바뀝니다. 밤 10시 30분은 미국장이 열리는
+        때이고, 미국 서머타임이 아닐 때는 한 시간 늦어져 밤 11시 30분이
+        됩니다.
       </p>
       <p>
         반면 앱은 현재 유효한 배분을 먼저 보여줍니다. 그래서 앱을 열면{' '}
