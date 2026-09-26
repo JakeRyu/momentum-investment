@@ -1505,6 +1505,11 @@ hr {
   color: var(--red);
   font-size: 11px;
 }
+.app-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 10px;
+}
 .app-badge {
   display: inline-block;
   line-height: 0;
