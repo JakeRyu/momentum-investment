@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
 
-import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
+import {
+  APP_STORE_CTA,
+  APP_STORE_URL,
+  PLAY_STORE_CTA,
+  PLAY_STORE_URL,
+} from '../appStore'
 
 /**
  * Lesson 8. Stops teaching and hands over. Restructured after the Korean
@@ -143,9 +148,12 @@ export default function RunningIt() {
         The app is different: its Holding view shows the most recent
         month-end reading, whatever day you open it. It also maps every
         asset to a local UCITS alternative for readers outside the US, per
-        lesson 5. The app is <strong>free</strong>.{' '}
+        lesson 5. The app is <strong>free</strong>, for iPhone and Android.{' '}
         <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
           {APP_STORE_CTA} →
+        </a>{' '}
+        <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
+          {PLAY_STORE_CTA} →
         </a>
       </p>
 
