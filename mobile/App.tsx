@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 
 import type { AllocationDecision, Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaTypes';
 import { buildDecisionRequest, fetchDecisionFor } from './src/decisions';
 import { type AssetClassCode } from './src/etfCatalog';
+import { backTarget, type Screen } from './src/navigation';
 import { inForceAsOf, inForceMonthKey } from './src/rebalance';
 import DecisionScreen from './src/screens/DecisionScreen';
 import ETFConfigScreen from './src/screens/ETFConfigScreen';
@@ -31,15 +32,8 @@ import {
 import {
   DEFAULT_STRATEGY_ID,
   findStrategy,
-  type Strategy,
   type StrategyId,
 } from './src/strategies';
-
-type Screen =
-  | { kind: 'home' }
-  | { kind: 'settings' }
-  | { kind: 'config'; strategyId: StrategyId }
-  | { kind: 'decision'; strategy: Strategy };
 
 export type CardState = { decision: AllocationDecision | null; error: string | null };
 
@@ -96,6 +90,19 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  // Android's system back (edge swipe or ◁) would otherwise leave the app
+  // from any screen, because nothing here is a native screen stack.
+  // Returning false on Home hands it back to Android. A no-op on iOS.
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      const target = backTarget(screen);
+      if (!target) return false;
+      setScreen(target);
+      return true;
+    });
+    return () => sub.remove();
+  }, [screen]);
 
   // Loaded once — nothing else mutates markers except handleToggleDone
   // below, which writes through immediately.
