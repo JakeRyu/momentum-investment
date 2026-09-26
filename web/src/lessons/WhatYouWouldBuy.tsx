@@ -92,7 +92,7 @@ export default function WhatYouWouldBuy() {
         Every asset these six strategies use has a UCITS substitute, so none
         of them is a dead end. But the further one sits from what the paper
         tested, the more choosing it means weighing trade-offs rather than
-        looking something up. The iPhone app carries a full mapping for all
+        looking something up. The app carries a full mapping for all
         six strategies with the trade-offs written out per asset, and lets
         you override any of them. Check anything you pick against your own
         broker before you rely on it — listings change, and this site is not
