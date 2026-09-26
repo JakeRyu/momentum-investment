@@ -32,8 +32,7 @@ export default function StrategyComparison({ tableOnly }: Props) {
     <div className="compare">
       {!tableOnly && (
         <p className="compare__lede">
-          New to this? Start with VAA — it has the simplest rule and holds one
-          fund at a time.
+          Simplest to follow: VAA — one rule, and one fund at a time.
         </p>
       )}
 

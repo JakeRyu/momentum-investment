@@ -82,7 +82,7 @@ describe('StrategyComparison', () => {
         <StrategyComparison tableOnly />
       </MemoryRouter>,
     )
-    expect(container.textContent).not.toMatch(/Start with VAA/)
+    expect(container.textContent).not.toMatch(/Simplest to follow/)
     expect(container.textContent).not.toMatch(/do not predict/i)
     for (const s of STRATEGIES) {
       expect(screen.getByTestId(`compare-row-${s.id}`), s.id).toBeInTheDocument()
