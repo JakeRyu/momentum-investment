@@ -201,7 +201,16 @@ export default function DecisionScreen({
       <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+        refreshControl={
+          // Android draws the spinner on a white disc by default, which
+          // glares against the dark screen; iOS ignores both props.
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={load}
+            colors={['#7ed4a3']}
+            progressBackgroundColor="#16191e"
+          />
+        }
       >
         <View style={styles.headerRow}>
           <Pressable onPress={onBack} hitSlop={12}>
@@ -222,7 +231,7 @@ export default function DecisionScreen({
 
         {loading && !decision && (
           <View style={styles.center}>
-            <ActivityIndicator />
+            <ActivityIndicator color="#8a93a0" />
             <Text style={styles.muted}>Analyzing 12 months of live prices</Text>
           </View>
         )}

@@ -47,7 +47,16 @@ export default function HomeScreen({
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          // Android draws the spinner on a white disc by default, which
+          // glares against the dark screen; iOS ignores both props.
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#7ed4a3']}
+            progressBackgroundColor="#16191e"
+          />
+        }
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
