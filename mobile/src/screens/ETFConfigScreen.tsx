@@ -181,6 +181,8 @@ export default function ETFConfigScreen({
         visible={pickerFor !== null}
         animationType="slide"
         transparent
+        statusBarTranslucent
+        navigationBarTranslucent
         onRequestClose={() => (sheetMode === 'add' ? setSheetMode('choose') : closePicker())}
       >
         {pickerFor && (
@@ -688,8 +690,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
+  // The height cap sits on the wrapper, whose parent is the full-screen
+  // backdrop. On the sheet itself, '85%' resolved against this wrapper —
+  // which is only as tall as the sheet's content — and left a gap of the
+  // remaining 15% beneath it.
   sheetWrapper: {
     width: '100%',
+    maxHeight: '85%',
   },
   modalSheet: {
     backgroundColor: '#11151a',
@@ -697,7 +704,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 36,
-    maxHeight: '85%',
+    flexShrink: 1,
   },
   modalHandle: {
     width: 36,
