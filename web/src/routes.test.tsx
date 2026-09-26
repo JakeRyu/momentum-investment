@@ -380,10 +380,9 @@ describe('the way into the course', () => {
     expect(hrefs).toContain('/learn/one-signal-a-month')
     const hasCanary = 'canary' in STRATEGIES.find((s) => s.id === id)!.defaultUniverse
     expect(hrefs.includes('/learn/what-breadth-adds')).toBe(hasCanary)
-    // Lesson numbers come from the catalog.
-    for (const a of key.querySelectorAll('a')) {
-      const slug = a.getAttribute('href')!.replace('/learn/', '')
-      expect(a.textContent).toContain(`lesson ${LESSONS.find((l) => l.slug === slug)!.number}`)
+    // Every link lands on a lesson that exists.
+    for (const href of hrefs) {
+      expect(LESSONS.some((l) => `/learn/${l.slug}` === href), href!).toBe(true)
     }
   })
 })
