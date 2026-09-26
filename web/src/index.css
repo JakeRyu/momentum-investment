@@ -191,25 +191,41 @@ hr {
   line-height: 1.4;
   max-width: 50ch;
   font-style: italic;
+  text-wrap: balance;
 }
-/* The capability claim, demoted below the design claim. It still has to
-   be here — without it a visitor cannot tell the site computes anything
-   — but it is no longer what the page leads with. */
-.hero-runnable {
-  font-size: 17px;
-  line-height: 1.5;
-  color: var(--muted);
-  margin-top: 10px;
-}
-.hero-keller {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+.hero-paths {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 24px;
   margin-top: 24px;
 }
-.hero-keller a {
-  color: var(--red);
+/* The course leads: most visitors arrive not knowing what these rules
+   are, so the filled button is the one that teaches. Returning readers
+   still have their way to the table, one line over. */
+.hero-paths__primary {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  padding: 10px 18px;
+}
+.hero-paths__primary:hover {
+  background: var(--red);
+  border-color: var(--red);
+  color: var(--bg);
+}
+.hero-paths__secondary {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
 .strategies-section {
@@ -487,6 +503,18 @@ hr {
   font-size: 15px;
   line-height: 1.5;
   color: var(--ink-soft);
+}
+/* The way back to the course for a reader who searched straight here. */
+.decision-banner__learn {
+  flex-basis: 100%;
+  margin: 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.decision-banner__learn a {
+  color: var(--red);
 }
 
 .back-link {

@@ -68,6 +68,7 @@ export default function StrategyPage() {
             say if today were rebalance day. Not in force until the next
             month-end, so act on it in the first days of a month.
           </p>
+          <LessonKey strategy={strategy} />
         </div>
         <DecisionTool strategy={strategy} onPricesAsOf={setPricesAsOf} />
       </section>
@@ -78,6 +79,39 @@ export default function StrategyPage() {
         <Link to="/">← All strategies</Link>
       </p>
     </article>
+  )
+}
+
+/**
+ * Points a reader who landed here from a search, not from the course, at
+ * the lesson behind each part of the reading below. The link text names
+ * the lesson's subject, which is what a search engine reads it as.
+ */
+function LessonKey({ strategy }: { strategy: Strategy }) {
+  const topics: [label: string, slug: string][] = [
+    ['what momentum is', 'what-momentum-is'],
+    ...('canary' in strategy.defaultUniverse
+      ? [['what the canary does', 'what-breadth-adds'] as [string, string]]
+      : []),
+    ['when to act on the signal', 'one-signal-a-month'],
+  ]
+  const links = topics.map(([label, slug]) => (
+    <Link key={slug} to={`/learn/${slug}`}>
+      {label}
+    </Link>
+  ))
+
+  return (
+    <p className="decision-banner__learn">
+      New to these readings? The course explains{' '}
+      {links.map((link, i) => (
+        <span key={i}>
+          {i > 0 && (i === links.length - 1 ? ' and ' : ', ')}
+          {link}
+        </span>
+      ))}
+      .
+    </p>
   )
 }
 

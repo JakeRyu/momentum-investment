@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom'
 import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
 import PageMeta from '../components/PageMeta'
 import StrategyComparison from '../components/StrategyComparison'
+import { LESSONS } from '../lessons'
+
+const FIRST_LESSON = LESSONS[0]
 
 export default function Home() {
   return (
@@ -15,16 +18,17 @@ export default function Home() {
         <h1>Monthly Rule</h1>
         <p className="hero-claim">Built to be held.</p>
         <p className="hero-tagline">
-          Six tactical asset allocation strategies, judged by the depth of the
-          fall rather than the height of the return — the part that decides
-          whether a plan gets abandoned.
+          Six once-a-month investing rules from Wouter Keller’s papers,
+          compared by how far they fall rather than how much they return.
         </p>
-        <p className="hero-runnable">
-          Runnable end-to-end on live market data.
-        </p>
-        <p className="hero-keller">
-          Strategies designed by Wouter Keller. <Link to="/about">About →</Link>
-        </p>
+        <div className="hero-paths">
+          <Link to={`/learn/${FIRST_LESSON.slug}`} className="hero-paths__primary">
+            New here? Start with lesson 1 →
+          </Link>
+          <a href="#strategies" className="hero-paths__secondary">
+            Know the rules? Compare the six ↓
+          </a>
+        </div>
       </section>
 
       <section id="strategies" className="strategies-section">
@@ -35,10 +39,11 @@ export default function Home() {
       <section className="learn-entry">
         <h2 className="section-title">New To This?</h2>
         <p className="learn-entry__body">
-          A short course on why these rules exist, what they measure, and
-          what you would actually buy — starting from no background at all.
+          {LESSONS.length} short lessons on why these rules exist, what they
+          measure, and what you would actually buy — starting from no
+          background at all.
         </p>
-        <Link to="/learn" className="learn-entry__cta">
+        <Link to={`/learn/${FIRST_LESSON.slug}`} className="learn-entry__cta">
           Start the course →
         </Link>
       </section>
