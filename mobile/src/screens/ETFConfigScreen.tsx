@@ -305,10 +305,9 @@ function PickerSheet({
 
   return (
     <Pressable style={styles.modalBackdrop} onPress={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.sheetWrapper}
-      >
+      {/* 'padding' on Android too: the Modal draws under the system bars,
+          so Android no longer shrinks its window for the keyboard. */}
+      <KeyboardAvoidingView behavior="padding" style={styles.sheetWrapper}>
         {/* The sheet runs under Android's navigation bar, so its bottom
             padding has to clear that bar as well. */}
         <Pressable
