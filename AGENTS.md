@@ -6,8 +6,9 @@ both backed by one ASP.NET Core API. Each strategy is checked against the
 paper it cites (`docs/papers/`) by a test that gates merges.
 
 Live: web at `investment.ecomcraft.co.uk` (Azure Static Web Apps), API on
-Azure Container Apps (uksouth). iOS app on the App Store; the Android build
-(from 1.5) targets Google Play under the same EcomCraft Ltd organisation.
+Azure Container Apps (uksouth). The app is live on the App Store at **1.4**
+(iOS only). **1.5 ships iOS and Android together** — Android's first
+release, on Google Play under the same EcomCraft Ltd organisation.
 
 ## Layout
 
@@ -64,7 +65,8 @@ in a terminal — they are interactive.
 Before any EAS build/submit: `mobile/app.json` `version` must match the
 version prepared in App Store Connect and in Play Console. Both stores ship
 the **same version string** — `X-App-Version` carries no platform, so the
-server's version line can't tell them apart.
+server's version line can't tell them apart. From 1.5 on, every release goes
+to both stores at the same version; there is no Android build before 1.5.
 
 ```bash
 eas build -p android --profile preview      # APK to sideload for testing
@@ -165,10 +167,11 @@ timing stays US-anchored even for UK holders.
   guards it. Universe change = edit C# record → `shared/universes.json` →
   `cp shared/universes.json mobile/src/universes.generated.json` → fingerprint.
 
-### Version handshake (dormant)
+### Version handshake
 
 The app sends `X-App-Version`; `ClientVersion.Status` returns `outdated` when
-it is below `ClientVersion.OldestTrusted` (currently 1.0 — nothing distrusted)
+it is below `ClientVersion.OldestTrusted` (currently 1.4 — every build before
+the Monthly Rule rename is distrusted)
 and the app shows `UpdateBanner`. Missing/unparseable header fails open
 (`current`). Raise `OldestTrusted` only when an old version is genuinely
 wrong, and **only after** the fixed version is live on both the App Store
