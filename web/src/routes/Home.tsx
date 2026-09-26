@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom'
 
-import { APP_STORE_CTA, APP_STORE_URL } from '../appStore'
+import {
+  APP_STORE_CTA,
+  APP_STORE_URL,
+  PLAY_STORE_CTA,
+  PLAY_STORE_URL,
+} from '../appStore'
 import PageMeta from '../components/PageMeta'
 import StrategyComparison from '../components/StrategyComparison'
 import { LESSONS } from '../lessons'
@@ -66,19 +71,34 @@ export default function Home() {
               <li>In-force allocation, month to month</li>
               <li>The same six Keller strategies</li>
             </ul>
-            <a
-              className="app-badge"
-              href={APP_STORE_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <img
-                src="/app-store-badge.svg"
-                alt={APP_STORE_CTA}
-                width="143"
-                height="48"
-              />
-            </a>
+            <div className="app-badges">
+              <a
+                className="app-badge"
+                href={APP_STORE_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img
+                  src="/app-store-badge.svg"
+                  alt={APP_STORE_CTA}
+                  width="143"
+                  height="48"
+                />
+              </a>
+              <a
+                className="app-badge"
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <img
+                  src="/google-play-badge.png"
+                  alt={PLAY_STORE_CTA}
+                  width="161"
+                  height="48"
+                />
+              </a>
+            </div>
           </div>
         </div>
       </section>
