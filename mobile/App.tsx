@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BackHandler, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import type { AllocationDecision, Region } from './src/api/apiBase';
 import type { PaaProtectionFactor } from './src/api/paaTypes';
@@ -37,7 +38,17 @@ import {
 
 export type CardState = { decision: AllocationDecision | null; error: string | null };
 
+// Supplies the system-bar insets that the Android-only bottom padding
+// reads. iOS layouts keep their own fixed spacing.
 export default function App() {
+  return (
+    <SafeAreaProvider>
+      <Screens />
+    </SafeAreaProvider>
+  );
+}
+
+function Screens() {
   // Selection state lives at the App level so it's preserved when the user
   // navigates Home → Decision → Back → Home.
   const [registered, setRegistered] = useState<StrategyId[]>([DEFAULT_STRATEGY_ID]);

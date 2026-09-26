@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   probeTicker,
@@ -300,6 +301,7 @@ function PickerSheet({
   onClose: () => void;
 }) {
   const def = ASSET_CLASSES[code];
+  const insets = useSafeAreaInsets();
 
   return (
     <Pressable style={styles.modalBackdrop} onPress={onClose}>
@@ -307,7 +309,15 @@ function PickerSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.sheetWrapper}
       >
-        <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+        {/* The sheet runs under Android's navigation bar, so its bottom
+            padding has to clear that bar as well. */}
+        <Pressable
+          style={[
+            styles.modalSheet,
+            Platform.OS === 'android' && { paddingBottom: insets.bottom + 20 },
+          ]}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{def.label}</Text>
           <Text style={styles.modalSubtitle}>{def.description}</Text>
