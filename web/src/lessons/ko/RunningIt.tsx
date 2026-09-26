@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom"
 
-import { APP_STORE_CTA, APP_STORE_URL } from "../../appStore"
+import {
+  APP_STORE_CTA,
+  APP_STORE_URL,
+  PLAY_STORE_CTA,
+  PLAY_STORE_URL,
+} from "../../appStore"
 
 /**
  * Korean edition of lesson 8 — see ../RunningIt.tsx for the English.
@@ -138,9 +143,13 @@ export default function RunningIt() {
       </p>
       <p>
         앱은 다릅니다. 앱의 Holding 화면은 언제 열어도 그 직전
-        월말의 결과를 보여줍니다. 앱은 <strong>무료</strong>입니다.{" "}
+        월말의 결과를 보여줍니다. 앱은 아이폰과 안드로이드 모두{" "}
+        <strong>무료</strong>입니다.{" "}
         <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
           {APP_STORE_CTA} →
+        </a>{" "}
+        <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
+          {PLAY_STORE_CTA} →
         </a>
       </p>
 

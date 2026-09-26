@@ -1438,6 +1438,11 @@ hr {
   max-width: 58ch;
   margin: 0 0 14px;
 }
+.app-promo__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
 .app-promo__cta {
   display: inline-block;
   font-family: var(--mono);
