@@ -18,12 +18,8 @@ export default function Home() {
         <h1>Monthly Rule</h1>
         <p className="hero-claim">Built to be held.</p>
         <p className="hero-tagline">
-          Six tactical asset allocation strategies, judged by the depth of the
-          fall rather than the height of the return — the part that decides
-          whether a plan gets abandoned.
-        </p>
-        <p className="hero-runnable">
-          Runnable end-to-end on live market data.
+          Six once-a-month investing rules from Wouter Keller’s papers,
+          compared by how far they fall rather than how much they return.
         </p>
         <div className="hero-paths">
           <Link to={`/learn/${FIRST_LESSON.slug}`} className="hero-paths__primary">
@@ -33,9 +29,6 @@ export default function Home() {
             Know the rules? Compare the six ↓
           </a>
         </div>
-        <p className="hero-keller">
-          Strategies designed by Wouter Keller. <Link to="/about">About →</Link>
-        </p>
       </section>
 
       <section id="strategies" className="strategies-section">

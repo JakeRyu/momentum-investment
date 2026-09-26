@@ -191,15 +191,7 @@ hr {
   line-height: 1.4;
   max-width: 50ch;
   font-style: italic;
-}
-/* The capability claim, demoted below the design claim. It still has to
-   be here — without it a visitor cannot tell the site computes anything
-   — but it is no longer what the page leads with. */
-.hero-runnable {
-  font-size: 17px;
-  line-height: 1.5;
-  color: var(--muted);
-  margin-top: 10px;
+  text-wrap: balance;
 }
 .hero-paths {
   display: flex;
@@ -234,16 +226,6 @@ hr {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--ink);
-}
-.hero-keller {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 24px;
-}
-.hero-keller a {
-  color: var(--red);
 }
 
 .strategies-section {
