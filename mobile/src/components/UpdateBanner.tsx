@@ -1,6 +1,6 @@
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-import { APP_STORE_URL } from '../appStore';
+import { storeFor } from '../appStore';
 
 /**
  * Shown when the server says this build is old enough that it no longer
@@ -17,7 +17,8 @@ import { APP_STORE_URL } from '../appStore';
  * numbers beside it may be wrong.
  */
 export default function UpdateBanner() {
-  const open = () => Linking.openURL(APP_STORE_URL);
+  const store = storeFor();
+  const open = () => Linking.openURL(store.url);
 
   return (
     <TouchableOpacity
@@ -25,7 +26,7 @@ export default function UpdateBanner() {
       onPress={open}
       activeOpacity={0.7}
       accessibilityRole="link"
-      accessibilityLabel="Update this app on the App Store"
+      accessibilityLabel={`Update this app on ${store.name}`}
     >
       <Text style={styles.title}>This version is out of date</Text>
       <Text style={styles.body}>
