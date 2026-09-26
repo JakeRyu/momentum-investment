@@ -101,6 +101,13 @@ export default function ETFConfigScreen({
   onBack,
 }: ETFConfigScreenProps) {
   const [pickerFor, setPickerFor] = useState<AssetClassCode | null>(null);
+  // Held here rather than in the sheet so Android's back, which reaches the
+  // Modal's onRequestClose, can step out of "add" before closing the sheet.
+  const [sheetMode, setSheetMode] = useState<SheetMode>('choose');
+  const closePicker = () => {
+    setPickerFor(null);
+    setSheetMode('choose');
+  };
   const editable = region === 'UK';
   const sections = sectionsFor(strategyId);
   // Only consider overrides that this strategy actually consumes — if the
@@ -174,23 +181,25 @@ export default function ETFConfigScreen({
         visible={pickerFor !== null}
         animationType="slide"
         transparent
-        onRequestClose={() => setPickerFor(null)}
+        onRequestClose={() => (sheetMode === 'add' ? setSheetMode('choose') : closePicker())}
       >
         {pickerFor && (
           <PickerSheet
             code={pickerFor}
+            mode={sheetMode}
+            onModeChange={setSheetMode}
             currentTicker={pickTicker(pickerFor, region, overrides)}
             customs={customs[pickerFor] ?? []}
             onSelect={(ticker) => {
               onOverrideChange(pickerFor, ticker);
-              setPickerFor(null);
+              closePicker();
             }}
             onAddCustom={(entry) => {
               onAddCustom(pickerFor, entry);
-              setPickerFor(null);
+              closePicker();
             }}
             onRemoveCustom={(ticker) => onRemoveCustom(pickerFor, ticker)}
-            onClose={() => setPickerFor(null)}
+            onClose={closePicker}
           />
         )}
       </Modal>
@@ -269,6 +278,8 @@ type SheetMode = 'choose' | 'add';
 
 function PickerSheet({
   code,
+  mode,
+  onModeChange,
   currentTicker,
   customs,
   onSelect,
@@ -277,6 +288,8 @@ function PickerSheet({
   onClose,
 }: {
   code: AssetClassCode;
+  mode: SheetMode;
+  onModeChange: (mode: SheetMode) => void;
   currentTicker: string;
   customs: CustomEtfEntry[];
   onSelect: (ticker: string) => void;
@@ -284,7 +297,6 @@ function PickerSheet({
   onRemoveCustom: (ticker: string) => void;
   onClose: () => void;
 }) {
-  const [mode, setMode] = useState<SheetMode>('choose');
   const def = ASSET_CLASSES[code];
 
   return (
@@ -305,7 +317,7 @@ function PickerSheet({
               customs={customs}
               onSelect={onSelect}
               onRemoveCustom={onRemoveCustom}
-              onStartAdd={() => setMode('add')}
+              onStartAdd={() => onModeChange('add')}
               onClose={onClose}
             />
           ) : (
@@ -315,7 +327,7 @@ function PickerSheet({
               onConfirm={(entry) => {
                 onAddCustom(entry);
               }}
-              onCancel={() => setMode('choose')}
+              onCancel={() => onModeChange('choose')}
             />
           )}
         </Pressable>
