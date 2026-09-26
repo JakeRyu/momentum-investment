@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import {
   Linking,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { CardState } from '../../App';
 import { anyOutdated } from '../appVersion';
@@ -40,6 +42,7 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const holdingLine = holdingHint();
   const monthKey = inForceMonthKey();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.root}>
@@ -47,7 +50,16 @@ export default function HomeScreen({
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          // Android draws the spinner on a white disc by default, which
+          // glares against the dark screen; iOS ignores both props.
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#7ed4a3']}
+            progressBackgroundColor="#16191e"
+          />
+        }
       >
         <View style={styles.headerRow}>
           <View style={styles.headerTextWrap}>
@@ -109,7 +121,14 @@ export default function HomeScreen({
         </TouchableOpacity>
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* Android draws the app under its navigation bar, whose height
+          depends on gesture vs button navigation. */}
+      <View
+        style={[
+          styles.footer,
+          Platform.OS === 'android' && { paddingBottom: insets.bottom + 12 },
+        ]}
+      >
         <Text style={styles.disclaimer}>
           Computed from the published rules on live market data. Not investment
           advice.

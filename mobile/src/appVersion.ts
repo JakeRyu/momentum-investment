@@ -2,7 +2,8 @@ import * as Application from 'expo-application';
 
 /**
  * The version of the binary actually running, read from the native
- * `CFBundleShortVersionString` rather than from `app.json`.
+ * `CFBundleShortVersionString` (iOS) or `versionName` (Android) rather than
+ * from `app.json`.
  *
  * `Constants.expoConfig.version` would read the app config's copy, baked
  * into the JS bundle at build time. Expo's own guidance is to use
@@ -21,7 +22,9 @@ import * as Application from 'expo-application';
  * request header while developing. It is harmless: the server's line sits
  * far below it, so a dev session reads as current either way. A standalone
  * build reports the version from `app.json` that EAS wrote into the
- * Info.plist, which is the number this is actually about.
+ * Info.plist or the Android manifest, which is the number this is actually
+ * about. Both stores ship the same version string, since the server's line
+ * does not know which platform is asking.
  */
 export function appVersion(): string | null {
   return Application.nativeApplicationVersion;

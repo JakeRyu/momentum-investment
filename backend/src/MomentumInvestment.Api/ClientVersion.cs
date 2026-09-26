@@ -29,9 +29,11 @@ public static class ClientVersion
     /// condemned long after it shipped, with no new release.
     ///
     /// ORDER MATTERS. Raise this only once the newer version is live on the
-    /// App Store and has propagated. Otherwise the banner sends people to a
-    /// listing that offers them nothing to install, and a banner that has
-    /// lied once is a banner nobody reads.
+    /// App Store AND Google Play and has propagated on both. Otherwise the
+    /// banner sends people to a listing that offers them nothing to install,
+    /// and a banner that has lied once is a banner nobody reads. The header
+    /// carries no platform, so the line cannot be raised for one store only:
+    /// the slower review decides when it moves.
     ///
     /// 1.4 means: every build before the Monthly Rule rename is distrusted.
     /// Raised on 2026-09-23, once 1.4 was approved and live, to pull the

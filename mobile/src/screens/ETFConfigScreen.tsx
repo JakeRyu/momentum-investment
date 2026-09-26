@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   probeTicker,
@@ -101,6 +102,13 @@ export default function ETFConfigScreen({
   onBack,
 }: ETFConfigScreenProps) {
   const [pickerFor, setPickerFor] = useState<AssetClassCode | null>(null);
+  // Held here rather than in the sheet so Android's back, which reaches the
+  // Modal's onRequestClose, can step out of "add" before closing the sheet.
+  const [sheetMode, setSheetMode] = useState<SheetMode>('choose');
+  const closePicker = () => {
+    setPickerFor(null);
+    setSheetMode('choose');
+  };
   const editable = region === 'UK';
   const sections = sectionsFor(strategyId);
   // Only consider overrides that this strategy actually consumes — if the
@@ -174,23 +182,27 @@ export default function ETFConfigScreen({
         visible={pickerFor !== null}
         animationType="slide"
         transparent
-        onRequestClose={() => setPickerFor(null)}
+        statusBarTranslucent
+        navigationBarTranslucent
+        onRequestClose={() => (sheetMode === 'add' ? setSheetMode('choose') : closePicker())}
       >
         {pickerFor && (
           <PickerSheet
             code={pickerFor}
+            mode={sheetMode}
+            onModeChange={setSheetMode}
             currentTicker={pickTicker(pickerFor, region, overrides)}
             customs={customs[pickerFor] ?? []}
             onSelect={(ticker) => {
               onOverrideChange(pickerFor, ticker);
-              setPickerFor(null);
+              closePicker();
             }}
             onAddCustom={(entry) => {
               onAddCustom(pickerFor, entry);
-              setPickerFor(null);
+              closePicker();
             }}
             onRemoveCustom={(ticker) => onRemoveCustom(pickerFor, ticker)}
-            onClose={() => setPickerFor(null)}
+            onClose={closePicker}
           />
         )}
       </Modal>
@@ -269,6 +281,8 @@ type SheetMode = 'choose' | 'add';
 
 function PickerSheet({
   code,
+  mode,
+  onModeChange,
   currentTicker,
   customs,
   onSelect,
@@ -277,6 +291,8 @@ function PickerSheet({
   onClose,
 }: {
   code: AssetClassCode;
+  mode: SheetMode;
+  onModeChange: (mode: SheetMode) => void;
   currentTicker: string;
   customs: CustomEtfEntry[];
   onSelect: (ticker: string) => void;
@@ -284,16 +300,23 @@ function PickerSheet({
   onRemoveCustom: (ticker: string) => void;
   onClose: () => void;
 }) {
-  const [mode, setMode] = useState<SheetMode>('choose');
   const def = ASSET_CLASSES[code];
+  const insets = useSafeAreaInsets();
 
   return (
     <Pressable style={styles.modalBackdrop} onPress={onClose}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.sheetWrapper}
-      >
-        <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+      {/* 'padding' on Android too: the Modal draws under the system bars,
+          so Android no longer shrinks its window for the keyboard. */}
+      <KeyboardAvoidingView behavior="padding" style={styles.sheetWrapper}>
+        {/* The sheet runs under Android's navigation bar, so its bottom
+            padding has to clear that bar as well. */}
+        <Pressable
+          style={[
+            styles.modalSheet,
+            Platform.OS === 'android' && { paddingBottom: insets.bottom + 20 },
+          ]}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View style={styles.modalHandle} />
           <Text style={styles.modalTitle}>{def.label}</Text>
           <Text style={styles.modalSubtitle}>{def.description}</Text>
@@ -305,7 +328,7 @@ function PickerSheet({
               customs={customs}
               onSelect={onSelect}
               onRemoveCustom={onRemoveCustom}
-              onStartAdd={() => setMode('add')}
+              onStartAdd={() => onModeChange('add')}
               onClose={onClose}
             />
           ) : (
@@ -315,7 +338,7 @@ function PickerSheet({
               onConfirm={(entry) => {
                 onAddCustom(entry);
               }}
-              onCancel={() => setMode('choose')}
+              onCancel={() => onModeChange('choose')}
             />
           )}
         </Pressable>
@@ -676,8 +699,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
+  // The height cap sits on the wrapper, whose parent is the full-screen
+  // backdrop. On the sheet itself, '85%' resolved against this wrapper —
+  // which is only as tall as the sheet's content — and left a gap of the
+  // remaining 15% beneath it.
   sheetWrapper: {
     width: '100%',
+    maxHeight: '85%',
   },
   modalSheet: {
     backgroundColor: '#11151a',
@@ -685,7 +713,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 36,
-    maxHeight: '85%',
+    flexShrink: 1,
   },
   modalHandle: {
     width: 36,

@@ -1,18 +1,20 @@
 # Momentum Investment
 
 Surfaces **Wouter Keller's momentum-based asset-allocation decisions** —
-VAA, DAA, PAA, HAA, BAA and LAA — through an iOS app and a public website,
+VAA, DAA, PAA, HAA, BAA and LAA — through an iOS/Android app and a public website,
 both backed by one ASP.NET Core API. Each strategy is checked against the
 paper it cites (`docs/papers/`) by a test that gates merges.
 
 Live: web at `investment.ecomcraft.co.uk` (Azure Static Web Apps), API on
-Azure Container Apps (uksouth). iOS app on the App Store.
+Azure Container Apps (uksouth). The app is live on the App Store at **1.4**
+(iOS only). **1.5 ships iOS and Android together** — Android's first
+release, on Google Play under the same EcomCraft Ltd organisation.
 
 ## Layout
 
 ```
 backend/   ASP.NET Core 10 minimal API — decision engine, Yahoo + FRED clients, xUnit tests
-mobile/    Expo SDK 54 / React Native iOS app — Home / Settings / ETFConfig / Decision
+mobile/    Expo SDK 54 / React Native iOS + Android app — Home / Settings / ETFConfig / Decision
 web/       Vite + React 19 + react-router site — strategy pages, decision tool, /learn course
 shared/    universes.json — the canonical ticker universe per strategy (fixture, see below)
 scripts/   Python reference implementations of the momentum signals and strategy rules
@@ -53,7 +55,7 @@ cd mobile
 npm install
 npm test            # jest (jest-expo)
 npm run tsc         # type check
-npx expo start      # 'i' for iOS simulator, or Expo Go on a device
+npx expo start      # 'i' iOS simulator, 'a' Android emulator, or Expo Go on a device
 ```
 
 For a physical device set `EXPO_PUBLIC_API_BASE_URL` in `mobile/.env` to the
@@ -61,7 +63,26 @@ dev machine's LAN IP (`http://192.168.x.x:5050`). Start dev servers yourself
 in a terminal — they are interactive.
 
 Before any EAS build/submit: `mobile/app.json` `version` must match the
-version prepared in App Store Connect.
+version prepared in App Store Connect and in Play Console. Both stores ship
+the **same version string** — `X-App-Version` carries no platform, so the
+server's version line can't tell them apart. From 1.5 on, every release goes
+to both stores at the same version; there is no Android build before 1.5.
+
+```bash
+eas build -p android --profile preview      # APK to sideload for testing
+eas build -p android --profile production   # AAB for Google Play
+eas submit -p android --latest              # Play internal track
+eas build -p ios --profile production && eas submit -p ios --latest
+```
+
+`eas submit -p android` reads `mobile/google-play-service-account.json`
+(gitignored — get it from Play Console → API access). The app must already
+exist in Play Console; the first `eas submit` then creates its first
+internal-testing release (a manual first upload is optional). Before
+promoting beyond internal testing, Play Console needs the store listing,
+the privacy policy URL, the Data safety form (the app requests INTERNET
+only), content rating, target audience, and the **Financial features**
+declaration.
 
 ### Web
 
@@ -146,14 +167,15 @@ timing stays US-anchored even for UK holders.
   guards it. Universe change = edit C# record → `shared/universes.json` →
   `cp shared/universes.json mobile/src/universes.generated.json` → fingerprint.
 
-### Version handshake (dormant)
+### Version handshake
 
 The app sends `X-App-Version`; `ClientVersion.Status` returns `outdated` when
-it is below `ClientVersion.OldestTrusted` (currently 1.0 — nothing distrusted)
+it is below `ClientVersion.OldestTrusted` (currently 1.4 — every build before
+the Monthly Rule rename is distrusted)
 and the app shows `UpdateBanner`. Missing/unparseable header fails open
 (`current`). Raise `OldestTrusted` only when an old version is genuinely
-wrong, and **only after** the fixed version is live on the App Store —
-otherwise the banner points at nothing to install.
+wrong, and **only after** the fixed version is live on both the App Store
+and Google Play — otherwise the banner points at nothing to install.
 
 ### Backend code map (`backend/src/MomentumInvestment.Api/`)
 
@@ -180,6 +202,16 @@ otherwise the banner points at nothing to install.
   strategies, region, overrides, custom tickers, PAA `a`, done markers — lives
   in `App.tsx` and persists via AsyncStorage (`src/storage.ts`). Adopt a
   navigation library only when deep links / modal stacks are actually needed.
+  Android's system back goes through `BackHandler` using `backTarget()` in
+  `src/navigation.ts` (same target as each screen's "← Back"); a new screen
+  needs an entry there.
+- **Android layout.** The app draws edge-to-edge. Fixed bottom content (Home's
+  footer, the ETF picker sheet) adds `useSafeAreaInsets().bottom` on Android
+  only; iOS keeps its fixed spacing. The picker `Modal` is translucent over
+  the system bars, so Android doesn't resize it for the keyboard — its
+  `KeyboardAvoidingView` uses `padding` on both platforms.
+- `src/appStore.ts` — `storeFor()` picks the App Store or Google Play listing
+  for the update banner.
 - `src/universe.ts` — turns (region, overrides) into substitutions: a pair is
   emitted where the resolved ticker differs from the asset class's
   `usDefault` (= the paper ticker).
