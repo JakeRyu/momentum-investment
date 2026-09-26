@@ -90,7 +90,13 @@ export default function SettingsScreen({
                 onPress={() => onRegionChange(opt.value)}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+                {/* One line: Android measures a flag emoji slightly narrow,
+                    so "🇬🇧 UK" wrapped its last word onto a clipped second
+                    line and showed only the flag. */}
+                <Text
+                  numberOfLines={1}
+                  style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}
+                >
                   {opt.label}
                 </Text>
                 <Text style={[styles.segmentSub, selected && styles.segmentSubSelected]}>
