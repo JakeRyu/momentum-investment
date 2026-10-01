@@ -1089,11 +1089,11 @@ git commit -m "Require the Korean course to keep pace with the English one
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 git push -u origin korean-lessons
+
 gh pr create --title "Teach the course in Korean" --body "$(cat <<'EOF'
 Adds /ko/learn and the eight lessons in Korean. Prose only; nav, figures and strategy pages stay English. UK-only passages (UCITS/ISA) are dropped; lesson 5 instead says Korean readers buy the named US ETFs directly.
 
 Spec: docs/superpowers/specs/2026-09-24-korean-lessons-design.md
-
 After deploy: register monthlyrule.com with Naver Search Advisor and submit the sitemap.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
