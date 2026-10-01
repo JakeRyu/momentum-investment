@@ -252,10 +252,11 @@ app.MapGet("/api/paa/decision", async (
 
 // HAA decision (Keller & Keuning, 2023) — Hybrid Asset Allocation.
 //
-// The universe is the server's: HaaUniverse.Us. The canary's 13612W
-// gates the offensive/defensive switch:
-//   - canary 13612W ≤ 0 → 100% in cash
-//   - canary 13612W > 0 → top T=4 risky by 13612W at 1/T each
+// The universe is the server's: HaaUniverse.Us. Every asset is scored
+// with 13612U, and the canary's score gates the offensive/defensive switch:
+//   - canary 13612U ≤ 0 → 100% in cash (the better of BIL/IEF)
+//   - canary 13612U > 0 → top T=4 risky by 13612U at 1/T each, with any
+//     slot whose own 13612U is ≤ 0 sent to cash instead
 //
 // Example:
 //   /api/haa/decision?asOf=2026-09-14&substitute=SPY:CSPX.L

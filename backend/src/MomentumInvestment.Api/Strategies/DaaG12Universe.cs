@@ -15,9 +15,10 @@ namespace MomentumInvestment.Api.Strategies;
 /// risky in the default; LQD is risky AND cash). <see cref="AllTickers"/>
 /// dedups so the caller fetches each ticker exactly once.
 ///
-/// As with <see cref="VaaUniverse"/>, the static <see cref="Us"/> factory
-/// is for tests and documentation only — production tickers are supplied
-/// by the mobile caller so region selection / user overrides stay there.
+/// As with <see cref="VaaUniverse"/>, <see cref="Us"/> is the canonical
+/// universe read directly by the endpoint. A caller substitutes the
+/// tickers it holds locally via <see cref="WithSubstitutions"/>; the
+/// server has no notion of region.
 /// </summary>
 public sealed record DaaG12Universe(
     IReadOnlyList<string> Canary,
