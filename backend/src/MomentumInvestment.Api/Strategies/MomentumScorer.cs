@@ -17,7 +17,7 @@ public static class MomentumScorer
 {
     /// <summary>
     /// 13612W momentum score for a single ticker (Keller VAA 2017).
-    /// Used by VAA-G4/B3 and DAA-G12.
+    /// Used by VAA-G4/B3, DAA-G12 and BAA's canary.
     /// </summary>
     public static decimal Score13612W(
         string ticker,

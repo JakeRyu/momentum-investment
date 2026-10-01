@@ -17,9 +17,10 @@ namespace MomentumInvestment.Api.Strategies;
 /// comes from the risky universe itself (count of assets with positive
 /// SMA12 momentum).
 ///
-/// As with the other Keller universes, the static <see cref="Us"/>
-/// factory is for tests and documentation only; production tickers come
-/// from the mobile caller so region/UK selection lives there.
+/// As with the other Keller universes, <see cref="Us"/> is the canonical
+/// universe read directly by the endpoint. A caller substitutes the
+/// tickers it holds locally via <see cref="WithSubstitutions"/>; the
+/// server has no notion of region.
 /// </summary>
 public sealed record PaaUniverse(
     IReadOnlyList<string> Risky,

@@ -1,7 +1,7 @@
 namespace MomentumInvestment.Api.Strategies;
 
 /// <summary>
-/// The five lookback prices used by the 13612W momentum formula:
+/// The five lookback prices used by the 13612W and 13612U momentum formulas:
 ///   p0 = on-or-before the as-of date
 ///   p1 = on-or-before (as-of − 1 month)
 ///   p3 = on-or-before (as-of − 3 months)

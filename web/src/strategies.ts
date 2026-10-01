@@ -191,7 +191,7 @@ export const STRATEGIES: readonly Strategy[] = [
       "When the canary stays bullish, HAA holds the top four risky assets by 13612U at 1/4 each — but this is where the 'hybrid' in its name comes from: any of those four whose own momentum is non-positive is replaced by cash, so a month can be part invested and part defensive. One bad asset in the top four means 25% cash. The TIPS-canary gate makes HAA particularly responsive to the kind of inflation/yield regime change that hurt traditional 60/40 portfolios in 2022.",
     ],
     paperTitle:
-      'Relative and Absolute Momentum in Times of Rising/Low Yields: Hybrid Asset Allocation (HAA)',
+      'Dual and Canary Momentum with Rising Yields/Inflation: Hybrid Asset Allocation (HAA)',
     paperUrl: 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4346906',
     paperYear: 2023,
     defaultUniverse: {
