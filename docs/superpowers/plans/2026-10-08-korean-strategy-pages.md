@@ -4,7 +4,7 @@
 
 **Goal:** Serve `/ko/strategies/{id}` for all six strategies: a Korean explanation of each rule, with no decision on the page.
 
-**Architecture:** Korean copy lives in a new `web/src/strategies.ko.ts`, keyed by `StrategyId`. A new route component `KoStrategyPage` renders it with the English page's header markup, the paper line and `BacktestFigure`, and puts a link to the English page where the decision would be. The English page, `/ko/learn`, Korean lesson 6's table and the sitemap link to the new pages.
+**Architecture:** Korean copy lives in a new `web/src/strategies.ko.ts`, keyed by `StrategyId`. A new route component `KoStrategyPage` renders it with the English page's header markup, the paper line and `BacktestFigure`, and puts a link to the English page and the two store links where the decision would be. The English page, `/ko/learn`, Korean lesson 6's table and the sitemap link to the new pages.
 
 **Tech Stack:** React 19, react-router-dom, Vite (+ SSR prerender from `public/sitemap.xml`), Vitest + Testing Library. Commands run from `web/`.
 
@@ -14,7 +14,7 @@
 
 - `web/` only. No backend or mobile changes.
 - The Korean page **never computes or shows a decision**: no `DecisionTool`, no "Today's Decision" banner, no `fetch`.
-- No `AppPromo` on the Korean page.
+- No `AppPromo` on the Korean page (it sells the UK UCITS mapping). The Korean page links both stores itself, as Korean lesson 8 does, with nothing UK-specific: the app defaults to the US region.
 - Strategy names (`fullName`, `shortName`), tickers, figure labels and UI names (*Today's Decision*) stay in English.
 - Korean copy is "-합니다"체, a Korean edition rather than a line-by-line translation; facts and numbers match `strategies.ts` and the paper.
 - Terms follow `web/src/lessons/ko/GLOSSARY.md`. Task 1 adds the new terms; the user confirms them at plan review.
@@ -28,7 +28,7 @@ The spec says Korean lesson 8's link to `/strategies/vaa` should point to `/ko/s
 
 ## Review Focus
 
-- **A reader who lands on a Korean page from search and wants to act.** They need a one-click path to the decision. Task 3 tests the link to the English page by its name and href.
+- **A reader who lands on a Korean page from search and wants to act.** They need a one-click path to the decision, or to the app. Task 3 tests the English-page link and both store links by name and href.
 - **`/ko/learn`'s intro.** It currently says "전략 페이지는 영어로 되어 있고". Once Korean strategy pages exist, that sentence is false. Task 5 rewrites it and tests the old wording is gone.
 - **Client-side navigation from a Korean page to the English one.** `KoreanHead` must reset `<html lang>` to `en` on unmount. It already does, and Task 3 mounts it on the Korean page only.
 - **PAA's English description refers to "the page below" and its variant toggle.** The Korean page has no toggle. Task 1 tests that no Korean paragraph says "아래" or "below".
@@ -315,7 +315,7 @@ git commit -m "Point the Korean lesson's comparison table at the Korean pages"
 - Modify: `web/src/index.css` (Korean strategy-page rules, appended after the `[lang='ko'] :is(…)` rule)
 
 **Interfaces:**
-- Consumes: `STRATEGIES_KO` (Task 1); `findStrategy`, `Strategy` from `strategies.ts`; `findCourseLesson` from `lessons/courses.ts`; `KoreanHead`, `LangSwitch`, `PageMeta`, `BacktestFigure`
+- Consumes: `STRATEGIES_KO` (Task 1); `findStrategy`, `Strategy` from `strategies.ts`; `findCourseLesson` from `lessons/courses.ts`; `APP_STORE_CTA`, `APP_STORE_URL`, `PLAY_STORE_CTA`, `PLAY_STORE_URL` from `appStore.ts`; `KoreanHead`, `LangSwitch`, `PageMeta`, `BacktestFigure`
 - Produces: `export function dottedShort(s: Strategy): string` and `export function splitTitle(full: string): React.ReactNode` in `routes/strategyTitle.tsx`; default export `KoStrategyPage`; route `/ko/strategies/:id`
 
 - [ ] **Step 1: Write the failing tests**
@@ -323,7 +323,7 @@ git commit -m "Point the Korean lesson's comparison table at the Korean pages"
 In `web/src/routes.test.tsx`:
 
 1. Change the vitest import to `import { describe, expect, it, vi } from 'vitest'`.
-2. Add `import KoStrategyPage from './routes/KoStrategyPage'` with the other route imports.
+2. Add `import KoStrategyPage from './routes/KoStrategyPage'` with the other route imports, and `import { APP_STORE_URL, PLAY_STORE_URL } from './appStore'`.
 3. In `renderAt`, add after the `/ko/learn/:slug` route:
 
 ```tsx
@@ -376,6 +376,13 @@ describe('Korean strategy pages', () => {
       'href',
       '/ko/learn/what-momentum-is',
     )
+  })
+
+  it('links both app stores, with nothing UK-specific', () => {
+    const { container } = renderAt('/ko/strategies/haa')
+    expect(screen.getByRole('link', { name: /App Store/ })).toHaveAttribute('href', APP_STORE_URL)
+    expect(screen.getByRole('link', { name: /Google Play/ })).toHaveAttribute('href', PLAY_STORE_URL)
+    expect(container.textContent).not.toMatch(/UCITS|\bUK\b|영국/)
   })
 
   it('carries the Korean disclaimer', () => {
@@ -436,6 +443,12 @@ Create `web/src/routes/KoStrategyPage.tsx`:
 ```tsx
 import { Link, useParams } from 'react-router-dom'
 
+import {
+  APP_STORE_CTA,
+  APP_STORE_URL,
+  PLAY_STORE_CTA,
+  PLAY_STORE_URL,
+} from '../appStore'
 import BacktestFigure from '../components/BacktestFigure'
 import KoreanHead from '../components/KoreanHead'
 import LangSwitch from '../components/LangSwitch'
@@ -510,6 +523,17 @@ export default function KoStrategyPage() {
         </p>
         <p>
           <Link to={english}>{strategy.shortName} 영어 페이지에서 확인하기 →</Link>
+        </p>
+        <p>
+          앱으로도 볼 수 있습니다. 앱의 Holding 화면은 언제 열어도 직전
+          월말의 결과를 보여 주고, 이번 달에 리밸런싱했는지도 기록해 둡니다.
+          앱은 아이폰과 안드로이드 모두 <strong>무료</strong>입니다.{' '}
+          <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
+            {APP_STORE_CTA} →
+          </a>{' '}
+          <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
+            {PLAY_STORE_CTA} →
+          </a>
         </p>
         <LessonLinks strategy={strategy} />
         <p className="strategy-page__disclaimer">

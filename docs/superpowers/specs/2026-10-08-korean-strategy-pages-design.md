@@ -45,13 +45,16 @@ From top to bottom:
 | Paper line | `논문 ·` + the paper's English title, linked, and year |
 | Backtest | `BacktestFigure` as is, in English, when the strategy has one — the same figure Korean lesson 3 already reuses |
 | In place of the decision | A short Korean section: what this strategy holds right now is on the English page (linked), plus links to the Korean lessons on momentum, the canary (only for strategies with one) and when to act on the signal |
+| App links | One Korean paragraph on what the app does (the Holding view shows the last month-end's result whenever it is opened; it records whether this month is done; free on iPhone and Android), then the App Store and Google Play text links. Nothing UK-specific: the app defaults to the US region, so a Korean reader sees the funds the strategies name |
 | Back link | `← 여섯 전략` to the list on `/ko/learn` |
 
 Left out on purpose:
 
 - **`DecisionTool` and the "Today's Decision" banner.** See above.
 - **`AppPromo`.** It sells the app's UK UCITS mapping. Korean readers buy
-  the US-listed funds the strategies name, so it does not apply.
+  the US-listed funds the strategies name, so it does not apply. The page
+  still links both stores, in its own Korean words (see "App links"
+  above), matching Korean lesson 8.
 
 The page root carries `lang="ko"`. `PageMeta` gets a Korean title and
 description, `path` = the Korean URL, and `alternates` pairing it with
@@ -108,3 +111,6 @@ names or years) applies to the Korean ones too.
 - Translating the comparison table's taglines or column heads.
 - Any Korean decision, even a link that pre-fills one.
 - Korean account, tax or domestic-ETF content.
+- Tracking which strategy page a download came from. That is planned
+  for later. The store URLs stay in `web/src/appStore.ts`, so campaign
+  parameters can be added in one place when it is built.
