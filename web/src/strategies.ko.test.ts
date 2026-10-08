@@ -50,6 +50,16 @@ describe('Korean strategy copy', () => {
     }
   })
 
+  it('gives PAA’s thresholds as the point of full defence, not where it starts', () => {
+    // BF = (12 − n) / N1 rises from n = 11 on; n ≤ 3 (a=1) and n ≤ 6 (a=2)
+    // are where it reaches 100% (PaaService.cs). "…부터 늘린다" read as the
+    // start, which told a reader PAA2 was fully invested at n = 8.
+    const text = STRATEGIES_KO.paa.longDescription.join(' ')
+    expect(text).not.toMatch(/이하일 때부터/)
+    expect(text).toMatch(/n이 6 이하일 때 완전 방어/)
+    expect(text).toMatch(/하나 줄 때마다/)
+  })
+
   it('does not point at a tool the Korean page does not have', () => {
     // PAA's English text refers to the variant toggle "below".
     for (const s of STRATEGIES) {

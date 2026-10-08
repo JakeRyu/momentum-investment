@@ -19,13 +19,17 @@ import { useLocation, useNavigationType } from 'react-router-dom'
  * routing to gain one effect is a larger change than the effect.
  */
 export default function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   const navigationType = useNavigationType()
 
   useEffect(() => {
     if (navigationType === 'POP') return
-    window.scrollTo(0, 0)
-  }, [pathname, navigationType])
+    // A link that names a section ("← 여섯 전략" → /ko/learn#strategies)
+    // means that section, not the top of the page.
+    const target = hash ? document.getElementById(hash.slice(1)) : null
+    if (target) target.scrollIntoView()
+    else window.scrollTo(0, 0)
+  }, [pathname, hash, navigationType])
 
   return null
 }

@@ -36,6 +36,28 @@ describe('ScrollToTop', () => {
     expect(scrollTo).toHaveBeenCalledWith(0, 0)
   })
 
+  it('goes to the named section when the link carries one', () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    render(
+      <MemoryRouter initialEntries={['/one']}>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/one" element={<Link to="/two#list">to the list</Link>} />
+          <Route path="/two" element={<section id="list">list</section>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    scrollTo.mockClear()
+
+    fireEvent.click(screen.getByText('to the list'))
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1)
+    expect(scrollIntoView.mock.contexts[0]).toBe(document.getElementById('list'))
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+
   it('leaves the position alone on back', () => {
     const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
     renderPages()
