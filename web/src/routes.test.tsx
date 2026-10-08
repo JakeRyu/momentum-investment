@@ -350,6 +350,11 @@ describe('Korean strategy pages', () => {
     expect(container.textContent).not.toMatch(/UCITS|\bUK\b|영국/)
   })
 
+  it('is linked from its English twin', () => {
+    renderAt('/strategies/vaa')
+    expect(screen.getByRole('link', { name: '한국어' })).toHaveAttribute('href', '/ko/strategies/vaa')
+  })
+
   it('carries the Korean disclaimer', () => {
     const { container } = renderAt('/ko/strategies/vaa')
     expect(container.textContent).toMatch(/투자 자문이 아닙니다/)
