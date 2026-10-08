@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import About from './routes/About'
 import Home from './routes/Home'
+import KoStrategyPage from './routes/KoStrategyPage'
 import Learn from './routes/Learn'
 import Lesson from './routes/Lesson'
 import NotFound from './routes/NotFound'
@@ -20,6 +21,7 @@ export default function AppRoutes() {
         <Route path="/learn/:slug" element={<Lesson />} />
         <Route path="/ko/learn" element={<Learn lang="ko" />} />
         <Route path="/ko/learn/:slug" element={<Lesson lang="ko" />} />
+        <Route path="/ko/strategies/:id" element={<KoStrategyPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />

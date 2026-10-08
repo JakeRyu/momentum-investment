@@ -2335,6 +2335,41 @@ hr {
   font-style: normal;
 }
 
+/* Korean strategy pages. The title is the English name, so it keeps the
+   English page's italic; the Korean lede stands upright, and a Hangul
+   syllable makes no drop cap. */
+.strategy-page[lang='ko'] h1:lang(en) {
+  font-style: italic;
+}
+.strategy-page[lang='ko'] .strategy-page__lede {
+  font-style: normal;
+}
+.strategy-page[lang='ko'] .strategy-page__lede::first-letter {
+  float: none;
+  font: inherit;
+  margin: 0;
+  color: inherit;
+}
+.strategy-page__now h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 28px;
+  margin: 0 0 12px;
+}
+.strategy-page__now p {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 60ch;
+  margin: 0 0 12px;
+}
+.strategy-page__now a {
+  color: var(--red);
+}
+.strategy-page__disclaimer {
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
 .learn__intro {
   font-size: 16px;
   line-height: 1.6;
