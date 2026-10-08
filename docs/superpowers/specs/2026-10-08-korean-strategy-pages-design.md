@@ -84,7 +84,8 @@ names or years) applies to the Korean ones too.
   strategy's short name, linked to its Korean page, with the Korean
   tagline.
 - **Korean lessons:** the one inline link to `/strategies/vaa`
-  (`lessons/ko/RunningIt.tsx`) points to `/ko/strategies/vaa` instead.
+  (`lessons/ko/RunningIt.tsx`) stays on the English page. Its sentence
+  sends the reader to *Today's Decision*, which only the English page has.
 - **`StrategyComparison`** rows link to `/strategies/{id}`. It gains an
   optional prop for the link prefix so Korean lesson 6
   (`lessons/ko/ChoosingOne.tsx`) can point its rows at the Korean pages.

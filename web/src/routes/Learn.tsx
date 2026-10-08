@@ -77,7 +77,7 @@ export default function Learn({ lang = 'en' }: { lang?: Lang }) {
       </ol>
 
       {lang === 'ko' && (
-        <section id="strategies">
+        <section id="strategies" className="learn__strategies">
           <h2 className="section-title">여섯 전략</h2>
           <ul className="learn__list">
             {STRATEGIES.map((s) => (

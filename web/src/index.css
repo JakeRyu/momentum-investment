@@ -1130,6 +1130,10 @@ hr {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* The Korean contents page's strategy list, below the lessons. */
+.learn__strategies {
+  margin-top: 56px;
+}
 /* A three-letter strategy name in the slot a lesson number takes. */
 .learn__number--short {
   font-size: 18px;
@@ -2335,7 +2339,7 @@ hr {
   font-family: var(--body);
   word-break: keep-all;
 }
-[lang='ko'] :is(h1, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
+[lang='ko'] :is(h1, .section-title, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
   font-style: normal;
 }
 
@@ -2347,6 +2351,9 @@ hr {
 }
 .strategy-page[lang='ko'] .strategy-page__lede {
   font-style: normal;
+  /* keep-all leaves a short Korean line few break points, so justifying
+     it opens wide gaps between words. */
+  text-align: left;
 }
 .strategy-page[lang='ko'] .strategy-page__lede::first-letter {
   float: none;
