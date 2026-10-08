@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
+import { APP_STORE_URL, PLAY_STORE_URL } from './appStore'
 import AppPromo from './components/AppPromo'
 import { LESSONS } from './lessons'
 import { LESSONS_KO } from './lessons/ko'
@@ -11,6 +12,7 @@ import About from './routes/About'
 import Learn from './routes/Learn'
 import Lesson from './routes/Lesson'
 import Home from './routes/Home'
+import KoStrategyPage from './routes/KoStrategyPage'
 import NotFound from './routes/NotFound'
 import Privacy from './routes/Privacy'
 import StrategyPage from './routes/StrategyPage'
@@ -26,6 +28,7 @@ function renderAt(path: string) {
         <Route path="/learn/:slug" element={<Lesson />} />
         <Route path="/ko/learn" element={<Learn lang="ko" />} />
         <Route path="/ko/learn/:slug" element={<Lesson lang="ko" />} />
+        <Route path="/ko/strategies/:id" element={<KoStrategyPage />} />
         <Route path="/about" element={<About />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
@@ -292,6 +295,112 @@ describe('Korean course', () => {
       expect(a.getAttribute('href'), a.textContent ?? '').toMatch(/^\/ko\/learn\//)
     }
     expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', `/learn/${slug}`)
+  })
+})
+
+describe('Korean strategy pages', () => {
+  it.each(STRATEGIES.map((s) => s.id))('serves /ko/strategies/%s in Korean, with no decision', (id) => {
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const { container } = renderAt(`/ko/strategies/${id}`)
+    expect(container.querySelector('.not-found')).toBeNull()
+    expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
+    expect(container.querySelector('.decision, .decision-banner')).toBeNull()
+    // The English promo sells the UK mapping; the Korean box is its own.
+    expect(container.textContent).not.toMatch(/US Universe/)
+    expect(fetch).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
+  it('404s on a strategy that does not exist', () => {
+    const { container } = renderAt('/ko/strategies/xyz')
+    expect(container.querySelector('.not-found')).not.toBeNull()
+  })
+
+  it('sends a reader who wants the current reading to the English page', () => {
+    renderAt('/ko/strategies/daa')
+    expect(screen.getByRole('link', { name: /DAA 영어 페이지/ })).toHaveAttribute(
+      'href',
+      '/strategies/daa',
+    )
+  })
+
+  it('links back to its English twin', () => {
+    renderAt('/ko/strategies/vaa')
+    expect(screen.getByRole('link', { name: 'English' })).toHaveAttribute('href', '/strategies/vaa')
+  })
+
+  it('points at the canary lesson only for a strategy with a canary', () => {
+    renderAt('/ko/strategies/daa')
+    expect(screen.getByRole('link', { name: '시장 폭이 더해 주는 것' })).toHaveAttribute(
+      'href',
+      '/ko/learn/what-breadth-adds',
+    )
+    cleanup()
+    renderAt('/ko/strategies/paa')
+    expect(screen.queryByRole('link', { name: '시장 폭이 더해 주는 것' })).toBeNull()
+    expect(screen.getByRole('link', { name: '모멘텀이란 무엇인가' })).toHaveAttribute(
+      'href',
+      '/ko/learn/what-momentum-is',
+    )
+  })
+
+  it('lists the recommended lessons one per line', () => {
+    const { container } = renderAt('/ko/strategies/daa')
+    const items = container.querySelectorAll('.strategy-page__lessons li')
+    expect([...items].map((li) => li.textContent)).toEqual([
+      '모멘텀이란 무엇인가',
+      '시장 폭이 더해 주는 것',
+      '한 달에 신호 하나',
+    ])
+  })
+
+  it('links both app stores, with nothing UK-specific', () => {
+    const { container } = renderAt('/ko/strategies/haa')
+    const appStore = screen.getByRole('link', { name: /App Store/ })
+    const play = screen.getByRole('link', { name: /Google Play/ })
+    expect(appStore).toHaveAttribute('href', APP_STORE_URL)
+    expect(play).toHaveAttribute('href', PLAY_STORE_URL)
+    // The same buttons, in the same box, as the English strategy page.
+    for (const link of [appStore, play]) {
+      expect(link).toHaveClass('app-promo__cta')
+      expect(link.closest('.app-promo')).not.toBeNull()
+    }
+    expect(container.textContent).not.toMatch(/UCITS|\bUK\b|영국/)
+  })
+
+  it('is linked from its English twin', () => {
+    renderAt('/strategies/vaa')
+    expect(screen.getByRole('link', { name: '한국어' })).toHaveAttribute('href', '/ko/strategies/vaa')
+  })
+
+  it('is listed on the Korean contents page', () => {
+    const { container } = renderAt('/ko/learn')
+    const list = container.querySelector('#strategies')
+    expect(list).not.toBeNull()
+    for (const s of STRATEGIES) {
+      expect(list?.querySelector(`a[href="/ko/strategies/${s.id}"]`), s.id).not.toBeNull()
+    }
+  })
+
+  it('no longer tells Korean readers the strategy pages are English only', () => {
+    const { container } = renderAt('/ko/learn')
+    expect(container.textContent).not.toMatch(/전략 페이지는 영어로 되어 있고/)
+  })
+
+  it('leaves the English contents page without a strategy list', () => {
+    const { container } = renderAt('/learn')
+    expect(container.querySelector('#strategies')).toBeNull()
+  })
+
+  it('carries the Korean disclaimer', () => {
+    const { container } = renderAt('/ko/strategies/vaa')
+    expect(container.textContent).toMatch(/투자 자문이 아닙니다/)
+  })
+
+  it('shows the published drawdown, as the English page does', () => {
+    renderAt('/ko/strategies/vaa')
+    expect(screen.getByText('−16.4%')).toBeInTheDocument()
   })
 })
 

@@ -23,6 +23,20 @@ describe('StrategyComparison', () => {
     }
   })
 
+  it('can send a Korean reader to the Korean pages', () => {
+    render(
+      <MemoryRouter>
+        <StrategyComparison tableOnly linkPrefix="/ko" />
+      </MemoryRouter>,
+    )
+    for (const s of STRATEGIES) {
+      expect(screen.getByTestId(`compare-row-${s.id}`), s.id).toHaveAttribute(
+        'href',
+        `/ko/strategies/${s.id}`,
+      )
+    }
+  })
+
   it('leads with the worst fall, because that is the site argument', () => {
     renderComparison()
     // VAA's published figure. The comparison exists to let a beginner see

@@ -23,9 +23,11 @@ type Props = {
    * for a page whose own prose already frames the figures.
    */
   tableOnly?: boolean
+  /** '/ko' when the table sits in a Korean lesson, so rows open the Korean pages. */
+  linkPrefix?: '' | '/ko'
 }
 
-export default function StrategyComparison({ tableOnly }: Props) {
+export default function StrategyComparison({ tableOnly, linkPrefix = '' }: Props) {
   const withheld = STRATEGIES.filter((s) => !s.backtest).map((s) => s.shortName)
 
   return (
@@ -48,7 +50,7 @@ export default function StrategyComparison({ tableOnly }: Props) {
         {STRATEGIES.map((s) => (
           <Link
             key={s.id}
-            to={`/strategies/${s.id}`}
+            to={`${linkPrefix}/strategies/${s.id}`}
             className="compare__row"
             data-testid={`compare-row-${s.id}`}
           >

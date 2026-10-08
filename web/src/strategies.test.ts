@@ -105,6 +105,19 @@ describe('taglines', () => {
   })
 })
 
+describe('PAA description', () => {
+  it('gives the thresholds as where the bond fraction reaches 100%, not where it starts', () => {
+    // BF = (12 − n) / N1 rises from n = 11 on (PaaService.cs); n ≤ 3 for
+    // a=1 and n ≤ 6 for a=2 are where it is fully defensive. "Ramps
+    // defensive at n ≤ 6" read as the start, which told a reader PAA2 was
+    // fully invested at n = 8 when it holds two-thirds in cash.
+    const text = findStrategy('paa')!.longDescription.join(' ')
+    expect(text).not.toMatch(/ramps defensive at/)
+    expect(text).toMatch(/reaches 100%/)
+    expect(text).toMatch(/each risky asset that turns bearish/)
+  })
+})
+
 describe('comparison facts', () => {
   it('describes what each strategy holds and how it de-risks', () => {
     for (const s of STRATEGIES) {

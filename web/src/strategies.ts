@@ -157,7 +157,7 @@ export const STRATEGIES: readonly Strategy[] = [
     },
     longDescription: [
       "PAA scores the 12 risky assets using a simpler signal than VAA/DAA: each asset's current price relative to its 12-month simple moving average (SMA12). The count of risky assets above their SMA12 (call it n) drives a bond fraction — the share of the portfolio rotated into the best-scoring cash asset.",
-      "The protection factor a chooses how cautious the rotation is: a=0 (Aggressive) only goes fully defensive when zero risky assets are bullish; a=1 (Moderate) ramps defensive at n ≤ 3; a=2 (Vigilant, Keller's recommended baseline) ramps defensive at n ≤ 6. Higher a means earlier de-risking. The page below lets you toggle between the three variants and see how the allocation changes.",
+      "The protection factor a chooses how cautious the rotation is. The bond fraction rises a step for each risky asset that turns bearish, and a sets where it reaches 100%: a=0 (Aggressive) only when zero risky assets are bullish, a=1 (Moderate) at n ≤ 3, and a=2 (Vigilant, Keller's recommended baseline) at n ≤ 6. Higher a means earlier de-risking. The page below lets you toggle between the three variants and see how the allocation changes.",
     ],
     paperTitle:
       'Protective Asset Allocation (PAA): A Simple Momentum-Based Alternative for Term Deposits',

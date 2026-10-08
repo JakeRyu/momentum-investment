@@ -20,6 +20,7 @@ describe('sitemap', () => {
       ...LESSONS.map((l) => `/learn/${l.slug}`),
       '/ko/learn',
       ...LESSONS_KO.map((l) => `/ko/learn/${l.slug}`),
+      ...STRATEGIES.map((s) => `/ko/strategies/${s.id}`),
       '/about',
       '/privacy',
     ]

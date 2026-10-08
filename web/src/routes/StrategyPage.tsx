@@ -4,10 +4,12 @@ import { Link, useParams } from 'react-router-dom'
 import AppPromo from '../components/AppPromo'
 import BacktestFigure from '../components/BacktestFigure'
 import DecisionTool from '../components/DecisionTool'
+import LangSwitch from '../components/LangSwitch'
 import PageMeta from '../components/PageMeta'
 import { findStrategy, type Strategy } from '../strategies'
 
 import NotFound from './NotFound'
+import { dottedShort, splitTitle } from './strategyTitle'
 
 export default function StrategyPage() {
   const { id } = useParams<{ id: string }>()
@@ -25,10 +27,12 @@ export default function StrategyPage() {
         title={`${strategy.fullName} (${strategy.shortName})`}
         description={`${strategy.tagline}. How ${strategy.shortName} works, the paper behind it, and today's decision on live market data.`}
         path={`/strategies/${strategy.id}`}
+        alternates={{ en: `/strategies/${strategy.id}`, ko: `/ko/strategies/${strategy.id}` }}
       />
       <header className="strategy-page__head">
         <p className="strategy-page__tag">{dottedShort(strategy)}</p>
         <h1>{splitTitle(strategy.fullName)}</h1>
+        <LangSwitch lang="ko" to={`/ko/strategies/${strategy.id}`} />
       </header>
 
       <div className="strategy-page__rule-thin" />
@@ -112,25 +116,5 @@ function LessonKey({ strategy }: { strategy: Strategy }) {
       ))}
       .
     </p>
-  )
-}
-
-function dottedShort(s: Strategy): string {
-  return s.shortName.split('').join('.') + '.'
-}
-
-// Split long-name titles at the first space so "Vigilant Asset Allocation"
-// renders across two display lines for the magazine-spread hero.
-function splitTitle(full: string): React.ReactNode {
-  const i = full.indexOf(' ')
-  if (i === -1) return full
-  const head = full.slice(0, i)
-  const tail = full.slice(i + 1)
-  return (
-    <>
-      {head}
-      <br />
-      {tail}
-    </>
   )
 }

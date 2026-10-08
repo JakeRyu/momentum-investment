@@ -4,6 +4,8 @@ import KoreanHead from '../components/KoreanHead'
 import LangSwitch from '../components/LangSwitch'
 import PageMeta from '../components/PageMeta'
 import { COURSES, otherLang, type Lang } from '../lessons/courses'
+import { STRATEGIES } from '../strategies'
+import { STRATEGIES_KO } from '../strategies.ko'
 
 /**
  * Course contents. The site's reference pages let you look one thing up;
@@ -28,7 +30,7 @@ const COPY: Record<Lang, { title: string; heading: string; description: string; 
       'VAA, DAA 같은 켈러(Keller)의 동적자산배분 전략을 배경지식 없이 배우는 짧은 강의. 규칙이 왜 있는지, 무엇을 재는지, 실제로 무엇을 사게 되는지.',
     lede: '배경지식 없이 시작합니다. 끝까지 읽으면 어느 전략 페이지를 열어도 그 페이지가 무엇을 하라고 하는지, 왜 그런지 알 수 있습니다.',
     intro: [
-      'Monthly Rule은 켈러(Wouter Keller)와 공저자들이 논문으로 발표한 자산배분 규칙 여섯 가지를 실제 시장 가격으로 매달 계산해 보여주는 사이트입니다. 전략 페이지는 영어로 되어 있고, 이 강의는 그 페이지를 읽는 데 필요한 내용을 한국어로 옮긴 것입니다.',
+      'Monthly Rule은 켈러(Wouter Keller)와 공저자들이 논문으로 발표한 자산배분 규칙 여섯 가지를 실제 시장 가격으로 매달 계산해 보여주는 사이트입니다. 각 전략의 규칙은 아래 여섯 전략에서 한국어로 읽을 수 있습니다. 매달의 계산 결과(Today’s Decision)는 영어 전략 페이지에만 있고, 이 강의는 그 페이지를 읽는 데 필요한 내용을 한국어로 옮긴 것입니다.',
       '이 사이트는 교육용 자료이며 투자 자문이 아닙니다. 과거 성과는 미래 수익을 보장하지 않으며, 투자 판단과 그 결과에 대한 책임은 투자자 본인에게 있습니다.',
     ],
   },
@@ -73,6 +75,25 @@ export default function Learn({ lang = 'en' }: { lang?: Lang }) {
           </li>
         ))}
       </ol>
+
+      {lang === 'ko' && (
+        <section id="strategies" className="learn__strategies">
+          <h2 className="section-title">여섯 전략</h2>
+          <ul className="learn__list">
+            {STRATEGIES.map((s) => (
+              <li key={s.id}>
+                <Link to={`/ko/strategies/${s.id}`} className="learn__item">
+                  <span className="learn__number learn__number--short">{s.shortName}</span>
+                  <span className="learn__body">
+                    <span className="learn__title">{s.fullName}</span>
+                    <span className="learn__summary">{STRATEGIES_KO[s.id].tagline}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <p className="back-link">
         <Link to="/">← The six strategies</Link>

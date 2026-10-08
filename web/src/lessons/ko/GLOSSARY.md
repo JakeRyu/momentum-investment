@@ -40,6 +40,22 @@
 | signal | 신호 | |
 | trade-off | 교환, trade-off | 첫 등장 시 "교환, 즉 trade-off", 이후 trade-off |
 | rule | 규칙 | 전략의 규칙. "rules applied to the past" → 과거에 적용한 규칙 |
+| 13612W / 13612U / SMA12 | 원어 | 13612U는 첫 등장 시 "1·3·6·12개월 수익률의 단순 평균"으로 풀이. 전략 페이지 |
+| moving average / simple moving average | 이동평균 / 단순 이동평균 | 200-day SMA → 200일 이동평균 |
+| offensive asset / defensive asset | 공격 자산 / 방어 자산 | |
+| defensive sleeve | 방어 자산군 | BAA |
+| permanent sleeve | 고정 자산 | LAA |
+| bond fraction | 채권 비중 | PAA |
+| protection factor | 보호 계수 | PAA. Aggressive / Moderate / Vigilant는 원어 |
+| bellwether | 풍향계 | |
+| unanimous | 만장일치 | BAA |
+| absolute momentum filter | 절대 모멘텀 필터 | |
+| Growth-Trend (GT) timing | 성장-추세(GT) 타이밍 | LAA |
+| unemployment rate | 실업률 | |
+| real assets / REITs / commodities | 실물자산 / 리츠 / 원자재 | |
+| T-bills | 1–3개월 미국 국채 | |
+| intermediate / short Treasuries | 중기 국채 / 단기 국채 | |
+| TIPS | 미국 물가연동국채(TIPS) | |
 
 ## 시장·거래
 

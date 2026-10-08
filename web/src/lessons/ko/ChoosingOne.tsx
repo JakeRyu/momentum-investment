@@ -60,7 +60,7 @@ export default function ChoosingOne() {
         ETF가 총 몇 종류인지를 뜻합니다.
       </p>
 
-      <StrategyComparison tableOnly />
+      <StrategyComparison tableOnly linkPrefix="/ko" />
 
       <h2>실제로 차이를 만드는 것</h2>
 

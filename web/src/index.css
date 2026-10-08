@@ -1130,6 +1130,14 @@ hr {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* The Korean contents page's strategy list, below the lessons. */
+.learn__strategies {
+  margin-top: 56px;
+}
+/* A three-letter strategy name in the slot a lesson number takes. */
+.learn__number--short {
+  font-size: 18px;
+}
 .learn__title {
   display: block;
   font-family: var(--display);
@@ -2331,8 +2339,52 @@ hr {
   font-family: var(--body);
   word-break: keep-all;
 }
-[lang='ko'] :is(h1, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
+[lang='ko'] :is(h1, .section-title, .app-promo__body, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
   font-style: normal;
+}
+
+/* Korean strategy pages. The title is the English name, so it keeps the
+   English page's italic; the Korean lede stands upright, and a Hangul
+   syllable makes no drop cap. */
+.strategy-page[lang='ko'] h1:lang(en) {
+  font-style: italic;
+}
+.strategy-page[lang='ko'] .strategy-page__lede {
+  font-style: normal;
+  /* keep-all leaves a short Korean line few break points, so justifying
+     it opens wide gaps between words. */
+  text-align: left;
+}
+.strategy-page[lang='ko'] .strategy-page__lede::first-letter {
+  float: none;
+  font: inherit;
+  margin: 0;
+  color: inherit;
+}
+.strategy-page__now h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 28px;
+  margin: 0 0 12px;
+}
+.strategy-page__now p {
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 60ch;
+  margin: 0 0 12px;
+}
+.strategy-page__now a {
+  color: var(--red);
+}
+.strategy-page__lessons {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: -4px 0 16px;
+  padding-left: 20px;
+}
+.strategy-page__disclaimer {
+  font-size: 14px;
+  color: var(--ink-soft);
 }
 
 .learn__intro {
