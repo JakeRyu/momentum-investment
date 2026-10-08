@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 
+import AMonthWorkedThrough from './AMonthWorkedThrough';
 import ChoosingOne from './ChoosingOne';
 import OneSignalAMonth from './OneSignalAMonth';
 import RunningIt from './RunningIt';
@@ -91,6 +92,14 @@ export const LESSONS: readonly Lesson[] = [
     summary:
       'What the first day looks like, what each month looks like, and where the site stops.',
     Body: RunningIt,
+  },
+  {
+    slug: 'a-month-worked-through',
+    number: 9,
+    title: 'One month, worked through',
+    summary:
+      'A real DAA rebalance in a broker app, screen by screen — with the money blanked out.',
+    Body: AMonthWorkedThrough,
   },
 ];
 
