@@ -63,7 +63,10 @@ description, `path` = the Korean URL, and `alternates` pairing it with
 ## Content
 
 `web/src/strategies.ko.ts` holds, per `StrategyId`, a Korean `tagline`
-and `longDescription: string[]`. `strategies.ts` is not touched.
+and `longDescription: string[]`. `strategies.ts` is not touched, with one
+exception: the final review found that its PAA sentence ("ramps defensive
+at n ≤ 3") reads as where de-risking starts, when it is where the bond
+fraction reaches 100%. The user asked for it to be fixed on this branch.
 
 The text is a Korean edition, not a line-by-line translation, as the
 lessons were. Facts and numbers must match the English description and
