@@ -33,6 +33,7 @@
 | de-risk | 위험 축소 | 표 머리글 *De-risks*는 영어로 두고 설명만 번역 |
 | defensive / go defensive | 방어 / 방어로 전환 | |
 | offensive | 공격 | |
+| risky asset | 위험자산 | 레슨 9. cash asset은 기존대로 현금성 자산 |
 | rotate out of stocks | 주식에서 빠져나오다 | |
 | allocation | 배분 | "in-force allocation" → 현재 유효한 배분 |
 | rebalance | 리밸런싱 | |
@@ -57,6 +58,7 @@
 | share | 주식 | |
 | position / holding | 보유 / 보유 종목 | |
 | financial promotion | 금융 판촉물(financial promotion) | UK 규제 용어라 원어 병기 |
+| pie (Trading 212) | pie | 레슨 9. 증권사 화면의 UI 이름이라 영어 그대로 |
 
 ## 문체
 

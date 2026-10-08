@@ -1,5 +1,6 @@
 import type { Lesson } from '../index'
 
+import AMonthWorkedThrough from './AMonthWorkedThrough'
 import ChoosingOne from './ChoosingOne'
 import OneSignalAMonth from './OneSignalAMonth'
 import RunningIt from './RunningIt'
@@ -72,5 +73,12 @@ export const LESSONS_KO: readonly Lesson[] = [
     title: '실제로 운용하기',
     summary: '첫날은 어떤 모습인지, 매달은 어떤 모습인지, 그리고 사이트가 어디까지 해 주는지.',
     Body: RunningIt,
+  },
+  {
+    slug: 'a-month-worked-through',
+    number: 9,
+    title: '한 달, 실제로 해 보기',
+    summary: '실제 계좌의 DAA 리밸런싱을 증권사 앱 화면 순서대로 따라갑니다. 금액은 가렸습니다.',
+    Body: AMonthWorkedThrough,
   },
 ]

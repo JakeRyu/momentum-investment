@@ -1601,6 +1601,15 @@ hr {
   margin-bottom: 16px;
 }
 
+/* Phone screenshots, lesson 9. Kept to a phone's own width so a dark
+   app screen sits in the column as an exhibit, not as the page. */
+.shot img {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
 /* ── Lesson 1: recovery asymmetry ── */
 
 .recovery__rows {
