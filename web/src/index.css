@@ -1130,6 +1130,10 @@ hr {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+/* A three-letter strategy name in the slot a lesson number takes. */
+.learn__number--short {
+  font-size: 18px;
+}
 .learn__title {
   display: block;
   font-family: var(--display);

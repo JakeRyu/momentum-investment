@@ -355,6 +355,25 @@ describe('Korean strategy pages', () => {
     expect(screen.getByRole('link', { name: '한국어' })).toHaveAttribute('href', '/ko/strategies/vaa')
   })
 
+  it('is listed on the Korean contents page', () => {
+    const { container } = renderAt('/ko/learn')
+    const list = container.querySelector('#strategies')
+    expect(list).not.toBeNull()
+    for (const s of STRATEGIES) {
+      expect(list?.querySelector(`a[href="/ko/strategies/${s.id}"]`), s.id).not.toBeNull()
+    }
+  })
+
+  it('no longer tells Korean readers the strategy pages are English only', () => {
+    const { container } = renderAt('/ko/learn')
+    expect(container.textContent).not.toMatch(/전략 페이지는 영어로 되어 있고/)
+  })
+
+  it('leaves the English contents page without a strategy list', () => {
+    const { container } = renderAt('/learn')
+    expect(container.querySelector('#strategies')).toBeNull()
+  })
+
   it('carries the Korean disclaimer', () => {
     const { container } = renderAt('/ko/strategies/vaa')
     expect(container.textContent).toMatch(/투자 자문이 아닙니다/)
