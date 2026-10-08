@@ -34,7 +34,7 @@ function renderAt(path: string) {
   )
 }
 
-describe('URLs the iPhone app links to', () => {
+describe('URLs the app links to', () => {
   // HomeScreen.tsx:91 — "How these strategies work →"
   it('serves the landing page', () => {
     const { container } = renderAt('/')
@@ -47,7 +47,7 @@ describe('URLs the iPhone app links to', () => {
     expect(container.querySelector('.not-found')).toBeNull()
   })
 
-  // App Store listing — privacy policy URL
+  // App Store and Google Play listings — privacy policy URL
   it('serves the privacy page', () => {
     const { container } = renderAt('/privacy')
     expect(container.querySelector('.not-found')).toBeNull()

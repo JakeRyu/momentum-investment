@@ -36,6 +36,10 @@ export default function Layout() {
           advice — Past performance does not predict future results —{' '}
           <Link to="/privacy">Privacy</Link>
         </p>
+        <p>
+          App Store is a service mark of Apple Inc. Google Play and the Google
+          Play logo are trademarks of Google LLC.
+        </p>
         <p className="papers">
           Papers ·{' '}
           {STRATEGIES.map((s, i) => (

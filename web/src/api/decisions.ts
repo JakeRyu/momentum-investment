@@ -4,7 +4,7 @@
  *
  * The universe is the server's — it reads its own canonical records, so
  * nothing here sends tickers. This site runs the papers' US universe as
- * published and has no substitutions to make; the iPhone app is what
+ * published and has no substitutions to make; the app is what
  * sends `substitute` pairs for a holder's local UCITS alternatives.
  */
 import type { Strategy, StrategyId } from '../strategies'
