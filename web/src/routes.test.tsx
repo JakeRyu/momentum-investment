@@ -305,7 +305,9 @@ describe('Korean strategy pages', () => {
     const { container } = renderAt(`/ko/strategies/${id}`)
     expect(container.querySelector('.not-found')).toBeNull()
     expect(container.querySelector('article')).toHaveAttribute('lang', 'ko')
-    expect(container.querySelector('.decision, .decision-banner, .app-promo')).toBeNull()
+    expect(container.querySelector('.decision, .decision-banner')).toBeNull()
+    // The English promo sells the UK mapping; the Korean box is its own.
+    expect(container.textContent).not.toMatch(/US Universe/)
     expect(fetch).not.toHaveBeenCalled()
     vi.unstubAllGlobals()
   })
@@ -343,10 +345,27 @@ describe('Korean strategy pages', () => {
     )
   })
 
+  it('lists the recommended lessons one per line', () => {
+    const { container } = renderAt('/ko/strategies/daa')
+    const items = container.querySelectorAll('.strategy-page__lessons li')
+    expect([...items].map((li) => li.textContent)).toEqual([
+      '모멘텀이란 무엇인가',
+      '시장 폭이 더해 주는 것',
+      '한 달에 신호 하나',
+    ])
+  })
+
   it('links both app stores, with nothing UK-specific', () => {
     const { container } = renderAt('/ko/strategies/haa')
-    expect(screen.getByRole('link', { name: /App Store/ })).toHaveAttribute('href', APP_STORE_URL)
-    expect(screen.getByRole('link', { name: /Google Play/ })).toHaveAttribute('href', PLAY_STORE_URL)
+    const appStore = screen.getByRole('link', { name: /App Store/ })
+    const play = screen.getByRole('link', { name: /Google Play/ })
+    expect(appStore).toHaveAttribute('href', APP_STORE_URL)
+    expect(play).toHaveAttribute('href', PLAY_STORE_URL)
+    // The same buttons, in the same box, as the English strategy page.
+    for (const link of [appStore, play]) {
+      expect(link).toHaveClass('app-promo__cta')
+      expect(link.closest('.app-promo')).not.toBeNull()
+    }
     expect(container.textContent).not.toMatch(/UCITS|\bUK\b|영국/)
   })
 

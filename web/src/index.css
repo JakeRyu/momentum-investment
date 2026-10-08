@@ -2339,7 +2339,7 @@ hr {
   font-family: var(--body);
   word-break: keep-all;
 }
-[lang='ko'] :is(h1, .section-title, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
+[lang='ko'] :is(h1, .section-title, .app-promo__body, .lesson__body h2, .learn__lede, .learn__title, .lesson__pager, .lesson__body em) {
   font-style: normal;
 }
 
@@ -2375,6 +2375,12 @@ hr {
 }
 .strategy-page__now a {
   color: var(--red);
+}
+.strategy-page__lessons {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: -4px 0 16px;
+  padding-left: 20px;
 }
 .strategy-page__disclaimer {
   font-size: 14px;

@@ -81,17 +81,6 @@ export default function KoStrategyPage() {
         <p>
           <Link to={english}>{strategy.shortName} 영어 페이지에서 확인하기 →</Link>
         </p>
-        <p>
-          앱으로도 볼 수 있습니다. 앱의 Holding 화면은 언제 열어도 직전
-          월말의 결과를 보여 주고, 이번 달에 리밸런싱했는지도 기록해 둡니다.
-          앱은 아이폰과 안드로이드 모두 <strong>무료</strong>입니다.{' '}
-          <a href={APP_STORE_URL} target="_blank" rel="noreferrer">
-            {APP_STORE_CTA} →
-          </a>{' '}
-          <a href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
-            {PLAY_STORE_CTA} →
-          </a>
-        </p>
         <LessonLinks strategy={strategy} />
         <p className="strategy-page__disclaimer">
           이 사이트는 교육용 자료이며 투자 자문이 아닙니다. 과거 성과는 미래
@@ -99,6 +88,26 @@ export default function KoStrategyPage() {
           본인에게 있습니다.
         </p>
       </section>
+
+      {/* The English page's promo box and buttons, without its pitch: that
+          one sells the UK UCITS mapping, and the app opens on the US
+          funds a Korean reader buys. */}
+      <aside className="app-promo">
+        <p className="app-promo__tag">Monthly Rule 앱</p>
+        <p className="app-promo__body">
+          앱으로도 볼 수 있습니다. 앱의 Holding 화면은 언제 열어도 직전
+          월말의 결과를 보여 주고, 이번 달에 리밸런싱했는지도 기록해 둡니다.
+          아이폰과 안드로이드 모두 무료입니다.
+        </p>
+        <div className="app-promo__ctas">
+          <a className="app-promo__cta" href={APP_STORE_URL} target="_blank" rel="noreferrer">
+            {APP_STORE_CTA} →
+          </a>
+          <a className="app-promo__cta" href={PLAY_STORE_URL} target="_blank" rel="noreferrer">
+            {PLAY_STORE_CTA} →
+          </a>
+        </div>
+      </aside>
 
       <p className="back-link">
         <Link to="/ko/learn#strategies">← 여섯 전략</Link>
@@ -117,14 +126,15 @@ function LessonLinks({ strategy }: { strategy: Strategy }) {
   const lessons = slugs.flatMap((slug) => findCourseLesson('ko', slug) ?? [])
 
   return (
-    <p>
-      처음이라면 강의에서 먼저 읽어 보세요.{' '}
-      {lessons.map((l, i) => (
-        <span key={l.slug}>
-          {i > 0 && ' · '}
-          <Link to={`/ko/learn/${l.slug}`}>{l.title}</Link>
-        </span>
-      ))}
-    </p>
+    <>
+      <p>처음이라면 강의에서 먼저 읽어 보세요.</p>
+      <ul className="strategy-page__lessons">
+        {lessons.map((l) => (
+          <li key={l.slug}>
+            <Link to={`/ko/learn/${l.slug}`}>{l.title}</Link>
+          </li>
+        ))}
+      </ul>
+    </>
   )
 }
